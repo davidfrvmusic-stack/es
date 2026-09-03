@@ -82,18 +82,29 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   transform:translateX(-50%) scale(1.18);z-index:3}
 .ch-bob{animation:bob calc(var(--beat)*2) ease-in-out infinite;transform-box:fill-box;transform-origin:bottom center}
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3.5px)}}
-.ch-armA{animation:armA var(--beat) ease-in-out infinite;transform-box:fill-box;transform-origin:top center}
-.ch-armB{animation:armB var(--beat) ease-in-out infinite;transform-box:fill-box;transform-origin:top center}
-@keyframes armA{0%,100%{transform:rotate(-20deg)}50%{transform:rotate(14deg)}}
-@keyframes armB{0%,100%{transform:rotate(16deg)}50%{transform:rotate(-18deg)}}
-.ch-strum{animation:strum var(--beat) ease-in-out infinite;transform-box:fill-box;transform-origin:top center}
-@keyframes strum{0%,100%{transform:rotate(-9deg)}50%{transform:rotate(9deg)}}
+/* playing motions. transform-box:view-box lets each limb pivot on its own shoulder
+   in viewBox coordinates, so hands actually land on the instrument. */
+.pl-l,.pl-r,.pl-strum,.pl-fret,.pl-mic,.pl-free{transform-box:view-box}
+.pl-l{animation:stickL var(--beat) ease-in-out infinite;transform-origin:31px 60px}
+.pl-r{animation:stickR var(--beat) ease-in-out infinite;transform-origin:69px 60px}
+@keyframes stickL{0%,100%{transform:rotate(-15deg)}50%{transform:rotate(12deg)}}
+@keyframes stickR{0%,100%{transform:rotate(13deg)}50%{transform:rotate(-14deg)}}
+.pl-strum{animation:strum calc(var(--beat)/2) ease-in-out infinite;transform-origin:68px 60px}
+@keyframes strum{0%,100%{transform:rotate(-11deg)}50%{transform:rotate(9deg)}}
+.pl-fret{animation:fret calc(var(--beat)*2) ease-in-out infinite;transform-origin:32px 60px}
+@keyframes fret{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(4deg)}}
+.pl-mic{animation:micArm calc(var(--beat)*2) ease-in-out infinite;transform-origin:68px 60px}
+@keyframes micArm{0%,100%{transform:rotate(0deg)}50%{transform:rotate(-5deg)}}
+.pl-free{animation:freeArm calc(var(--beat)*2) ease-in-out infinite;transform-origin:32px 60px}
+@keyframes freeArm{0%,100%{transform:rotate(6deg)}50%{transform:rotate(-16deg)}}
+.ch-sing{animation:sing var(--beat) ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes sing{0%,100%{transform:scaleY(.3)}45%{transform:scaleY(1)}}
 .ch-head{transform-box:fill-box;transform-origin:bottom center}
 .mem.nod .ch-head{animation:nod .5s ease-in-out 2}
 @keyframes nod{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(2.5px) rotate(3deg)}}
 .mem.wince .ch-head{animation:wince .45s ease-in-out 2}
 @keyframes wince{0%,100%{transform:rotate(0)}30%{transform:rotate(-8deg) translateX(-2px)}70%{transform:rotate(6deg)}}
-.paused .ch-bob,.paused .ch-armA,.paused .ch-armB,.paused .ch-strum{animation-play-state:paused}
+.paused *{animation-play-state:paused}
 
 .bubble{position:absolute;top:-4px;left:50%;transform:translate(-50%,-100%) scale(.6);opacity:0;
   background:#fff;color:#170f2b;font-size:10.5px;font-weight:900;letter-spacing:.03em;
@@ -218,6 +229,12 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   background:var(--panel);border-radius:22px 22px 0 0;border:1px solid var(--line);border-bottom:0;
   transform:translateY(102%);transition:transform .3s cubic-bezier(.22,1,.36,1);padding-bottom:var(--safe-b)}
 #sheet.on{transform:translateY(0)}
+/* the Band tab is a full screen, not a panel */
+#sheet.full{top:0;max-height:none;border-radius:0;border-left:0;border-right:0;
+  padding-top:var(--safe-t)}
+#sheet.full .grab{display:none}
+#sheet.full .shhead{padding-top:14px}
+#sheet.full .shhead h2{font-size:21px}
 .grab{width:38px;height:4px;border-radius:3px;background:rgba(255,255,255,.22);margin:8px auto 0}
 .shhead{display:flex;align-items:center;padding:12px 16px 10px;gap:10px;flex:0 0 auto}
 .shhead h2{font-size:17px;font-weight:900}
@@ -233,7 +250,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .card .info{flex:1;min-width:0}
 .card .t{font-size:14px;font-weight:800;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .card .d{font-size:11px;color:var(--dim);margin-top:2px;font-weight:600;
-  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .rar{font-size:8.5px;font-weight:900;letter-spacing:.09em;padding:2px 6px;border-radius:5px;
   background:rgba(255,255,255,.1);color:var(--dim)}
 .buy{flex:0 0 auto;min-width:80px;padding:9px 10px;border-radius:12px;text-align:center;
@@ -344,12 +361,12 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
       <div class="rate money">
         <div class="rl">money</div>
         <div class="rv num" id="money">0</div>
-        <div class="rs num" id="mps">+0.10/s</div>
+        <div class="rs num" id="mps">+1/s</div>
       </div>
       <div class="rate">
         <div class="rl">streams</div>
         <div class="rv num" id="streams">0</div>
-        <div class="rs num" id="sps">+1.0/s</div>
+        <div class="rs num" id="sps">+0/s</div>
       </div>
       <button id="muteBtn" aria-label="Sound">🔊</button>
     </div>
@@ -499,9 +516,10 @@ const BAL = {
   soloQ: [20, 50],        // deliberately slow: solo demos are a trickle that rewards
   soloMaxOffline: 12,     // coming back, never the main income. Player songs are the engine.
   payoutSecs: 90,         // release payout = this many seconds of the song's streams
-  streamScale: 2.0,
-  baseSPS: 0.10,          // the band's floor before any member or song
-  payoutBase: 0.10,       // money/sec = streams/sec x this
+  songScale: 1.5,
+  gigBase: 1.0,           // money/sec from playing live, before any release exists
+  gigPerMember: 0.5,      // each extra member makes the gigs pay better
+  payoutBase: 0.10,       // money/sec = gig money + streams/sec x this
   payoutStep: 0.02,       // each Royalty Rate upgrade adds this
   payoutCost: 60, payoutGrow: 1.7,
   // Member prices attach to PURCHASE ORDER, not to role, so no role is a dominant
@@ -627,27 +645,49 @@ function cardPoints(card, genre, prev){
   return 25 * (BAL.wGenre * gf + BAL.wCoher * ch + BAL.wBase * card.b);
 }
 
-/* ===== TRENDS (rotate weekly, shown on Catalog) ===== */
-let trendCache = null;
-const weekIndex = () => Math.floor(Date.now() / (7 * 864e5));
-function trends(){
-  const w = weekIndex();
-  if (trendCache && trendCache.w === w) return trendCache.map;
-  const r = mulberry32(w * 7919 + 13);
-  const idx = GENRES.map((g,i) => i);
-  for (let i = idx.length - 1; i > 0; i--){ const j = Math.floor(r() * (i + 1)); const t = idx[i]; idx[i] = idx[j]; idx[j] = t; }
-  const map = {};
-  idx.forEach((gi, pos) => {
-    if (pos === 0) map[gi] = { m:2.2, n:'HOT', c:'#ff2e83' };
-    else if (pos <= 2) map[gi] = { m:1.5, n:'RISING', c:'#ffc23d' };
-    else if (pos >= idx.length - 2) map[gi] = { m:0.55, n:'COLD', c:'#4ea8de' };
-    else map[gi] = { m:1, n:'', c:'' };
-  });
-  trendCache = { w, map };
-  return map;
+/* ===== TRENDS: every genre has heat that drifts, peaks and fades — and your hits push it =====
+   Status is heat plus direction, so the same heat reads RISING on the way up and
+   FADING on the way down. */
+const TRENDS = [
+  { n:'COLD',   m:0.60, c:'#4ea8de' },
+  { n:'FADING', m:0.90, c:'#9d93c4' },
+  { n:'RISING', m:1.35, c:'#ffc23d' },
+  { n:'HOT',    m:2.20, c:'#ff2e83' }
+];
+function trendOf(gi){
+  const h = S.heat[gi], v = S.heatVel[gi];
+  if (h >= 70) return TRENDS[3];
+  if (h >= 38) return v >= 0 ? TRENDS[2] : TRENDS[1];
+  return TRENDS[0];
 }
-const trendOf = gi => trends()[gi] || { m:1, n:'', c:'' };
-const nextRotation = () => (weekIndex() + 1) * 7 * 864e5 - Date.now();
+const trendName = gi => trendOf(gi).n;
+/* one simulated minute of the trend cycle */
+function stepTrends(minutes){
+  minutes = Math.min(minutes, 1440);                  // bound the offline catch-up
+  for (let i = 0; i < GENRES.length; i++){
+    let h = S.heat[i], v = S.heatVel[i];
+    for (let m = 0; m < minutes; m++){
+      v += (Math.random() - 0.48) * 0.85;
+      if (h > 82) v -= 0.55;                          // nothing stays on top
+      if (h < 12) v += 0.45;                          // nothing stays dead
+      v = clamp(v, -3, 3);
+      h += v;
+      if (h < 0){ h = 0; v = Math.abs(v) * 0.5; }
+      if (h > 100){ h = 100; v = -Math.abs(v) * 0.5; }
+    }
+    S.heat[i] = h; S.heatVel[i] = v;
+  }
+}
+/* a release pushes its genre's heat — a strong song in a RISING genre can make it HOT */
+const TIER_HEAT = [0.15, 0.5, 2.0, 4.0, 8.0];
+function pushHeat(gi, q, ti){
+  const before = trendName(gi);
+  const gain = (2 + 6 * (q / 100)) * TIER_HEAT[ti];
+  S.heat[gi] = clamp(S.heat[gi] + gain, 0, 100);
+  S.heatVel[gi] = Math.max(S.heatVel[gi], 0) + gain * 0.08;   // your hit gives it momentum
+  const after = trendName(gi);
+  return { gain, before, after, changed: before !== after };
+}
 
 /* ===== CONTENT (seeded local generator; LLM later, cached) ===== */
 const GEN = {
@@ -734,6 +774,9 @@ function accSVG(acc, col){
     default: return '';
   }
 }
+/* a jointed limb: shoulder -> elbow -> hand, drawn as one round-capped stroke */
+const limb = (sk, pts, w) => `<path d="M${pts}" stroke="${sk}" stroke-width="${w||9}" fill="none"
+  stroke-linecap="round" stroke-linejoin="round"/>`;
 /* One character: role 0..3, drawn to a 100x130 box standing on the floor. */
 function charSVG(role, look, rarity, locked){
   if (locked){
@@ -754,54 +797,60 @@ function charSVG(role, look, rarity, locked){
   const jacket = rarity >= 1 ? `<rect x="30" y="56" width="9" height="40" rx="4" fill="${fit[1]}"/><rect x="61" y="56" width="9" height="40" rx="4" fill="${fit[1]}"/>` : '';
   const studs = rarity >= 2 ? `<circle cx="35" cy="61" r="2.2" fill="#fff" opacity=".85"/><circle cx="65" cy="61" r="2.2" fill="#fff" opacity=".85"/>` : '';
   const trim = rarity >= 3 ? `<rect x="46" y="56" width="8" height="42" rx="3" fill="${fit[1]}" opacity=".9"/>` : '';
+  const mouth = role === 3
+    ? `<ellipse class="ch-sing" cx="50" cy="46" rx="3.6" ry="3.4" fill="#1a1226"/>`
+    : `<path d="M45 46q5 4 10 0" stroke="#1a1226" stroke-width="2" fill="none" stroke-linecap="round"/>`;
   const head = `<g class="ch-head"><circle cx="50" cy="38" r="17" fill="${sk}"/>
       <circle cx="44" cy="38" r="2.1" fill="#1a1226"/><circle cx="56" cy="38" r="2.1" fill="#1a1226"/>
-      <path d="M45 46q5 4 10 0" stroke="#1a1226" stroke-width="2" fill="none" stroke-linecap="round"/>
-      ${hairSVG(look.hs, hc)}${accSVG(look.ac, fit[1])}</g>`;
+      ${mouth}${hairSVG(look.hs, hc)}${accSVG(look.ac, fit[1])}</g>`;
   const legs = `<rect x="38" y="92" width="9" height="32" rx="4" fill="#241d3e"/>
       <rect x="53" y="92" width="9" height="32" rx="4" fill="#241d3e"/>
       <rect x="35" y="122" width="14" height="6" rx="3" fill="#15101f"/>
       <rect x="51" y="122" width="14" height="6" rx="3" fill="#15101f"/>`;
   const torso = `<rect x="32" y="54" width="36" height="44" rx="11" fill="${fit[0]}"/>${jacket}${trim}${studs}`;
 
-  if (role === 0){   // DRUMMER — behind the kit, sticks moving
+  if (role === 0){   // DRUMMER — sticks swing down onto the kit, alternating
     return `<svg viewBox="0 0 100 130" aria-hidden="true"${glow}>${aura}
-      <g class="ch-bob">${legs}${torso}
-        <g class="ch-armA"><rect x="20" y="56" width="9" height="30" rx="4.5" fill="${sk}"/>
-          <rect x="8" y="80" width="26" height="3" rx="1.5" fill="#e8d9b0" transform="rotate(-22 21 81)"/></g>
-        <g class="ch-armB"><rect x="71" y="56" width="9" height="30" rx="4.5" fill="${sk}"/>
-          <rect x="66" y="80" width="26" height="3" rx="1.5" fill="#e8d9b0" transform="rotate(22 79 81)"/></g>
-        ${head}</g>
-      <ellipse cx="50" cy="112" rx="25" ry="18" fill="#2a1f4d"/>
-      <ellipse cx="50" cy="112" rx="14" ry="10" fill="#3b2c6b"/>
-      <ellipse cx="22" cy="96" rx="12" ry="8" fill="#332752"/><ellipse cx="78" cy="96" rx="12" ry="8" fill="#332752"/>
-      <ellipse cx="14" cy="74" rx="14" ry="3" fill="#c9a227"/><ellipse cx="86" cy="74" rx="14" ry="3" fill="#c9a227"/>
+      <g class="ch-bob">${legs}${torso}${head}</g>
+      <ellipse cx="50" cy="113" rx="25" ry="18" fill="#2a1f4d"/>
+      <ellipse cx="50" cy="113" rx="14" ry="10" fill="#3b2c6b"/>
+      <ellipse cx="22" cy="97" rx="12" ry="8" fill="#332752"/><ellipse cx="78" cy="97" rx="12" ry="8" fill="#332752"/>
+      <ellipse cx="13" cy="76" rx="13" ry="3" fill="#c9a227"/><ellipse cx="87" cy="76" rx="13" ry="3" fill="#c9a227"/>
+      <g class="pl-l">${limb(sk, '34 61 L24 77 L41 90')}
+        <path d="M41 90 L57 99" stroke="#e8d9b0" stroke-width="3.4" stroke-linecap="round"/></g>
+      <g class="pl-r">${limb(sk, '66 61 L76 77 L59 90')}
+        <path d="M59 90 L43 99" stroke="#e8d9b0" stroke-width="3.4" stroke-linecap="round"/></g>
     </svg>`;
   }
-  if (role === 3){   // VOCALIST — mic stand, one hand up
+  if (role === 3){   // VOCALIST — mic held to the mouth, jaw moving on the beat
     return `<svg viewBox="0 0 100 130" aria-hidden="true"${glow}>${aura}
-      <g class="ch-bob">${legs}${torso}
-        <rect x="23" y="58" width="9" height="32" rx="4.5" fill="${sk}"/>
-        <g class="ch-strum"><rect x="68" y="40" width="9" height="26" rx="4.5" fill="${sk}"/></g>
-        ${head}</g>
-      <rect x="76" y="42" width="3" height="86" rx="1.5" fill="#3a3160"/>
-      <circle cx="77" cy="40" r="6" fill="#4a4078"/><circle cx="77" cy="39" r="3" fill="#8d84c0"/>
+      <rect x="82" y="46" width="3" height="82" rx="1.5" fill="#3a3160"/>
+      <rect x="74" y="44" width="12" height="3" rx="1.5" fill="#3a3160"/>
+      <g class="ch-bob">${legs}${torso}${head}
+        <g class="pl-free">${limb(sk, '34 61 L24 71 L29 53')}</g>
+        <g class="pl-mic">${limb(sk, '66 61 L77 71 L64 53')}
+          <rect x="58" y="45" width="9" height="13" rx="4.5" fill="#3f3768" transform="rotate(-32 62 51)"/>
+          <circle cx="59" cy="46" r="4.8" fill="#8d84c0"/></g>
+      </g>
     </svg>`;
   }
-  // BASSIST (1) / GUITARIST (2) — instrument slung across the body
+  // BASSIST (1) / GUITARIST (2) — body under the strumming hand, neck under the fretting hand
   const big = role === 1;
   const bodyC = big ? '#7a5cff' : '#00c9ab', neckC = '#4a3a22';
+  const bx = 60, by = 96, brx = big ? 17 : 14, bry = big ? 13 : 11;   // body sits under the strumming hand
+  const hx = big ? 24 : 27, hy = big ? 52 : 56;                       // headstock
   return `<svg viewBox="0 0 100 130" aria-hidden="true"${glow}>${aura}
-    <g class="ch-bob">${legs}${torso}
-      <rect x="23" y="58" width="9" height="30" rx="4.5" fill="${sk}"/>
-      ${head}
-      <g transform="rotate(${big ? -18 : -24} 50 92)">
-        <rect x="${big ? 46 : 48}" y="${big ? 40 : 46}" width="6" height="${big ? 50 : 44}" rx="2" fill="${neckC}"/>
-        <rect x="${big ? 43 : 45}" y="${big ? 34 : 40}" width="12" height="9" rx="2" fill="#2b2140"/>
-        <ellipse cx="49" cy="94" rx="${big ? 19 : 16}" ry="${big ? 14 : 12}" fill="${bodyC}"/>
-        <circle cx="49" cy="94" r="4" fill="#1b1430"/>
+    <g class="ch-bob">${legs}${torso}${head}
+      <g>
+        <path d="M${bx-2} ${by-4} L${hx+2} ${hy+2}" stroke="${neckC}" stroke-width="6" stroke-linecap="round"/>
+        <rect x="${hx-5}" y="${hy-6}" width="11" height="9" rx="2" fill="#2b2140"
+              transform="rotate(-40 ${hx} ${hy})"/>
+        <ellipse cx="${bx}" cy="${by}" rx="${brx}" ry="${bry}" fill="${bodyC}"/>
+        <circle cx="${bx}" cy="${by}" r="3.6" fill="#1b1430"/>
+        <path d="M${bx-2} ${by-4} L${hx+3} ${hy+3}" stroke="#e8dcc0" stroke-width="1" opacity=".5"/>
       </g>
-      <g class="ch-strum"><rect x="68" y="66" width="9" height="26" rx="4.5" fill="${sk}"/></g>
+      <g class="pl-fret">${limb(sk, '34 61 L26 73 L' + (hx+11) + ' ' + (hy+11))}</g>
+      <g class="pl-strum">${limb(sk, '66 61 L77 79 L' + bx + ' ' + (by-3))}</g>
     </g></svg>`;
 }
 
@@ -963,10 +1012,22 @@ const AU = {
 const SAVE_KEY = 'chartbreaker.v3', OLD_KEYS = ['chartbreaker.v2','chartbreaker.v1'];
 let S = null, disp = 0, dispM = 0, lastSave = 0, revealing = false, sheetTab = null;
 
+/* start with one genre hot and one clearly rising, so the first genre choice matters */
+function seedHeat(){
+  const h = GENRES.map(() => 10 + Math.random() * 45);
+  const a = rndi(0, GENRES.length - 1);
+  let b = rndi(0, GENRES.length - 1);
+  if (b === a) b = (b + 1) % GENRES.length;
+  h[a] = 74 + Math.random() * 10;
+  h[b] = 45 + Math.random() * 12;
+  return h;
+}
 function newState(){
   return {
     v:3, streams:0, money:0, lifetime:0, picks:0, songs:[], released:0,
     band:'', you:null, setup:false, payoutLvl:0,
+    heat: seedHeat(), heatVel: GENRES.map(() => (Math.random() - 0.4) * 1.5),
+    heatT: Date.now(),
     members: MEMBERS.map((m,i) => ({ lvl:1, rarity:0, owned:false, name:genName(),
                                      bio:pick(GEN.bios), look:newLook(), solo:0 })),
     studio:0, playtime:0, mute:false, seenReveal:false,
@@ -984,6 +1045,9 @@ function load(){
       s.members = MEMBERS.map((m,i) => Object.assign(base.members[i], (d.members||[])[i] || {}));
       s.members.forEach(m => { if (!m.look) m.look = newLook(); });
       s.flags = Object.assign(base.flags, d.flags || {});
+      if (!Array.isArray(s.heat) || s.heat.length !== GENRES.length){
+        s.heat = base.heat; s.heatVel = base.heatVel; s.heatT = Date.now();
+      }
       (s.songs||[]).forEach(x => GEN.used.add(x.title));
       return s;
     } catch(e){ return newState(); }
@@ -1012,7 +1076,7 @@ function load(){
     (old.songs || []).slice(0, 80).forEach(o => {
       const ti = o.t != null ? o.t : Math.max(0, TIERS.findIndex(t => t.id === o.tier));
       s.songs.push({ title:o.title, g:o.g || 0, q:o.q || 45, t:ti, chart:o.chart || 120,
-                     cover:o.cover || newCover(), raw:(o.raw != null ? o.raw : (o.sps || 0.5)),
+                     cover:o.cover || newCover(), base:baseFor(o.q || 45, ti),
                      at:o.at || Date.now(), by:o.by || null });
       GEN.used.add(o.title);
     });
@@ -1031,20 +1095,25 @@ const nextMemberPrice = () => BAL.memberPrices[Math.min(boughtCount(), BAL.membe
                               * (boughtCount() >= BAL.memberPrices.length ? 8 : 1);
 const payoutRate = () => Math.round((BAL.payoutBase + BAL.payoutStep * S.payoutLvl) * 1000) / 1000;
 const payoutUpCost = () => Math.floor(BAL.payoutCost * Math.pow(BAL.payoutGrow, S.payoutLvl));
-/* band power: the streams/sec the people themselves generate */
-function bandPower(){ let p = 0; for (let i = 0; i < 4; i++) if (S.members[i].owned) p += memberSPS(i); return p; }
+/* Members no longer emit streams on their own — songs do. A member's level is a
+   multiplier on the whole catalogue, so levelling still visibly moves streams/sec,
+   and a band with no releases streams nothing. */
+function bandMult(){ let p = 1; for (let i = 0; i < 4; i++) if (S.members[i].owned) p += memberSPS(i); return p; }
+const bandPower = bandMult;
 function decayOf(s){
   if (s.t >= 2) return 1;                                   // Hit or better never decays
   const days = (Date.now() - s.at) / 864e5;
   return Math.max(BAL.decayFloor, Math.pow(0.5, days / BAL.decayHalfDays));
 }
-const songSPS = s => s.raw * studioMult() * trendOf(s.g).m * decayOf(s);
+const songSPS = s => (s.base != null ? s.base : s.raw) * bandMult() * studioMult() * trendOf(s.g).m * decayOf(s);
 function catalogSPS(){ let t = 0; for (const s of S.songs) t += songSPS(s); return t; }
-/* the two headline rates */
-function totalSPS(){ return BAL.baseSPS + bandPower() + catalogSPS(); }
-const moneyRate = () => totalSPS() * payoutRate();
+/* the two headline rates. Streams come only from released songs — no songs, no streams.
+   Money has its own floor: the band gigs for cash long before it streams for it. */
+function totalSPS(){ return catalogSPS(); }
+const gigMoney = () => BAL.gigBase * (1 + BAL.gigPerMember * Math.max(0, ownedCount() - 1));
+const moneyRate = () => gigMoney() + totalSPS() * payoutRate();
 const qFactor = q => 0.25 + 1.75 * Math.pow(clamp(q,0,100) / 100, 1.6);
-const rawFor = (q, ti, power) => BAL.streamScale * power * qFactor(q) * TIERS[ti].mult;
+const baseFor = (q, ti) => BAL.songScale * qFactor(q) * TIERS[ti].mult;   // band/studio applied live
 const soloRate = i => (1 + 0.06 * (S.members[i].lvl - 1)) / BAL.soloSecs;   // fraction of a song per second
 function rollTier(q){
   const w = oddsFor(q), tot = w.reduce((a,b) => a+b, 0);
@@ -1057,7 +1126,7 @@ function qLabel(q){
 }
 function addSong(o){
   const s = { title:o.title, g:o.g, q:o.q, t:o.t, chart:o.chart, cover:o.cover,
-              raw:rawFor(o.q, o.t, o.power != null ? o.power : bandPower()), at:o.at || Date.now(), by:o.by || null };
+              base:baseFor(o.q, o.t), at:o.at || Date.now(), by:o.by || null };
   S.songs.unshift(s);
   if (S.songs.length > 200) S.songs.length = 200;
   return s;
@@ -1142,7 +1211,7 @@ function showDock(which){
 function renderIdle(){
   const n = S.songs.length;
   el.idleTitle.textContent = S.band || 'your band';
-  el.idleSong.textContent = n ? n + (n === 1 ? ' song out' : ' songs out') : 'no songs yet';
+  el.idleSong.textContent = n ? n + (n === 1 ? ' song out' : ' songs out') : 'no songs — no streams yet';
   el.writers.innerHTML = MEMBERS.map((m,i) => {
     const st = S.members[i];
     if (!st.owned) return `<div class="wrow" style="opacity:.55"><div class="nm">${esc(m.role)}</div>
@@ -1153,7 +1222,7 @@ function renderIdle(){
 }
 
 /* ===== LOOP ===== */
-let last = now(), uiClock = 0;
+let last = now(), uiClock = 0, trendClock = 0;
 function tick(){
   const t = now(), dt = Math.min(0.25, t - last); last = t;
   S.playtime += dt;
@@ -1172,9 +1241,13 @@ function tick(){
     }
   }
 
+  trendClock += dt;
+  if (trendClock >= 60){ stepTrends(Math.floor(trendClock / 60)); trendClock %= 60;
+    if (sheetTab === 'catalog') renderSheet('catalog'); }
+
   const sps = totalSPS();
   S.streams += sps * dt; S.lifetime += sps * dt;
-  S.money += sps * payoutRate() * dt;
+  S.money += moneyRate() * dt;
 
   // writing session clock
   const ss = S.session;
@@ -1268,16 +1341,17 @@ function startWriting(){
   if (S.pending || S.session) return;
   AU.init(); AU.resume(); AU.reset();
   S.session = { phase:'genre' };
-  const t = trends(), all = GENRES.map((g,i) => i);
-  const hot = all.filter(i => t[i].n === 'HOT');
-  const offer = hot.slice(0,1);
-  while (offer.length < 4){ const c = pick(all); if (!offer.includes(c)) offer.push(c); }
+  const all = GENRES.map((g,i) => i).sort((a,b) => S.heat[b] - S.heat[a]);
+  const offer = [all[0]];                                    // the hottest is always on the table
+  const rest = all.slice(1);
+  while (offer.length < 4 && rest.length) offer.push(rest.splice(rndi(0, rest.length - 1), 1)[0]);
   el.gpick.innerHTML = offer.map(gi => {
-    const tr = t[gi], f = genreFit(gi);
+    const tr = trendOf(gi), f = genreFit(gi);
     const fitTxt = f > 0.82 ? 'easy write' : f > 0.62 ? 'tricky' : 'hard write';
     return `<button class="gbtn" data-g="${gi}"><div class="gn">${GENRES[gi].n}
-      <div style="font-size:9.5px;font-weight:700;color:var(--dim);letter-spacing:0">${fitTxt} · x${tr.m} streams</div></div>
-      ${tr.n ? `<span class="trend" style="background:${tr.c}">${tr.n}</span>` : ''}</button>`;
+      <div style="font-size:9.5px;font-weight:700;color:var(--dim);letter-spacing:0">${fitTxt} · x${tr.m} streams${
+        tr.n === 'RISING' ? ' · a hit could tip it hot' : ''}</div></div>
+      <span class="trend" style="background:${tr.c}">${tr.n}</span></button>`;
   }).join('');
   showDock('genre');
 }
@@ -1467,6 +1541,7 @@ async function release(){
   S.streams += pay; S.lifetime += pay; S.released++;
   S.pending = null;
 
+  const heat = pushHeat(p.g, p.q, ti);
   const tv = $('#rvTier');
   tv.textContent = T.n; tv.style.color = T.c; tv.classList.add('pop');
   $('#rvPay').textContent = '+' + fmt(pay) + ' · ' + fmt(songSPS(song)) + '/s forever';
@@ -1476,6 +1551,8 @@ async function release(){
   if (ti >= 3){ el.stage.classList.add('shake'); setTimeout(() => el.stage.classList.remove('shake'), 550); }
   if (ti === 3){ S.picks += 20; toast('🎁 Viral! Crate — +20 Picks'); }
   if (ti === 4) toast('👑 Number one. That one never decays.');
+  if (heat.changed) toast('📈 ' + GENRES[p.g].n + ' is now ' + heat.after);
+  else if (heat.gain >= 6) toast('📈 You heated ' + GENRES[p.g].n + ' up');
   AU.chord(ti >= 2 ? 'big' : 'small');
 
   await wait(230);
@@ -1511,6 +1588,7 @@ function confetti(tier){
 const TAB_TITLES = { band:'Band', gear:'Gear', catalog:'Catalog', shop:'Shop', league:'League' };
 function openTab(t){
   sheetTab = t;
+  el.sheet.classList.toggle('full', t === 'band');
   el.shTitle.textContent = TAB_TITLES[t];
   renderSheet(t);
   el.sheet.classList.add('on'); el.scrim.classList.add('on');
@@ -1552,8 +1630,8 @@ function htmlBand(){
   let h = `<div class="sect">Your band</div>
     <div class="card"><div class="av" style="--c1:#ff2e83;--c2:#ff7a3d">🎤</div>
       <div class="info"><div class="t">${esc(S.band || 'Your Band')}</div>
-      <div class="d">${ownedCount()} of 4 slots filled · ${fmt(bandPower())}/s from the people
-        · ${fmt(catalogSPS())}/s from ${S.songs.length} songs</div></div>
+      <div class="d">${ownedCount()} of 4 slots filled · band multiplier x${fmt(bandMult())}
+        · ${fmt(catalogSPS())}/s from ${S.songs.length} songs · ${fmt(gigMoney())} money/s from gigs</div></div>
       <button class="buy alt" data-act="rename" data-i="-1">RENAME</button></div>`;
   h += `<div class="sect">Royalty rate</div>
     <div class="card"><div class="av" style="--c1:#ffc23d;--c2:#ff7a3d">💵</div>
@@ -1575,8 +1653,8 @@ function htmlBand(){
       const price = nextMemberPrice(), can = S.money >= price;
       h += `<div class="card ${can ? '' : 'locked'}"><div class="por">${charSVG(i, {sk:0,hs:0,hc:0,ac:0}, 0, true)}</div>
         <div class="info"><div class="t">${m.role}</div>
-        <div class="d">Empty slot · +${fmt(MEMBERS[i].sps)}/s per level · unlocks the
-          ${m.track.toLowerCase()} decision</div></div>
+        <div class="d">Empty slot · +${fmt(MEMBERS[i].sps)} band multiplier per level ·
+          unlocks the ${m.track.toLowerCase()} decision</div></div>
         <button class="buy ${can ? '' : 'no'}" data-act="hire" data-i="${i}">HIRE<small>${fmt(price)}</small></button></div>`;
       return;
     }
@@ -1586,32 +1664,35 @@ function htmlBand(){
     h += `<div class="card"><div class="por">${charSVG(i, st.look, st.rarity, false)}</div>
       <div class="info">
         <div class="t">${esc(st.name)} <span class="rar" style="color:${RARITY[st.rarity].c}">${RARITY[st.rarity].n}</span></div>
-        <div class="d">${m.role}${i === S.you ? ' · you' : ''} · Lv ${st.lvl} · +${fmt(memberSPS(i))}/s
+        <div class="d">${m.role}${i === S.you ? ' · you' : ''} · Lv ${st.lvl} · +${fmt(memberSPS(i))} multiplier
           · ${nCards} cards · hints ${Math.round(clamp(0.5+0.035*st.lvl,0.5,0.97)*100)}% clear</div>
         <div class="d" style="opacity:.75">${nextCard ? 'Lv ' + nextCard.lvl + ' unlocks "' + esc(nextCard.n) + '"' : esc(st.bio)}</div>
       </div>
       <button class="buy ${ok ? '' : 'no'}" data-act="lvl" data-i="${i}">LEVEL UP<small>${fmt(c)}</small></button>
       <button class="buy alt" data-act="rename" data-i="${i}">✎</button></div>`;
   });
-  h += `<div class="hint">Members add streams/sec directly and scale every song you release.<br>
+  h += `<div class="hint">Streams come only from released songs. Members multiply the whole
+    catalogue, so every level lifts every song you have ever put out — and the band earns
+    money from gigs whether or not anything is streaming.<br>
     Rarity, crates and merging arrive in a later build.</div>`;
   return h;
 }
 function htmlCatalog(){
-  const t = trends();
-  let h = '<div class="sect">This week\'s trends</div><div class="trendgrid">';
-  GENRES.forEach((g,i) => {
-    const tr = t[i];
-    h += `<span class="tpill" style="${tr.n ? 'color:' + tr.c + ';border-color:' + tr.c + '55' : ''}">${g.n} ${tr.m !== 1 ? 'x' + tr.m : ''}</span>`;
+  let h = '<div class="sect">Genre trends</div><div class="trendgrid">';
+  GENRES.map((g,i) => i).sort((a,b) => S.heat[b] - S.heat[a]).forEach(i => {
+    const tr = trendOf(i);
+    h += `<span class="tpill" style="color:${tr.c};border-color:${tr.c}55">${GENRES[i].n}
+      <b style="opacity:.75">${tr.n} x${tr.m}</b></span>`;
   });
-  h += `</div><div class="hint" style="padding:2px 0 12px">Rotates in ${dur(nextRotation()/1000)} — your back catalogue follows the trend.</div>`;
+  h += `</div><div class="hint" style="padding:2px 0 12px">Trends drift on their own — and a strong
+    release heats its genre up. Your back catalogue follows whatever is hot.</div>`;
   if (!S.songs.length) return h + '<div class="empty"><span class="big">💿</span>No songs yet.<br>Write one, or let the band finish a demo.</div>';
   h += `<div class="hint" style="padding-top:0">${S.songs.length} songs · ${fmt(totalSPS())}/s</div>`;
   S.songs.slice(0, 60).forEach(s => {
     const T = TIERS[s.t], dec = decayOf(s), tr = trendOf(s.g);
     h += `<div class="song"><div class="cover" style="background:${coverCSS(s.cover)}"><span>${esc(s.title.toUpperCase())}</span></div>
       <div class="info"><div class="t">${esc(s.title)}</div>
-      <div class="d">Q${s.q} · ${GENRES[s.g].n}${tr.n ? ' ' + tr.n : ''} · #${s.chart} · ${fmt(songSPS(s))}/s${
+      <div class="d">Q${s.q} · ${GENRES[s.g].n} <b style="color:${tr.c}">${tr.n}</b> · #${s.chart} · ${fmt(songSPS(s))}/s${
         s.t >= 2 ? '' : dec < 0.98 ? ' · ' + Math.round(dec*100) + '%' : ''}</div>
       ${s.by ? `<div class="d" style="opacity:.65">solo demo by ${esc(s.by.split(' ')[0])}</div>` : ''}</div>
       <div class="tierbadge" style="background:${T.c}">${T.n}</div></div>`;
@@ -1702,7 +1783,7 @@ function renderSetupRoles(){
   $('#setRoles').innerHTML = MEMBERS.map((m,i) =>
     `<button class="rolebtn ${i === setupRole ? 'sel' : ''}" data-r="${i}">
       <div class="rn">${m.role}</div>
-      <div class="rd">+${m.sps}/s per level<br>${CARDS[i].filter(c => c.lvl <= 1).slice(0,2).map(c => c.n).join(', ')}…</div>
+      <div class="rd">+${m.sps} band multiplier / level<br>${CARDS[i].filter(c => c.lvl <= 1).slice(0,2).map(c => c.n).join(', ')}…</div>
     </button>`).join('');
   $('#setPrev').innerHTML = charSVG(setupRole, setupLook, 0, false);
 }
@@ -1763,6 +1844,7 @@ function boot(){
   // what happened while you were gone: the band kept writing, the catalogue kept streaming
   const away = (Date.now() - (S.lastSeen || Date.now())) / 1000;
   if (S.setup && away > 60){
+    stepTrends(Math.floor(away / 60));
     const before = totalSPS();
     let wrote = 0;
     for (let i = 0; i < 4; i++){
@@ -1781,7 +1863,7 @@ function boot(){
     const capped = Math.min(away, BAL.offlineCap);
     const after = totalSPS();
     const earned = before * capped + (after - before) * capped * 0.5;
-    const earnedMoney = earned * payoutRate();
+    const earnedMoney = gigMoney() * capped + earned * payoutRate();
     if (earned > 1 || wrote){
       S.streams += earned; S.lifetime += earned; S.money += earnedMoney;
       disp = S.streams; dispM = S.money;

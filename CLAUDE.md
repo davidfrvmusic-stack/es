@@ -57,16 +57,21 @@ streams are your money. Grow from a garage to stadiums, then break up the band f
 permanent Legacy bonuses.
 
 ## 2. CHARACTERS
-4 band members drawn as animated **inline SVG** (no images): drummer behind a kit,
-bassist and guitarist holding instruments, vocalist with a mic stand. Idle bob tied
-to the song's BPM via the `--beat` CSS variable. Random look on unlock (skin tone,
+4 band members drawn as animated **inline SVG** (no images), and each one actually
+**plays**: the drummer's jointed arms swing sticks down onto the kit in alternation,
+bassist and guitarist fret with one hand and strum across the body with the other,
+the vocalist holds a mic to their mouth and their jaw moves. Limbs are round-capped
+stroked paths (shoulder → elbow → hand) inside groups with
+`transform-box: view-box`, so each pivots on its own shoulder in viewBox coordinates
+and the hands land on the instrument. Every motion's duration derives from the
+`--beat` variable, so the whole band plays to the song's BPM. Random look on unlock (skin tone,
 hair style, hair colour, accessory). Rarity changes the outfit style (jacket panels →
 shoulder studs → trim + glow → aura). Equipped gear will be drawn on the character.
 Locked members are a dark silhouette with a lock. Flat, bold, slightly cartoonish.
 
 ## 3. SONGWRITING SESSION (the core loop)
-- WRITE A SONG → pick a genre from 4 offered (the week's HOT genre is always one of
-  them), then a **20-second session**: one decision per *unlocked* track, in order
+- WRITE A SONG → pick a genre from 4 offered (the hottest genre is always one of
+  them, each showing its trend status and multiplier), then a **20-second session**: one decision per *unlocked* track, in order
   drums → bass → guitar → vocals.
 - Each decision deals **3 cards** ("Trap Hi-Hats" / "Punk Beat" / "Slow Groove").
   Every card carries a hidden `[energy, grit, polish]` vector. Card score =
@@ -100,28 +105,44 @@ one tier higher before settling. Skippable after the first reveal.
 The top bar shows both, each with its total and its rate. They are separate numbers
 with separate jobs: **streams are reach, money is what you spend.**
 
-    streams/sec = BAL.baseSPS (0.10) + Σ memberSPS(owned) + Σ songSPS(catalogue)
-    money/sec   = streams/sec × payoutRate        (starts 0.10)
+    streams/sec = Σ songSPS(catalogue)            starts at 0
+    money/sec   = gigMoney + streams/sec × payoutRate    starts at 1.0
 
-Both run offline. A fresh band with one member sits at ≈1.0 streams/sec and
-0.10 money/sec, exactly as the brief asks.
+**Streams come only from released songs.** A band with nothing out streams nothing,
+and the counter sits at 0 until the first release — streams are what a *record* does,
+not what a person does.
 
-- **Members generate streams directly** — `MEMBERS[i].sps × level × rarity` — as well
-  as scaling every song. So a level-up is visible in the top bar immediately.
+**Money has its own floor.** `gigMoney = 1.0 × (1 + 0.5 × (members − 1))` — the band
+plays live for cash. This is why money can start at 1.0/sec while streams start at 0;
+without it the two requirements contradict each other. It also gives hiring an
+immediate payoff before you have any catalogue.
+
+- **Members multiply the catalogue** — `bandMult = 1 + Σ (sps × level × rarity)` —
+  rather than emitting streams themselves. A level-up therefore lifts *every song you
+  have ever released*, retroactively, and shows in the top bar at once.
+- A song's `base` is fixed at release from Quality and chart tier; band multiplier,
+  studio, trend and decay are all applied **live**.
 - **payoutRate** rises `+0.02` per Royalty Rate upgrade (cost `60 × 1.7^n`). It is
   the multiplier on *everything*, so it stays worth buying forever.
 - **No passive money from tapping.** Every released song earns its own streams/sec:
 
-    raw   = 2.0 × bandPower(at release) × qFactor(Quality) × tierMultiplier
-    live  = raw × studioMultiplier × genreTrend(now) × decay(now)
+    base  = 1.5 × qFactor(Quality) × tierMultiplier          (fixed at release)
+    live  = base × bandMult × studioMultiplier × genreTrend(now) × decay(now)
 
 - `qFactor` = `0.25 + 1.75 × (Q/100)^1.6`.
 - **Decay:** songs below Hit halve every 3 days down to a 15% floor. Hit / Viral /
   #1 never decay — that is the reward for a big release.
-- **Genre trends rotate weekly**, seeded off the week index so they are stable for
-  everyone all week: 1 HOT (x2.2), 2 RISING (x1.5), 2 COLD (x0.55). Shown on the
-  Catalog tab. Trends apply *live* to the whole back catalogue, so an old disco
-  record booms when disco comes back around.
+- **Genre trends are a living cycle**, not a weekly shuffle. Every genre carries
+  `heat` (0–100) and a velocity that drifts each simulated minute; heat above 82 is
+  pushed down and below 12 is pushed up, so genres peak and fade on their own.
+  Status is heat **plus direction**: `COLD` (<38, x0.60), `RISING` (≥38 and climbing,
+  x1.35), `FADING` (≥38 and falling, x0.90), `HOT` (≥70, x2.20). The same heat reads
+  RISING on the way up and FADING on the way down.
+- **Your hits move the market.** Releasing pushes the genre's heat by
+  `(2 + 6×Q/100) × TIER_HEAT[tier]` and adds upward momentum, so a strong song in a
+  RISING genre can tip it HOT — verified: a Q92 Viral took a genre from RISING 55 to
+  HOT 85. Shown on the genre picker (with "a hit could tip it hot" on RISING ones)
+  and on the Catalog tab. Trends apply live to the whole back catalogue.
 - Release payout = 90 seconds of that song's streams, up front.
 
 ## 6. YOUR CHARACTER, AND HIRING THE REST
@@ -165,6 +186,9 @@ Formatting: 1.2K, 3.4M, 8.9B, 1.1T… Counters animate up.
 Top: two animated counters side by side — MONEY (total + /s) and STREAMS
 (total + /s) — then band name, Picks and studio chips.
 Middle: the stage — 4 SVG characters, the active one stepped forward.
+The **Band tab is a full-page screen** (`#sheet.full`), not a bottom panel: band
+identity, royalty rate, studio, every member with level and upgrade, and empty slots
+with prices. The other tabs remain bottom sheets.
 Bottom dock, one of four states: **idle** (solo-demo progress + WRITE A SONG),
 **genre** pick, **writing** (timer, song-sheet strip, 3 cards), **quality** (score +
 RELEASE IT). Tabs: Band | Gear | Catalog | Shop | League open as bottom sheets over
@@ -186,16 +210,18 @@ M0.2), Gold 150 (Epic+), Mythic 500 (Legendary). Battle Pass ₪35/mo. VIP ₪19
   random 55, best-card play 69–81; at level 12 best play reaches 88 (+4 from jamming
   → 90+). Levelling visibly matters.
 
-- Economy verified: fresh band 1.0 streams/sec and 0.10 money/sec; money accrues at
-  exactly `streams × payoutRate`; hire ladder 15/120/900; a Q80 release took the
-  rates from 5.2→20.2 streams/sec and 0.62→2.43 money/sec.
+- Economy verified: a fresh band sits at **0 streams/sec and 1.0 money/sec**; hiring
+  raises gig money (1.0→1.5) with no songs out; the first release starts streams
+  (0→2.8/sec); five member levels multiplied the catalogue 3.5→9.0/sec; hire ladder
+  15/120/900.
 
 **Known gaps (deliberate, deferred):** gear, crates as real drops, rarity/merge,
 daily gig, streaks, prestige, league, weekend events, real shop, LLM content,
 `sw.js` offline.
 
-**Removed along the way:** the tap-to-fill-tracks loop, Hook Moments, and the Hype
-stat (Quality shifts chart odds instead). Time-gated member unlocks are gone too —
+**Removed along the way:** the tap-to-fill-tracks loop, Hook Moments, the Hype stat
+(Quality shifts chart odds instead), and weekly-seeded genre trends (replaced by the
+live heat cycle). Time-gated member unlocks are gone too —
 members are hired with money now. v1 and v2 saves are migrated (streams→money at the
 base payout rate, levels, ownership, songs, time away) rather than discarded.
 
