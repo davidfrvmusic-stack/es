@@ -1,0 +1,11 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html",       "x": 0,    "y": 0,    "w": 390,  "h": 844, "title": "Main gameplay" },
+    { "file": "Writing.dc.html",    "x": 490,  "y": 0,    "w": 390,  "h": 844, "title": "Writing session" },
+    { "file": "Release.dc.html",    "x": 980,  "y": 0,    "w": 390,  "h": 844, "title": "Release reveal" },
+    { "file": "BandTab.dc.html",    "x": 1470, "y": 0,    "w": 390,  "h": 844, "title": "Band tab" },
+    { "file": "Characters.dc.html", "x": 0,    "y": 1000, "w": 1440, "h": 560, "title": "The band" },
+    { "file": "GearIcons.dc.html",  "x": 1540, "y": 1000, "w": 1040, "h": 660, "title": "Gear icons" }
+  ],
+  "launch": { "view": "canvas" }
+}

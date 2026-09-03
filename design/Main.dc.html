@@ -1,0 +1,185 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Archivo:wght@400;500;600;700;800&display=swap">
+  <style>
+    body { margin: 0; background: #FFF3E2; color: #2C1D16;
+      font-family: Archivo, "Helvetica Neue", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: #D93A26; } a:hover { color: #A82A19; }
+  </style>
+</helmet>
+
+<div style="width: 390px; height: 844px; display: flex; flex-direction: column; background: #FFF3E2; overflow: hidden">
+
+  <!-- TOP: the two rates -->
+  <div style="flex: 0 0 auto; padding: 16px 16px 12px; background: #FFF3E2; border-bottom: 2px solid #EBD9BE">
+    <div style="display: flex; align-items: flex-start; gap: 14px">
+      <div style="flex: 1; min-width: 0">
+        <div style="font-size: 9px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; color: #A9856B">Money</div>
+        <div style="font-family: 'Bricolage Grotesque', Archivo, sans-serif; font-size: 30px; font-weight: 800; letter-spacing: -1px; line-height: 1.05; color: #D93A26; font-variant-numeric: tabular-nums">4.28K</div>
+        <div style="font-size: 11.5px; font-weight: 800; color: #E39A00; margin-top: 1px; font-variant-numeric: tabular-nums">+12.4/s</div>
+      </div>
+      <div style="flex: 1; min-width: 0">
+        <div style="font-size: 9px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; color: #A9856B">Streams</div>
+        <div style="font-family: 'Bricolage Grotesque', Archivo, sans-serif; font-size: 30px; font-weight: 800; letter-spacing: -1px; line-height: 1.05; color: #2C1D16; font-variant-numeric: tabular-nums">38.1K</div>
+        <div style="font-size: 11.5px; font-weight: 800; color: #0B7A72; margin-top: 1px; font-variant-numeric: tabular-nums">+64.2/s</div>
+      </div>
+      <button style="flex: 0 0 auto; width: 34px; height: 34px; border-radius: 50%; background: #FFFAF0; border: 2px solid #EBD9BE; display: grid; place-items: center; padding: 0">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#2C1D16" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 5 6 9H3v6h3l5 4z"></path><path d="M15.5 8.5a5 5 0 0 1 0 7"></path><path d="M18.5 5.5a9 9 0 0 1 0 13"></path>
+        </svg>
+      </button>
+    </div>
+    <div style="display: flex; align-items: center; gap: 7px; margin-top: 10px">
+      <div style="font-size: 12px; font-weight: 800; padding: 5px 11px; border-radius: 999px; background: #2C1D16; color: #FFF3E2; letter-spacing: .01em">Paper Riots</div>
+      <div style="display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 800; padding: 5px 11px; border-radius: 999px; background: #FFFAF0; border: 2px solid #EBD9BE; color: #E39A00">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#E39A00" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 8v5c0 5 3 7 7 8 4-1 7-3 7-8V8z"></path></svg>
+        <span style="font-variant-numeric: tabular-nums">25</span>
+      </div>
+      <div style="font-size: 12px; font-weight: 800; padding: 5px 11px; border-radius: 999px; background: #FFFAF0; border: 2px solid #EBD9BE; color: #8A6F5E">Garage</div>
+    </div>
+  </div>
+
+  <!-- STAGE -->
+  <div style="flex: 1 1 auto; min-height: 0; position: relative; background: radial-gradient(120% 80% at 50% 8%, #FFE7C4 0%, #FFDCAE 46%, #FFCE95 100%); display: flex; align-items: flex-end; justify-content: center; padding: 0 10px 14px">
+    <svg viewBox="0 0 370 300" style="width: 100%; height: auto; display: block" aria-hidden="true">
+      <!-- stage light -->
+      <path d="M185 -40 L330 300 L40 300 Z" fill="#FFF3E2" opacity=".5"></path>
+      <!-- floor -->
+      <rect x="0" y="266" width="370" height="34" fill="#F0BE87" opacity=".55"></rect>
+      <ellipse cx="70" cy="272" rx="46" ry="8" fill="#C98F5B" opacity=".35"></ellipse>
+      <ellipse cx="160" cy="276" rx="34" ry="7" fill="#C98F5B" opacity=".35"></ellipse>
+      <ellipse cx="248" cy="276" rx="34" ry="7" fill="#C98F5B" opacity=".35"></ellipse>
+      <ellipse cx="322" cy="274" rx="30" ry="7" fill="#C98F5B" opacity=".35"></ellipse>
+
+      <!-- DRUMMER (compact) -->
+      <g>
+        <path d="M56 196 q14 -12 28 0 l4 44 h-36 z" fill="#12A79C"></path>
+        <path d="M70 150 q19 0 19 20 t-19 22 q-19 -2 -19 -22 t19 -20z" fill="#E0A276"></path>
+        <path d="M51 166 q2 -20 19 -20 t19 20 q-6 -11 -19 -11 t-19 11z" fill="#2A1C14"></path>
+        <circle cx="63" cy="170" r="2" fill="#2C1D16"></circle><circle cx="77" cy="170" r="2" fill="#2C1D16"></circle>
+        <path d="M65 180 q5 4 10 0" stroke="#2C1D16" stroke-width="2" fill="none" stroke-linecap="round"></path>
+        <path d="M56 200 l-16 22" stroke="#E0A276" stroke-width="9" stroke-linecap="round"></path>
+        <path d="M84 200 l16 22" stroke="#E0A276" stroke-width="9" stroke-linecap="round"></path>
+        <path d="M40 222 l-18 14" stroke="#E9D3AE" stroke-width="3.5" stroke-linecap="round"></path>
+        <path d="M100 222 l18 14" stroke="#E9D3AE" stroke-width="3.5" stroke-linecap="round"></path>
+        <ellipse cx="70" cy="246" rx="42" ry="30" fill="#FFF6E6" stroke="#D93A26" stroke-width="5"></ellipse>
+        <circle cx="70" cy="246" r="11" fill="#FF5A45"></circle>
+        <ellipse cx="26" cy="214" rx="20" ry="5" fill="#FFC22E"></ellipse>
+        <ellipse cx="116" cy="210" rx="21" ry="5" fill="#FFC22E"></ellipse>
+      </g>
+
+      <!-- BASSIST (compact) -->
+      <g>
+        <path d="M146 198 q14 -12 28 0 l5 60 h-38 z" fill="#FF5A45"></path>
+        <path d="M160 152 q18 0 18 19 t-18 21 q-18 -2 -18 -21 t18 -19z" fill="#F6C99E"></path>
+        <path d="M142 168 q1 -19 18 -19 t18 19 q-3 -13 -18 -13 t-18 13z" fill="#C97A2C"></path>
+        <circle cx="153" cy="171" r="2" fill="#2C1D16"></circle><circle cx="167" cy="171" r="2" fill="#2C1D16"></circle>
+        <path d="M155 181 q5 3 10 0" stroke="#2C1D16" stroke-width="2" fill="none" stroke-linecap="round"></path>
+        <path d="M143 253 h34 l3 24 h-40 z" fill="#3A2A20"></path>
+        <path d="M182 205 L146 168" stroke="#8A5A2B" stroke-width="6" stroke-linecap="round"></path>
+        <path d="M182 205 L146 168" stroke="#F3E2C4" stroke-width="1.2"></path>
+        <ellipse cx="192" cy="220" rx="24" ry="18" fill="#12A79C"></ellipse>
+        <rect x="184" y="214" width="16" height="7" rx="2" fill="#2C1D16"></rect>
+        <path d="M146 200 l-8 20" stroke="#F6C99E" stroke-width="9" stroke-linecap="round"></path>
+        <path d="M176 202 l14 18" stroke="#F6C99E" stroke-width="9" stroke-linecap="round"></path>
+      </g>
+
+      <!-- GUITARIST (compact) -->
+      <g>
+        <path d="M234 198 q14 -12 28 0 l5 60 h-38 z" fill="#FFC22E"></path>
+        <path d="M248 152 q18 0 18 19 t-18 21 q-18 -2 -18 -21 t18 -19z" fill="#B87548"></path>
+        <path d="M230 166 q1 -17 18 -17 t18 17 q-2 -10 -18 -10 t-18 10z" fill="#2A1C14"></path>
+        <circle cx="241" cy="171" r="2" fill="#2C1D16"></circle><circle cx="255" cy="171" r="2" fill="#2C1D16"></circle>
+        <path d="M243 181 q5 3 10 0" stroke="#2C1D16" stroke-width="2" fill="none" stroke-linecap="round"></path>
+        <path d="M231 253 h34 l3 24 h-40 z" fill="#3A2A20"></path>
+        <path d="M270 206 L236 170" stroke="#8A5A2B" stroke-width="5.5" stroke-linecap="round"></path>
+        <path d="M270 206 L236 170" stroke="#F3E2C4" stroke-width="1.2"></path>
+        <ellipse cx="280" cy="220" rx="22" ry="16" fill="#D93A26"></ellipse>
+        <rect x="272" y="215" width="15" height="6" rx="2" fill="#2C1D16"></rect>
+        <path d="M234 200 l-8 20" stroke="#B87548" stroke-width="9" stroke-linecap="round"></path>
+        <path d="M264 202 l14 18" stroke="#B87548" stroke-width="9" stroke-linecap="round"></path>
+      </g>
+
+      <!-- VOCALIST (compact) -->
+      <g>
+        <path d="M308 200 q13 -11 26 0 l4 58 h-34 z" fill="#2C1D16"></path>
+        <path d="M321 154 q17 0 17 18 t-17 20 q-17 -2 -17 -20 t17 -18z" fill="#7E4A2B"></path>
+        <path d="M304 170 q0 -18 17 -18 t17 18 q-2 -12 -17 -12 t-17 12z" fill="#1B1310"></path>
+        <circle cx="314" cy="172" r="2" fill="#FFF3E2"></circle><circle cx="327" cy="172" r="2" fill="#FFF3E2"></circle>
+        <ellipse cx="321" cy="182" rx="4" ry="4.6" fill="#5A2018"></ellipse>
+        <path d="M307 255 h30 l3 22 h-36 z" fill="#3A2A20"></path>
+        <path d="M334 202 l10 -16" stroke="#7E4A2B" stroke-width="8.5" stroke-linecap="round"></path>
+        <rect x="332" y="168" width="9" height="18" rx="4.5" fill="#4A3A30" transform="rotate(-28 336 177)"></rect>
+        <circle cx="331" cy="164" r="7" fill="#B9B2A6"></circle>
+        <path d="M326 161 h10 M325 165 h12 M327 169 h9" stroke="#6E675C" stroke-width="1.2" stroke-linecap="round"></path>
+        <path d="M308 202 l-9 20" stroke="#7E4A2B" stroke-width="8.5" stroke-linecap="round"></path>
+      </g>
+    </svg>
+  </div>
+
+  <!-- DOCK: idle -->
+  <div style="flex: 0 0 auto; padding: 14px 16px 16px; background: #FFF3E2; border-top: 2px solid #EBD9BE">
+    <div style="text-align: center; font-size: 10px; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; color: #A9856B">Paper Riots</div>
+    <div style="text-align: center; font-family: 'Bricolage Grotesque', Archivo, sans-serif; font-size: 19px; font-weight: 800; letter-spacing: -.2px; margin-top: 3px">3 songs out</div>
+
+    <div style="display: flex; flex-direction: column; gap: 7px; margin: 12px 0 14px">
+      <div style="display: flex; align-items: center; gap: 9px">
+        <div style="width: 62px; font-size: 10.5px; font-weight: 700; color: #8A6F5E">Ada</div>
+        <div style="flex: 1; height: 6px; border-radius: 3px; background: #EBD9BE; overflow: hidden"><div style="width: 72%; height: 100%; background: #12A79C; border-radius: 3px"></div></div>
+        <div style="font-size: 10.5px; font-weight: 700; color: #8A6F5E">demo</div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 9px">
+        <div style="width: 62px; font-size: 10.5px; font-weight: 700; color: #8A6F5E">Remy</div>
+        <div style="flex: 1; height: 6px; border-radius: 3px; background: #EBD9BE; overflow: hidden"><div style="width: 34%; height: 100%; background: #12A79C; border-radius: 3px"></div></div>
+        <div style="font-size: 10.5px; font-weight: 700; color: #8A6F5E">demo</div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 9px">
+        <div style="width: 62px; font-size: 10.5px; font-weight: 700; color: #8A6F5E">June</div>
+        <div style="flex: 1; height: 6px; border-radius: 3px; background: #EBD9BE; overflow: hidden"><div style="width: 11%; height: 100%; background: #12A79C; border-radius: 3px"></div></div>
+        <div style="font-size: 10.5px; font-weight: 700; color: #8A6F5E">demo</div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 9px; opacity: .5">
+        <div style="width: 62px; font-size: 10.5px; font-weight: 700; color: #8A6F5E">Vocalist</div>
+        <div style="flex: 1; height: 6px; border-radius: 3px; background: #EBD9BE"></div>
+        <div style="font-size: 10.5px; font-weight: 800; color: #D93A26">2.2K</div>
+      </div>
+    </div>
+
+    <button style="display: block; width: 100%; padding: 18px; border-radius: 18px; border: 0; font-family: 'Bricolage Grotesque', Archivo, sans-serif; font-size: 17px; font-weight: 800; letter-spacing: .11em; color: #FFF6E6; background: #FF5A45; box-shadow: 0 5px 0 #C0331F">WRITE A SONG</button>
+  </div>
+
+  <!-- TABS -->
+  <div style="flex: 0 0 auto; display: flex; background: #FFFAF0; border-top: 2px solid #EBD9BE">
+    <div style="flex: 1; min-height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; position: relative">
+      <div style="position: absolute; top: 0; left: 22%; right: 22%; height: 3px; background: #FF5A45; border-radius: 0 0 3px 3px"></div>
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#2C1D16" stroke-width="2" stroke-linecap="round"><path d="M6 4v16M12 4v16M18 4v16"></path><circle cx="6" cy="9" r="2.2" fill="#FFF3E2"></circle><circle cx="12" cy="15" r="2.2" fill="#FFF3E2"></circle><circle cx="18" cy="8" r="2.2" fill="#FFF3E2"></circle></svg>
+      <div style="font-size: 9px; font-weight: 800; letter-spacing: .06em; color: #2C1D16">BAND</div>
+    </div>
+    <div style="flex: 1; min-height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#A9856B" stroke-width="2" stroke-linecap="round"><path d="M14 3 9.5 7.5"></path><circle cx="7" cy="16" r="4.6"></circle><path d="M10.2 12.6 18 5c1.2-1.2 3-.2 3 1.4L21 9"></path></svg>
+      <div style="font-size: 9px; font-weight: 800; letter-spacing: .06em; color: #A9856B">GEAR</div>
+    </div>
+    <div style="flex: 1; min-height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#A9856B" stroke-width="2"><circle cx="12" cy="12" r="8.5"></circle><circle cx="12" cy="12" r="2.4"></circle></svg>
+      <div style="font-size: 9px; font-weight: 800; letter-spacing: .06em; color: #A9856B">CATALOG</div>
+    </div>
+    <div style="flex: 1; min-height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#A9856B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h2l2.2 10h9.2l2-6.6H7.4"></path><circle cx="10" cy="19" r="1.4"></circle><circle cx="17" cy="19" r="1.4"></circle></svg>
+      <div style="font-size: 9px; font-weight: 800; letter-spacing: .06em; color: #A9856B">SHOP</div>
+    </div>
+    <div style="flex: 1; min-height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#A9856B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v5a5 5 0 0 1-10 0z"></path><path d="M7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3"></path><path d="M12 14v4M9 20h6"></path></svg>
+      <div style="font-size: 9px; font-weight: 800; letter-spacing: .06em; color: #A9856B">LEAGUE</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

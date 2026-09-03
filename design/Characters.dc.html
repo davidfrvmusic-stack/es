@@ -1,0 +1,320 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Archivo:wght@400;500;600;700;800&display=swap">
+  <style>
+    body { margin: 0; background: #FFF3E2; color: #2C1D16;
+      font-family: Archivo, "Helvetica Neue", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: #D93A26; } a:hover { color: #A82A19; }
+  </style>
+</helmet>
+
+<div style="width: 1440px; height: 560px; background: #FFF3E2; padding: 36px 40px; box-sizing: border-box; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 48px">
+
+  <!-- ===== DRUMMER ===== -->
+  <div style="display: flex; flex-direction: column; align-items: center; gap: 12px">
+    <svg viewBox="0 0 300 400" style="width: 100%; height: 400px; display: block" aria-hidden="true">
+      <ellipse cx="150" cy="374" rx="120" ry="14" fill="#E8C79C"></ellipse>
+
+      <!-- hi-hat -->
+      <path d="M40 210 v112 M26 356 l14 -34 M54 356 l-14 -34 M40 322 v34" stroke="#B9AFA0" stroke-width="4" stroke-linecap="round"></path>
+      <ellipse cx="40" cy="206" rx="36" ry="7" fill="#E0A72E"></ellipse>
+      <ellipse cx="40" cy="200" rx="36" ry="7" fill="#FFC22E"></ellipse>
+      <ellipse cx="40" cy="199" rx="22" ry="4" fill="none" stroke="#E0A72E" stroke-width="1.2"></ellipse>
+      <ellipse cx="40" cy="199" rx="11" ry="2.4" fill="#E0A72E"></ellipse>
+
+      <!-- ride -->
+      <path d="M258 190 v132 M244 356 l14 -34 M272 356 l-14 -34" stroke="#B9AFA0" stroke-width="4" stroke-linecap="round"></path>
+      <ellipse cx="258" cy="186" rx="42" ry="8" fill="#FFC22E"></ellipse>
+      <ellipse cx="258" cy="185" rx="30" ry="5.6" fill="none" stroke="#E0A72E" stroke-width="1.2"></ellipse>
+      <ellipse cx="258" cy="185" rx="19" ry="3.6" fill="none" stroke="#E0A72E" stroke-width="1.2"></ellipse>
+      <ellipse cx="258" cy="184" rx="9" ry="2" fill="#E0A72E"></ellipse>
+
+      <!-- drummer behind the kit -->
+      <path d="M150 112 q30 2 38 30 l8 62 h-92 l8 -62 q8 -28 38 -30z" fill="#12A79C"></path>
+      <path d="M150 112 q30 2 38 30 l3 12 q-40 -16 -82 0 l3 -12 q8 -28 38 -30z" fill="#1CC3B6"></path>
+      <path d="M150 44 q30 0 30 32 t-30 36 q-30 -4 -30 -36 t30 -32z" fill="#E0A276"></path>
+      <path d="M150 44 q30 0 30 32 q-6 -18 -30 -18 t-30 18 q0 -32 30 -32z" fill="#C97A2C"></path>
+      <path d="M120 70 q-8 22 -2 38 q-12 -18 2 -38z" fill="#C97A2C"></path>
+      <path d="M180 70 q8 22 2 38 q12 -18 -2 -38z" fill="#C97A2C"></path>
+      <ellipse cx="118" cy="82" rx="5" ry="7" fill="#E0A276"></ellipse>
+      <ellipse cx="182" cy="82" rx="5" ry="7" fill="#E0A276"></ellipse>
+      <path d="M133 68 q7 -4 13 0M154 68 q7 -4 13 0" stroke="#8A4E18" stroke-width="2.6" fill="none" stroke-linecap="round"></path>
+      <ellipse cx="139" cy="79" rx="3.4" ry="3.8" fill="#2C1D16"></ellipse>
+      <ellipse cx="161" cy="79" rx="3.4" ry="3.8" fill="#2C1D16"></ellipse>
+      <circle cx="140.4" cy="77.6" r="1.2" fill="#FFF3E2"></circle>
+      <circle cx="162.4" cy="77.6" r="1.2" fill="#FFF3E2"></circle>
+      <path d="M149 86 q-3 6 1 8" stroke="#B07C42" stroke-width="2" fill="none" stroke-linecap="round"></path>
+      <path d="M141 99 q9 8 18 0 q-9 4 -18 0z" fill="#7E3B2A"></path>
+
+      <!-- arms + sticks -->
+      <path d="M116 136 L86 168 L64 200" stroke="#E0A276" stroke-width="15" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
+      <path d="M184 136 L216 160 L236 182" stroke="#E0A276" stroke-width="15" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
+      <circle cx="64" cy="200" r="11" fill="#E0A276"></circle>
+      <path d="M58 190 L84 250" stroke="#EFDCB8" stroke-width="7" stroke-linecap="round"></path>
+      <path d="M78 238 L86 256" stroke="#EFDCB8" stroke-width="9" stroke-linecap="round"></path>
+      <circle cx="236" cy="182" r="11" fill="#E0A276"></circle>
+      <path d="M228 172 L262 196" stroke="#EFDCB8" stroke-width="7" stroke-linecap="round"></path>
+
+      <!-- rack toms -->
+      <ellipse cx="112" cy="212" rx="36" ry="21" fill="#FFF6E6"></ellipse>
+      <ellipse cx="112" cy="212" rx="36" ry="21" fill="none" stroke="#D93A26" stroke-width="5"></ellipse>
+      <path d="M76 212 v20 a36 21 0 0 0 72 0 v-20" fill="#D93A26"></path>
+      <path d="M84 224 v10M112 232 v10M140 224 v10" stroke="#F0644E" stroke-width="3" stroke-linecap="round"></path>
+      <ellipse cx="196" cy="206" rx="32" ry="19" fill="#FFF6E6"></ellipse>
+      <ellipse cx="196" cy="206" rx="32" ry="19" fill="none" stroke="#D93A26" stroke-width="5"></ellipse>
+      <path d="M164 206 v18 a32 19 0 0 0 64 0 v-18" fill="#D93A26"></path>
+      <path d="M172 218 v9M196 225 v9M220 218 v9" stroke="#F0644E" stroke-width="3" stroke-linecap="round"></path>
+
+      <!-- snare -->
+      <ellipse cx="70" cy="262" rx="42" ry="24" fill="#FFF6E6"></ellipse>
+      <ellipse cx="70" cy="262" rx="42" ry="24" fill="none" stroke="#B9AFA0" stroke-width="5"></ellipse>
+      <path d="M28 262 v22 a42 24 0 0 0 84 0 v-22" fill="#D9CFC0"></path>
+      <path d="M36 274 v14M56 282 v14M84 282 v14M104 274 v14" stroke="#8E8474" stroke-width="3" stroke-linecap="round"></path>
+      <ellipse cx="70" cy="262" rx="26" ry="14" fill="none" stroke="#E4D8C4" stroke-width="1.4"></ellipse>
+
+      <!-- bass drum: front head, hoop, lugs, logo -->
+      <ellipse cx="150" cy="300" rx="86" ry="72" fill="#FFF6E6"></ellipse>
+      <ellipse cx="150" cy="300" rx="86" ry="72" fill="none" stroke="#D93A26" stroke-width="9"></ellipse>
+      <ellipse cx="150" cy="300" rx="76" ry="63" fill="none" stroke="#F0DCBC" stroke-width="2"></ellipse>
+      <circle cx="150" cy="228" r="5.5" fill="#C0331F"></circle>
+      <circle cx="211" cy="258" r="5.5" fill="#C0331F"></circle>
+      <circle cx="228" cy="300" r="5.5" fill="#C0331F"></circle>
+      <circle cx="211" cy="342" r="5.5" fill="#C0331F"></circle>
+      <circle cx="150" cy="372" r="5.5" fill="#C0331F"></circle>
+      <circle cx="89" cy="342" r="5.5" fill="#C0331F"></circle>
+      <circle cx="72" cy="300" r="5.5" fill="#C0331F"></circle>
+      <circle cx="89" cy="258" r="5.5" fill="#C0331F"></circle>
+      <circle cx="150" cy="300" r="34" fill="none" stroke="#FFC22E" stroke-width="5"></circle>
+      <path d="M141 282 l-6 22 h10 l-4 18 l16 -24 h-10 l6 -16z" fill="#D93A26"></path>
+      <path d="M96 356 l-14 16M204 356 l14 16" stroke="#B9AFA0" stroke-width="5" stroke-linecap="round"></path>
+    </svg>
+    <div style="text-align: center">
+      <div style="font-family: 'Bricolage Grotesque', Archivo, sans-serif; font-size: 19px; font-weight: 800">Remy Okafor</div>
+      <div style="font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #12A79C; margin-top: 3px">Drummer</div>
+    </div>
+  </div>
+
+  <!-- ===== BASSIST ===== -->
+  <div style="display: flex; flex-direction: column; align-items: center; gap: 12px">
+    <svg viewBox="0 0 300 400" style="width: 100%; height: 400px; display: block" aria-hidden="true">
+      <ellipse cx="150" cy="374" rx="96" ry="13" fill="#E8C79C"></ellipse>
+
+      <path d="M118 250 h64 l10 122 h-32 l-8 -74 l-8 74 h-32z" fill="#3A2A20"></path>
+      <path d="M112 366 h34 v10 h-38 z" fill="#211711"></path>
+      <path d="M156 366 h34 v10 h-38 z" fill="#211711"></path>
+
+      <path d="M150 116 q34 2 42 34 l10 106 h-104 l10 -106 q8 -32 42 -34z" fill="#FF5A45"></path>
+      <path d="M150 116 q34 2 42 34 l3 14 q-45 -18 -90 0 l3 -14 q8 -32 42 -34z" fill="#FF7A68"></path>
+      <path d="M126 128 q24 16 48 0 q-10 16 -24 16 t-24 -16z" fill="#E04A34"></path>
+
+      <path d="M150 48 q29 0 29 31 t-29 35 q-29 -4 -29 -35 t29 -31z" fill="#F6C99E"></path>
+      <path d="M121 74 q1 -30 29 -30 t29 30 q-4 -16 -14 -18 q-14 10 -30 4 q-10 2 -14 14z" fill="#C97A2C"></path>
+      <path d="M119 72 q-10 26 -4 48 q-14 -22 4 -48z" fill="#C97A2C"></path>
+      <path d="M181 72 q10 26 4 48 q14 -22 -4 -48z" fill="#C97A2C"></path>
+      <ellipse cx="120" cy="86" rx="5" ry="7" fill="#F6C99E"></ellipse>
+      <ellipse cx="180" cy="86" rx="5" ry="7" fill="#F6C99E"></ellipse>
+      <path d="M134 73 q7 -4 13 0M153 73 q7 -4 13 0" stroke="#8A4E18" stroke-width="2.6" fill="none" stroke-linecap="round"></path>
+      <ellipse cx="140" cy="84" rx="3.4" ry="3.8" fill="#2C1D16"></ellipse>
+      <ellipse cx="160" cy="84" rx="3.4" ry="3.8" fill="#2C1D16"></ellipse>
+      <circle cx="141.4" cy="82.6" r="1.2" fill="#FFF3E2"></circle>
+      <circle cx="161.4" cy="82.6" r="1.2" fill="#FFF3E2"></circle>
+      <path d="M149 90 q-3 6 1 8" stroke="#C79463" stroke-width="2" fill="none" stroke-linecap="round"></path>
+      <path d="M142 103 q8 6 16 0" stroke="#7E3B2A" stroke-width="2.8" fill="none" stroke-linecap="round"></path>
+
+      <!-- strap -->
+      <path d="M116 136 L196 232" stroke="#2C1D16" stroke-width="9" fill="none" stroke-linecap="round" opacity=".9"></path>
+
+      <!-- BASS: local frame, neck along +x, then rotated into place -->
+      <g transform="translate(196 246) rotate(-146)">
+        <!-- body -->
+        <ellipse cx="-30" cy="0" rx="44" ry="40" fill="#0E9186"></ellipse>
+        <ellipse cx="18" cy="0" rx="30" ry="27" fill="#0E9186"></ellipse>
+        <ellipse cx="-6" cy="0" rx="26" ry="30" fill="#0E9186"></ellipse>
+        <ellipse cx="-30" cy="-6" rx="38" ry="30" fill="#12A79C"></ellipse>
+        <ellipse cx="16" cy="-5" rx="25" ry="19" fill="#12A79C"></ellipse>
+        <!-- neck + fretboard -->
+        <rect x="18" y="-15" width="152" height="30" rx="3" fill="#7A4A22"></rect>
+        <rect x="18" y="-15" width="152" height="30" rx="3" fill="#5C3416" opacity=".45"></rect>
+        <!-- frets -->
+        <path d="M39 -15v30M44 -15v30M50 -15v30M56 -15v30M62 -15v30M69 -15v30M76 -15v30M84 -15v30M93 -15v30M102 -15v30M113 -15v30M124 -15v30M137 -15v30M151 -15v30M166 -15v30" stroke="#CFC0A6" stroke-width="1.8"></path>
+        <circle cx="79" cy="0" r="3" fill="#E8DCC4"></circle>
+        <circle cx="97" cy="0" r="3" fill="#E8DCC4"></circle>
+        <circle cx="118" cy="0" r="3" fill="#E8DCC4"></circle>
+        <circle cx="130" cy="-7" r="3" fill="#E8DCC4"></circle>
+        <circle cx="130" cy="7" r="3" fill="#E8DCC4"></circle>
+        <!-- pickup + bridge -->
+        <rect x="-8" y="-22" width="16" height="20" rx="3" fill="#221812"></rect>
+        <rect x="0" y="2" width="16" height="20" rx="3" fill="#221812"></rect>
+        <rect x="-44" y="-14" width="12" height="28" rx="2" fill="#C9BCA6"></rect>
+        <circle cx="-24" cy="22" r="4" fill="#E8DCC4"></circle>
+        <circle cx="-36" cy="26" r="4" fill="#E8DCC4"></circle>
+        <!-- 4 strings, bridge to headstock -->
+        <path d="M-40 -9 H182M-40 -3 H182M-40 3 H182M-40 9 H182" stroke="#F4E7CC" stroke-width="1.7"></path>
+        <!-- headstock + tuners -->
+        <path d="M170 -17 h34 q8 0 8 8 v18 q0 8 -8 8 h-34z" fill="#5C3416"></path>
+        <circle cx="180" cy="-24" r="5" fill="#D8CBB2"></circle>
+        <circle cx="192" cy="-24" r="5" fill="#D8CBB2"></circle>
+        <circle cx="180" cy="24" r="5" fill="#D8CBB2"></circle>
+        <circle cx="192" cy="24" r="5" fill="#D8CBB2"></circle>
+        <rect x="176" y="-19" width="8" height="4" rx="2" fill="#D8CBB2"></rect>
+        <rect x="188" y="-19" width="8" height="4" rx="2" fill="#D8CBB2"></rect>
+      </g>
+
+      <!-- arms: fretting hand up the neck, plucking hand at the pickups -->
+      <path d="M116 146 L92 190 L104 214" stroke="#F6C99E" stroke-width="16" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
+      <circle cx="106" cy="216" r="10" fill="#F6C99E"></circle>
+      <path d="M100 210 l-6 6M106 208 l-4 8" stroke="#DDA97A" stroke-width="2.4" stroke-linecap="round"></path>
+      <path d="M184 148 L206 196 L184 230" stroke="#F6C99E" stroke-width="16" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
+      <circle cx="182" cy="232" r="10" fill="#F6C99E"></circle>
+      <path d="M176 228 l-4 8M182 230 l-2 9" stroke="#DDA97A" stroke-width="2.4" stroke-linecap="round"></path>
+    </svg>
+    <div style="text-align: center">
+      <div style="font-family: 'Bricolage Grotesque', Archivo, sans-serif; font-size: 19px; font-weight: 800">June Delgado</div>
+      <div style="font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #12A79C; margin-top: 3px">Bassist</div>
+    </div>
+  </div>
+
+  <!-- ===== GUITARIST ===== -->
+  <div style="display: flex; flex-direction: column; align-items: center; gap: 12px">
+    <svg viewBox="0 0 300 400" style="width: 100%; height: 400px; display: block" aria-hidden="true">
+      <ellipse cx="150" cy="374" rx="96" ry="13" fill="#E8C79C"></ellipse>
+
+      <path d="M118 250 h64 l10 122 h-32 l-8 -74 l-8 74 h-32z" fill="#2F4A6B"></path>
+      <path d="M112 366 h34 v10 h-38 z" fill="#211711"></path>
+      <path d="M156 366 h34 v10 h-38 z" fill="#211711"></path>
+
+      <path d="M150 116 q34 2 42 34 l10 106 h-104 l10 -106 q8 -32 42 -34z" fill="#FFC22E"></path>
+      <path d="M150 116 q34 2 42 34 l3 14 q-45 -18 -90 0 l3 -14 q8 -32 42 -34z" fill="#FFD766"></path>
+      <path d="M128 130 l22 20 l22 -20 l-8 -6 q-14 12 -28 0z" fill="#E9A600"></path>
+
+      <path d="M150 48 q29 0 29 31 t-29 35 q-29 -4 -29 -35 t29 -31z" fill="#B87548"></path>
+      <path d="M121 76 q1 -32 29 -32 t29 32 q-6 -20 -29 -20 t-29 20z" fill="#2A1C14"></path>
+      <path d="M121 74 q-12 24 -6 50 q-16 -24 6 -50z" fill="#2A1C14"></path>
+      <path d="M179 74 q12 24 6 50 q16 -24 -6 -50z" fill="#2A1C14"></path>
+      <ellipse cx="120" cy="86" rx="5" ry="7" fill="#B87548"></ellipse>
+      <ellipse cx="180" cy="86" rx="5" ry="7" fill="#B87548"></ellipse>
+      <path d="M134 73 q7 -4 13 0M153 73 q7 -4 13 0" stroke="#3A2410" stroke-width="2.6" fill="none" stroke-linecap="round"></path>
+      <ellipse cx="140" cy="84" rx="3.4" ry="3.8" fill="#2C1D16"></ellipse>
+      <ellipse cx="160" cy="84" rx="3.4" ry="3.8" fill="#2C1D16"></ellipse>
+      <circle cx="141.4" cy="82.6" r="1.2" fill="#FFF3E2"></circle>
+      <circle cx="161.4" cy="82.6" r="1.2" fill="#FFF3E2"></circle>
+      <path d="M149 90 q-3 6 1 8" stroke="#8F5A32" stroke-width="2" fill="none" stroke-linecap="round"></path>
+      <path d="M140 102 q10 9 20 0 q-10 5 -20 0z" fill="#7E3B2A"></path>
+
+      <path d="M118 136 L198 230" stroke="#2C1D16" stroke-width="9" fill="none" stroke-linecap="round" opacity=".9"></path>
+
+      <!-- GUITAR -->
+      <g transform="translate(198 244) rotate(-150)">
+        <ellipse cx="-14" cy="0" rx="48" ry="40" fill="#C0331F"></ellipse>
+        <path d="M-46 -32 q-20 -16 -28 2 q-6 16 12 20 q13 3 20 -6z" fill="#C0331F"></path>
+        <path d="M-46 32 q-20 16 -28 -2 q-6 -16 12 -20 q13 -3 20 6z" fill="#C0331F"></path>
+        <ellipse cx="-14" cy="-6" rx="42" ry="30" fill="#D93A26"></ellipse>
+        <path d="M-40 -22 q22 -12 44 -4 q-24 -2 -44 4z" fill="#F0644E"></path>
+        <rect x="20" y="-13" width="146" height="26" rx="3" fill="#7A4A22"></rect>
+        <rect x="20" y="-13" width="146" height="26" rx="3" fill="#5C3416" opacity=".4"></rect>
+        <path d="M40 -13v26M45 -13v26M51 -13v26M57 -13v26M63 -13v26M70 -13v26M77 -13v26M85 -13v26M93 -13v26M102 -13v26M112 -13v26M123 -13v26M135 -13v26M148 -13v26M162 -13v26" stroke="#CFC0A6" stroke-width="1.6"></path>
+        <circle cx="80" cy="0" r="2.6" fill="#E8DCC4"></circle>
+        <circle cx="97" cy="0" r="2.6" fill="#E8DCC4"></circle>
+        <circle cx="117" cy="0" r="2.6" fill="#E8DCC4"></circle>
+        <circle cx="128" cy="-6" r="2.6" fill="#E8DCC4"></circle>
+        <circle cx="128" cy="6" r="2.6" fill="#E8DCC4"></circle>
+        <rect x="-6" y="-18" width="10" height="34" rx="2" fill="#221812"></rect>
+        <rect x="-22" y="-18" width="10" height="34" rx="2" fill="#221812"></rect>
+        <rect x="-38" y="-18" width="10" height="34" rx="2" fill="#221812"></rect>
+        <rect x="-52" y="-16" width="10" height="32" rx="2" fill="#C9BCA6"></rect>
+        <path d="M-52 16 q-14 10 -18 22" stroke="#C9BCA6" stroke-width="3.4" fill="none" stroke-linecap="round"></path>
+        <circle cx="-30" cy="26" r="4" fill="#E8DCC4"></circle>
+        <circle cx="-42" cy="30" r="4" fill="#E8DCC4"></circle>
+        <path d="M-48 -8 H178M-48 -4.8 H178M-48 -1.6 H178M-48 1.6 H178M-48 4.8 H178M-48 8 H178" stroke="#F4E7CC" stroke-width="1.3"></path>
+        <path d="M166 -15 h30 q10 0 12 10 l2 12 q1 8 -8 8 h-36z" fill="#C0331F"></path>
+        <circle cx="176" cy="-22" r="4.4" fill="#D8CBB2"></circle>
+        <circle cx="187" cy="-22" r="4.4" fill="#D8CBB2"></circle>
+        <circle cx="198" cy="-22" r="4.4" fill="#D8CBB2"></circle>
+        <circle cx="176" cy="22" r="4.4" fill="#D8CBB2"></circle>
+        <circle cx="187" cy="22" r="4.4" fill="#D8CBB2"></circle>
+        <circle cx="198" cy="22" r="4.4" fill="#D8CBB2"></circle>
+      </g>
+
+      <path d="M116 146 L88 188 L100 210" stroke="#B87548" stroke-width="16" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
+      <circle cx="102" cy="212" r="10" fill="#B87548"></circle>
+      <path d="M96 206 l-6 6M102 204 l-4 8" stroke="#8F5A32" stroke-width="2.4" stroke-linecap="round"></path>
+      <path d="M184 148 L208 196 L188 228" stroke="#B87548" stroke-width="16" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
+      <circle cx="186" cy="230" r="10" fill="#B87548"></circle>
+      <path d="M180 226 l-4 8M186 228 l-2 9" stroke="#8F5A32" stroke-width="2.4" stroke-linecap="round"></path>
+    </svg>
+    <div style="text-align: center">
+      <div style="font-family: 'Bricolage Grotesque', Archivo, sans-serif; font-size: 19px; font-weight: 800">Ada Vance</div>
+      <div style="font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #12A79C; margin-top: 3px">Guitarist</div>
+    </div>
+  </div>
+
+  <!-- ===== VOCALIST ===== -->
+  <div style="display: flex; flex-direction: column; align-items: center; gap: 12px">
+    <svg viewBox="0 0 300 400" style="width: 100%; height: 400px; display: block" aria-hidden="true">
+      <ellipse cx="150" cy="374" rx="96" ry="13" fill="#E8C79C"></ellipse>
+
+      <path d="M118 250 h64 l10 122 h-32 l-8 -74 l-8 74 h-32z" fill="#2C1D16"></path>
+      <path d="M112 366 h34 v10 h-38 z" fill="#151009"></path>
+      <path d="M156 366 h34 v10 h-38 z" fill="#151009"></path>
+
+      <path d="M150 116 q34 2 42 34 l10 106 h-104 l10 -106 q8 -32 42 -34z" fill="#12A79C"></path>
+      <path d="M150 116 q34 2 42 34 l3 14 q-45 -18 -90 0 l3 -14 q8 -32 42 -34z" fill="#1CC3B6"></path>
+      <path d="M132 126 l18 26 l18 -26 l-7 -4 q-11 14 -22 0z" fill="#0B7A72"></path>
+
+      <path d="M150 48 q29 0 29 31 t-29 35 q-29 -4 -29 -35 t29 -31z" fill="#7E4A2B"></path>
+      <path d="M121 78 q1 -34 29 -34 t29 34 q-2 -22 -14 -26 q-16 12 -32 6 q-10 4 -12 20z" fill="#1B1310"></path>
+      <path d="M120 66 q-16 -6 -12 -18 q10 -8 18 2z" fill="#1B1310"></path>
+      <path d="M180 66 q16 -6 12 -18 q-10 -8 -18 2z" fill="#1B1310"></path>
+      <ellipse cx="120" cy="86" rx="5" ry="7" fill="#7E4A2B"></ellipse>
+      <ellipse cx="180" cy="86" rx="5" ry="7" fill="#7E4A2B"></ellipse>
+      <path d="M133 72 q8 -5 15 0M152 72 q8 -5 15 0" stroke="#120C0A" stroke-width="2.8" fill="none" stroke-linecap="round"></path>
+      <ellipse cx="140" cy="84" rx="3.4" ry="3.6" fill="#2C1D16"></ellipse>
+      <ellipse cx="160" cy="84" rx="3.4" ry="3.6" fill="#2C1D16"></ellipse>
+      <circle cx="141.4" cy="82.8" r="1.2" fill="#FFF3E2"></circle>
+      <circle cx="161.4" cy="82.8" r="1.2" fill="#FFF3E2"></circle>
+      <path d="M149 90 q-3 6 1 8" stroke="#5E3418" stroke-width="2" fill="none" stroke-linecap="round"></path>
+      <!-- open, singing -->
+      <path d="M138 100 q12 -5 24 0 q-4 18 -12 18 t-12 -18z" fill="#5A2018"></path>
+      <path d="M141 102 q9 -3 18 0 q-9 3 -18 0z" fill="#FFF3E2"></path>
+      <path d="M144 114 q6 5 12 0 q-6 -2 -12 0z" fill="#C8564A"></path>
+
+      <!-- free arm thrown up -->
+      <path d="M116 146 L86 172 L92 128" stroke="#7E4A2B" stroke-width="16" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
+      <circle cx="92" cy="122" r="11" fill="#7E4A2B"></circle>
+      <path d="M88 114 v-8M95 113 v-9M100 118 l4 -6" stroke="#7E4A2B" stroke-width="5" stroke-linecap="round"></path>
+
+      <!-- mic arm -->
+      <path d="M184 148 L212 176 L188 200" stroke="#7E4A2B" stroke-width="16" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
+
+      <!-- MIC: body, switch, grille with real mesh -->
+      <g transform="translate(176 178) rotate(-34)">
+        <path d="M-9 6 h18 l3 46 q0 6 -6 6 h-12 q-6 0 -6 -6z" fill="#3A322C"></path>
+        <path d="M-9 6 h6 l2 52 h-5 q-6 0 -6 -6z" fill="#565049"></path>
+        <rect x="-5" y="30" width="10" height="5" rx="2.5" fill="#B9B2A6"></rect>
+        <path d="M-6 20 h12M-6 24 h12" stroke="#2A241F" stroke-width="1.4"></path>
+        <circle cx="0" cy="-8" r="17" fill="#C6BFB3"></circle>
+        <circle cx="0" cy="-8" r="17" fill="none" stroke="#8E877B" stroke-width="2"></circle>
+        <path d="M-15 -14 h30M-16.5 -8 h33M-15 -2 h30M-11 4 h22" stroke="#8E877B" stroke-width="1.3"></path>
+        <path d="M-8 -24 q-4 16 0 32M0 -25 q-3 17 0 34M8 -24 q4 16 0 32" stroke="#8E877B" stroke-width="1.3" fill="none"></path>
+        <path d="M-6 -19 a17 17 0 0 1 14 -3" stroke="#EDE7DC" stroke-width="2.6" fill="none" stroke-linecap="round"></path>
+        <path d="M4 56 q10 22 -6 34 q-18 14 -4 34" stroke="#2C1D16" stroke-width="4.5" fill="none" stroke-linecap="round"></path>
+      </g>
+      <circle cx="188" cy="202" r="11" fill="#7E4A2B"></circle>
+      <path d="M182 196 l-5 7M188 194 l-3 8M194 197 l-2 8" stroke="#5E3418" stroke-width="2.6" stroke-linecap="round"></path>
+    </svg>
+    <div style="text-align: center">
+      <div style="font-family: 'Bricolage Grotesque', Archivo, sans-serif; font-size: 19px; font-weight: 800">Sol Mercer</div>
+      <div style="font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #12A79C; margin-top: 3px">Vocalist</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>
