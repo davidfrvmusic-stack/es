@@ -86,7 +86,9 @@ Locked members are a dark silhouette with a lock. Flat, bold, slightly cartoonis
 - Quality is normalised over however many tracks are unlocked, so an early one-track
   song can still score well.
 - Members also **auto-write solo demos** in the background and while you are away,
-  at random Quality 20–50. Player sessions played well reach 90+.
+  at random Quality 20–50 — one per member per 15 minutes, capped at 12 while
+  offline. A trickle that rewards returning, never the main income. Player sessions
+  played well reach 90+.
 
 ## 4. RELEASE
 Slot-machine chart reveal: title → procedural cover → chart-position reel → tier.
@@ -94,10 +96,23 @@ Flop / Solid / Hit / Viral / #1, **weighted by Quality** (`ODDS` table, interpol
 at Q90 exactly 40% land Hit or better). 25% of Flops and Solids show the reel land
 one tier higher before settling. Skippable after the first reveal.
 
-## 5. STREAMS = MONEY
-**No passive money from tapping.** Every released song earns its own streams/sec:
+## 5. TWO RATES: STREAMS/sec AND MONEY/sec
+The top bar shows both, each with its total and its rate. They are separate numbers
+with separate jobs: **streams are reach, money is what you spend.**
 
-    raw   = 0.55 × bandPower(at release) × qFactor(Quality) × tierMultiplier
+    streams/sec = BAL.baseSPS (0.10) + Σ memberSPS(owned) + Σ songSPS(catalogue)
+    money/sec   = streams/sec × payoutRate        (starts 0.10)
+
+Both run offline. A fresh band with one member sits at ≈1.0 streams/sec and
+0.10 money/sec, exactly as the brief asks.
+
+- **Members generate streams directly** — `MEMBERS[i].sps × level × rarity` — as well
+  as scaling every song. So a level-up is visible in the top bar immediately.
+- **payoutRate** rises `+0.02` per Royalty Rate upgrade (cost `60 × 1.7^n`). It is
+  the multiplier on *everything*, so it stays worth buying forever.
+- **No passive money from tapping.** Every released song earns its own streams/sec:
+
+    raw   = 2.0 × bandPower(at release) × qFactor(Quality) × tierMultiplier
     live  = raw × studioMultiplier × genreTrend(now) × decay(now)
 
 - `qFactor` = `0.25 + 1.75 × (Q/100)^1.6`.
@@ -109,18 +124,29 @@ one tier higher before settling. Skippable after the first reveal.
   record booms when disco comes back around.
 - Release payout = 90 seconds of that song's streams, up front.
 
-## 6. UPGRADES
-- **Member levels** — cost x1.15 per level. Raises band power (every song's streams),
-  unlocks better cards, sharpens hints, speeds up solo demos.
+## 6. YOUR CHARACTER, AND HIRING THE REST
+On first run a **setup screen** asks for a band name, your name, the instrument you
+play, and shuffles your character's look. That slot is yours and **free**, owned at
+level 1. Both names are editable later from the Band tab, and every hire prompts for
+a name (with a dice button) — the band is the player's to name.
+
+The other three slots start **empty**: a locked silhouette with a price, bought with
+**money**. Prices attach to **purchase order, not to role** — `[15, 120, 900]` —
+so whichever instrument you take free, the remaining three cost the same ladder and
+no starting role is a dominant pick. Role `sps` values are deliberately close
+together (0.9 → 1.2) for the same reason: choosing your instrument should be about
+which writing cards you start with, not which is strongest.
+
+## 7. UPGRADES (all bought with money)
+- **Member levels** — cost `lvlCost × 1.15^n`. Raises that member's streams/sec,
+  scales every song, unlocks better cards, sharpens hints, speeds up solo demos.
+- **Royalty rate** — the payout multiplier, see §5.
 - **Rarity** — Common→Rare→Epic→Legendary→Mythic, from crates; merge 3 → one up.
 - **Gear** — 2 slots per member; visible on the character; unlocks writing cards.
 - **Studios** — Garage → Bedroom → Rehearsal → Pro Studio → Label HQ → Tour Bus →
   Stadium → Space. Each x5 all song streams and repaints the stage.
-- Unlocks: Bassist 0:45, Guitarist 3:00, Vocalist 7:00, first crate 12:00. These are
-  deliberately fast — a 4-decision session is the whole game and players should not
-  wait 20 minutes to see one.
 
-## 7. SOUND (the differentiator — do not skip)
+## 8. SOUND (the differentiator — do not skip)
 Web Audio synth only, no samples. Every tap plays a pentatonic note in the song's
 key. **Each decided track fades its instrument layer into the loop** — so the song
 assembles as you make decisions, and a finished demo is a 4-layer loop. The chosen
@@ -128,21 +154,23 @@ card's energy shapes its layer (filter cutoff, hat density). BPM comes from the
 genre's energy and drives both the loop and the characters' bob. Studio upgrades add
 reverb. Release plays a chord. Mute toggle. Haptics on tap and on Hit/Viral.
 
-## 8. CURRENCIES
-- **Streams** (soft) — from the catalogue per second + release payouts.
+## 9. CURRENCIES
+- **Streams** — reach. Accumulates from the rate above; drives Legacy at prestige.
+- **Money** — the spend currency. Members, levels, royalties, studios.
 - **Picks** (premium) — crates, skips, streak saves.
 - **Legacy** (prestige) — permanent multipliers.
 Formatting: 1.2K, 3.4M, 8.9B, 1.1T… Counters animate up.
 
-## 9. UI (portrait, one-thumb)
-Top: Streams (huge, animated) + streams/sec + Picks + studio.
+## 10. UI (portrait, one-thumb)
+Top: two animated counters side by side — MONEY (total + /s) and STREAMS
+(total + /s) — then band name, Picks and studio chips.
 Middle: the stage — 4 SVG characters, the active one stepped forward.
 Bottom dock, one of four states: **idle** (solo-demo progress + WRITE A SONG),
 **genre** pick, **writing** (timer, song-sheet strip, 3 cards), **quality** (score +
 RELEASE IT). Tabs: Band | Gear | Catalog | Shop | League open as bottom sheets over
 the stage. Targets ≥44px, `env(safe-area-inset-*)` respected.
 
-## 10. SHOP (stub)
+## 11. SHOP (stub)
 Picks 100/₪12, 550/₪45, 1200/₪90, 3500/₪219. Crates: Bronze 50 (C60 R30 E8 L1.8
 M0.2), Gold 150 (Epic+), Mythic 500 (Legendary). Battle Pass ₪35/mo. VIP ₪19/mo
 (x2 income, 24h offline, no ads, daily Gold Crate). Daily Deal, rewarded ads.
@@ -158,13 +186,18 @@ M0.2), Gold 150 (Epic+), Mythic 500 (Legendary). Battle Pass ₪35/mo. VIP ₪19
   random 55, best-card play 69–81; at level 12 best play reaches 88 (+4 from jamming
   → 90+). Levelling visibly matters.
 
+- Economy verified: fresh band 1.0 streams/sec and 0.10 money/sec; money accrues at
+  exactly `streams × payoutRate`; hire ladder 15/120/900; a Q80 release took the
+  rates from 5.2→20.2 streams/sec and 0.62→2.43 money/sec.
+
 **Known gaps (deliberate, deferred):** gear, crates as real drops, rarity/merge,
 daily gig, streaks, prestige, league, weekend events, real shop, LLM content,
 `sw.js` offline.
 
-**Removed in the redesign:** the tap-to-fill-tracks loop, Hook Moments, and the Hype
-stat. Quality replaced Hype as the thing that shifts chart odds. A v1 save is
-migrated (streams, levels, studio, songs) rather than discarded.
+**Removed along the way:** the tap-to-fill-tracks loop, Hook Moments, and the Hype
+stat (Quality shifts chart odds instead). Time-gated member unlocks are gone too —
+members are hired with money now. v1 and v2 saves are migrated (streams→money at the
+base payout rate, levels, ownership, songs, time away) rather than discarded.
 
 ## CONVENTIONS
 
@@ -172,7 +205,8 @@ migrated (streams, levels, studio, songs) rather than discarded.
   (`/* ===== AUDIO ===== */` etc.) and add new systems as new banners.
 - Tunables live in the tables near the top of the script — `BAL`, `MEMBERS`,
   `RARITY`, `STUDIOS`, `TIERS`, `ODDS`, `GENRES`, `CARDS`. Never inline a balance
-  number in logic.
+  number in logic. Studio costs are on the *money* scale, which accrues roughly 10x
+  slower than streams — rescale them if `payoutBase` ever changes.
 - Card vectors are the game's difficulty knob. `DSCALE` (2.2) is the distance at
   which a card scores zero; it is tuned to how far apart the real card vectors sit,
   not to the theoretical maximum. Raising it flattens Quality; lowering it punishes.
