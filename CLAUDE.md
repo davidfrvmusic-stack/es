@@ -161,6 +161,11 @@ Floating RELEASE button when the song is complete.
 
 - `index.html` — BUILD ORDER step 1 (MVP) complete. Everything else is stubbed
   behind locked tabs.
+- Tap-feel layer on top of step 1: visible Hook meter (counts taps to the Hook,
+  then drains through the x10 window), touch ripple, stage brightness kick,
+  jittered flying numbers, track-completion stamp, RELEASE shimmer. Audio buffer
+  generation is deferred off the first tap (~40ms) so tap 1 is not the slow one.
+  Measured 60fps (worst frame 18ms) through 60 rapid taps, no DOM node leaks.
 
 **Known gaps vs. spec (deliberate, deferred to later steps):** gear system, crates as
 real drops, rarity/merge, daily gig, streaks, prestige, league, weekend events, real

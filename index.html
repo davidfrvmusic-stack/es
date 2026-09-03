@@ -59,7 +59,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 /* ===== STAGE ===== */
 #stage{flex:1 1 auto;position:relative;overflow:hidden;display:flex;flex-direction:column;
   justify-content:flex-end;padding:0 14px 8px}
-#bg{position:absolute;inset:0;z-index:0;transition:background 1.2s ease;
+#bg{position:absolute;inset:0;z-index:0;transition:background 1.2s ease,filter .14s ease;
   background:radial-gradient(120% 70% at 50% 0%,var(--bg2),var(--bg1) 45%,var(--bg0) 100%)}
 #bg::after{content:"";position:absolute;inset:0;
   background:radial-gradient(60% 40% at 50% 78%,rgba(255,46,131,.20),transparent 70%);
@@ -68,6 +68,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 #stage.hook #bg::after{animation:hookglow .5s ease-in-out infinite;
   background:radial-gradient(75% 55% at 50% 70%,rgba(255,194,61,.5),transparent 70%)}
 @keyframes hookglow{0%,100%{opacity:.6}50%{opacity:1}}
+#stage.tapped #bg{filter:brightness(1.22) saturate(1.1)}
 #flash{position:absolute;inset:0;z-index:3;pointer-events:none;background:#fff;opacity:0}
 #flash.on{animation:flash .22s ease-out}
 @keyframes flash{0%{opacity:.13}100%{opacity:0}}
@@ -108,6 +109,23 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 #songtitle{font-size:19px;font-weight:800;letter-spacing:-.3px;margin-top:2px}
 #songkey{font-size:10.5px;color:var(--dim);margin-top:2px}
 
+#hookmeter{display:flex;align-items:center;gap:8px;margin:0 0 9px;opacity:.85;transition:opacity .3s ease}
+#hookmeter .hl{font-size:9px;font-weight:900;letter-spacing:.14em;color:var(--dim);width:52px}
+#hookmeter .hb{flex:1;height:5px;border-radius:4px;background:rgba(255,255,255,.09);overflow:hidden}
+#hookmeter .hf{height:100%;width:100%;transform:scaleX(0);transform-origin:left;border-radius:4px;
+  background:linear-gradient(90deg,#ff8a3d,var(--gold))}
+#hookmeter .hn{width:34px;text-align:right;font-size:9.5px;font-weight:900;color:var(--dim)}
+#hookmeter.near{opacity:1;animation:hmnear .5s ease-in-out infinite}
+#hookmeter.near .hl,#hookmeter.near .hn{color:var(--gold)}
+@keyframes hmnear{50%{transform:scale(1.02)}}
+#hookmeter.live{opacity:1}
+#hookmeter.live .hf{background:linear-gradient(90deg,var(--gold),#fff);box-shadow:0 0 14px var(--gold)}
+#hookmeter.live .hl,#hookmeter.live .hn{color:var(--gold)}
+
+.ripple{position:fixed;z-index:19;pointer-events:none;width:16px;height:16px;margin:-8px 0 0 -8px;
+  border-radius:50%;border:2px solid rgba(255,255,255,.6);animation:ripple .45s ease-out forwards}
+@keyframes ripple{0%{transform:scale(.4);opacity:.9}100%{transform:scale(6);opacity:0}}
+
 #tracks{position:relative;z-index:2;display:flex;flex-direction:column;gap:7px}
 .trk{display:flex;align-items:center;gap:9px;opacity:.3;transition:opacity .4s ease}
 .trk.on{opacity:1}
@@ -118,7 +136,12 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   background:linear-gradient(90deg,var(--c1),var(--c2));box-shadow:0 0 12px rgba(255,46,131,.35)}
 .trk.full .fill{animation:pulsefill 1.3s ease-in-out infinite}
 @keyframes pulsefill{0%,100%{filter:brightness(1)}50%{filter:brightness(1.5)}}
-.trk .pc{width:30px;text-align:right;font-size:10px;font-weight:800;color:var(--dim)}
+.trk .pc{width:34px;text-align:right;font-size:10px;font-weight:800;color:var(--dim)}
+.trk.stamp .bar{animation:stamp .5s ease-out}
+.trk.stamp .pc{color:#fff;animation:stampnum .5s ease-out}
+@keyframes stamp{0%{box-shadow:0 0 0 0 rgba(255,255,255,.85);filter:brightness(2.2)}
+  100%{box-shadow:0 0 0 9px rgba(255,255,255,0);filter:brightness(1)}}
+@keyframes stampnum{0%{transform:scale(1.5)}100%{transform:scale(1)}}
 .trk.full .pc{color:var(--accent2)}
 
 #release{display:block;width:100%;position:relative;z-index:4;margin-top:10px;height:0;opacity:0;overflow:hidden;
@@ -129,6 +152,10 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 @keyframes rpulse{0%,100%{transform:scale(1);box-shadow:0 8px 30px rgba(255,46,131,.45)}
   50%{transform:scale(1.025);box-shadow:0 10px 40px rgba(255,46,131,.8)}}
 #release:active{transform:scale(.97)}
+#release::after{content:"";position:absolute;top:0;bottom:0;width:34%;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.22),transparent);
+  animation:sweep 1.8s linear infinite}
+@keyframes sweep{0%{left:-50%}100%{left:105%}}
 
 .fly{position:fixed;z-index:20;pointer-events:none;font-weight:900;font-size:17px;color:#fff;
   text-shadow:0 2px 10px rgba(0,0,0,.6);animation:fly .75s ease-out forwards}
@@ -285,6 +312,8 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
     <div id="band"></div>
 
     <div id="dock">
+    <div id="hookmeter"><div class="hl">HOOK</div><div class="hb"><div class="hf"></div></div><div class="hn">0/15</div></div>
+
     <div id="songcard">
       <div id="songgenre">—</div>
       <div id="songtitle">—</div>
@@ -467,22 +496,25 @@ const AU = {
     const comp = this.ctx.createDynamicsCompressor();
     comp.threshold.value = -14; comp.ratio.value = 4;
     this.master.connect(comp); comp.connect(this.ctx.destination);
-    // reverb
+    this.wet = this.ctx.createGain(); this.wet.gain.value = 0.10;
+    this.ready = true;                 // the first tap can play a note right now
+    this.setStudio(S.studio);
+    setTimeout(() => this.buildBuffers(), 0);   // impulse + noise are ~40ms: keep them off the tap
+  },
+  /* reverb impulse and noise source: generated just after the first tap, never during it */
+  buildBuffers(){
+    if (this.noise || !this.ctx) return;
     const len = this.ctx.sampleRate * 1.6, buf = this.ctx.createBuffer(2, len, this.ctx.sampleRate);
     for (let ch = 0; ch < 2; ch++){
       const d = buf.getChannelData(ch);
       for (let i = 0; i < len; i++) d[i] = (Math.random()*2-1) * Math.pow(1 - i/len, 2.6);
     }
     const conv = this.ctx.createConvolver(); conv.buffer = buf;
-    this.wet = this.ctx.createGain(); this.wet.gain.value = 0.10;
     this.wet.connect(conv); conv.connect(this.master);
-    // noise source buffer
     const nl = this.ctx.sampleRate, nb = this.ctx.createBuffer(1, nl, this.ctx.sampleRate);
     const nd = nb.getChannelData(0);
     for (let i = 0; i < nl; i++) nd[i] = Math.random()*2-1;
     this.noise = nb;
-    this.ready = true;
-    this.setStudio(S.studio);
     this.startLoop();
   },
   resume(){ if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume(); },
@@ -505,11 +537,11 @@ const AU = {
     if (detune) o.detune.setValueAtTime(detune, t);
     this.env(g, t, a, d, peak);
     o.connect(g); g.connect(this.master);
-    if (wet) g.connect(this.wet);
+    if (wet && this.wet) g.connect(this.wet);
     o.start(t); o.stop(t + a + d + 0.05);
   },
   noiseHit(t, hp, dur, peak){
-    if (!this.ready) return;
+    if (!this.ready || !this.noise) return;
     const s = this.ctx.createBufferSource(); s.buffer = this.noise;
     const f = this.ctx.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = hp;
     const g = this.ctx.createGain();
@@ -558,7 +590,7 @@ const AU = {
     }
   },
   startLoop(){
-    if (this.timer) return;
+    if (this.timer || !this.ctx) return;
     this.nextT = this.ctx.currentTime + 0.1;
     this.timer = setInterval(() => this.sched(), 25);
   },
@@ -595,6 +627,7 @@ const AU = {
     }
     if (L[3] > 0.02 && s % 8 === 0){                   // VOCALS (pad)
       [0,3,7].forEach(iv => {
+        if (!this.wet) return;
         const o = this.ctx.createOscillator(), g = this.ctx.createGain(), f = this.ctx.createBiquadFilter();
         o.type = 'sawtooth'; o.frequency.value = this.freq(root + 24 + iv); o.detune.value = rndi(-8, 8);
         f.type = 'lowpass'; f.frequency.value = 1600;
@@ -678,7 +711,8 @@ const el = {
   hypeWrap:$('#hypeWrap'), hypeFill:$('#hypeFill'), hypeVal:$('#hypeVal'),
   band:$('#band'), tracks:$('#tracks'), stage:$('#stage'), bg:$('#bg'), release:$('#release'),
   songTitle:$('#songtitle'), songGenre:$('#songgenre'), songKey:$('#songkey'),
-  sheet:$('#sheet'), scrim:$('#scrim'), shBody:$('#shbody'), shTitle:$('#shTitle')
+  sheet:$('#sheet'), scrim:$('#scrim'), shBody:$('#shbody'), shTitle:$('#shTitle'),
+  hookMeter:$('#hookmeter'), hookFill:$('#hookmeter .hf'), hookN:$('#hookmeter .hn')
 };
 const KEYS = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 let trackEls = [], memEls = [];
@@ -697,7 +731,7 @@ function buildStage(){
     t.style.setProperty('--c1', m.c1); t.style.setProperty('--c2', m.c2);
     t.innerHTML = `<div class="tl">${m.track}</div><div class="bar"><div class="fill"></div></div><div class="pc">0%</div>`;
     el.tracks.appendChild(t);
-    trackEls.push({ root:t, fill:t.querySelector('.fill'), pc:t.querySelector('.pc') });
+    trackEls.push({ root:t, fill:t.querySelector('.fill'), pc:t.querySelector('.pc'), hold:0 });
   });
 }
 function renderSong(){
@@ -766,8 +800,20 @@ function tick(){
   for (let i = 0; i < 4; i++){
     const p = S.tracks[i] / BAL.need;
     trackEls[i].fill.style.transform = 'scaleX(' + p + ')';
-    trackEls[i].pc.textContent = Math.floor(p * 100) + '%';
+    if (t > trackEls[i].hold) trackEls[i].pc.textContent = Math.floor(p * 100) + '%';
     trackEls[i].root.classList.toggle('full', p >= 1);
+  }
+
+  // hook meter: counts taps up to the Hook, then drains as the x10 window runs out
+  if (hook){
+    el.hookFill.style.transform = 'scaleX(' + Math.max(0, (hookUntil - t) / BAL.hookDur) + ')';
+    el.hookN.textContent = 'x' + BAL.hookMult;
+    el.hookMeter.classList.add('live'); el.hookMeter.classList.remove('near');
+  } else {
+    el.hookFill.style.transform = 'scaleX(' + (S.tapsToHook / BAL.hookTaps) + ')';
+    el.hookN.textContent = S.tapsToHook + '/' + BAL.hookTaps;
+    el.hookMeter.classList.remove('live');
+    el.hookMeter.classList.toggle('near', S.tapsToHook >= BAL.hookTaps - 2);
   }
 
   uiClock += dt;
@@ -784,6 +830,11 @@ function pulseMember(i){
 }
 function completeTrack(i){
   pulseMember(i); AU.trackDone(i);
+  const e = trackEls[i];
+  e.hold = now() + 0.85;
+  e.pc.textContent = 'TAKE!';
+  e.root.classList.remove('stamp'); void e.root.offsetWidth; e.root.classList.add('stamp');
+  buzz(18);
 }
 function checkUnlocks(){
   for (let i = 1; i < 4; i++){
@@ -819,8 +870,21 @@ function jam(x, y){
   S.tapsTotal++; S.tapsToHook++;
   AU.tap(hook); buzz(10);
   $('#flash').classList.remove('on'); void $('#flash').offsetWidth; $('#flash').classList.add('on');
+  el.stage.classList.add('tapped');
+  clearTimeout(tapKick); tapKick = setTimeout(() => el.stage.classList.remove('tapped'), 90);
+  ripple(x, y);
   fly(x, y, any ? '+' + add : '♪', hook);
   if (S.tapsToHook >= BAL.hookTaps){ S.tapsToHook = 0; hookMoment(); }
+}
+let tapKick = 0, rippleCount = 0;
+function ripple(x, y){
+  if (rippleCount > 6) return;
+  rippleCount++;
+  const d = document.createElement('i');
+  d.className = 'ripple';
+  d.style.left = x + 'px'; d.style.top = y + 'px';
+  document.body.appendChild(d);
+  setTimeout(() => { d.remove(); rippleCount--; }, 470);
 }
 let flyCount = 0;
 function fly(x, y, txt, hook){
@@ -828,7 +892,8 @@ function fly(x, y, txt, hook){
   flyCount++;
   const d = document.createElement('div');
   d.className = 'fly'; d.textContent = txt;
-  d.style.left = x + 'px'; d.style.top = y + 'px';
+  d.style.left = (x + rndi(-16, 16)) + 'px'; d.style.top = (y + rndi(-10, 6)) + 'px';
+  d.style.fontSize = (hook ? 22 : 15 + Math.random() * 5).toFixed(0) + 'px';
   if (hook) d.style.color = 'var(--gold)';
   document.body.appendChild(d);
   setTimeout(() => { d.remove(); flyCount--; }, 760);
