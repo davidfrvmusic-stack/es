@@ -12,7 +12,10 @@ releasing them, and climbing the charts.
 **Hard constraints (do not violate without being asked):**
 - Single-page web app: **one `index.html`** with inline CSS/JS. **No build step, no
   dependencies, no external network requests, no image files.**
-- Touch-optimized, **portrait**, 60fps, mobile-first. Dark purple UI, flat and bold.
+- Touch-optimized, **portrait**, 60fps, mobile-first. **Warm cream palette**, flat and
+  bold — see PALETTE below. No web fonts: the no-network rule rules out Google Fonts,
+  so the design's Bricolage/Archivo pairing is approximated with the system rounded
+  stack at matching weights and letter-spacing.
 - Works offline (PWA: inline manifest + home-screen install; a `sw.js` may be added
   later for true cache-first offline).
 - State persists to `localStorage` (versioned key, forward-migratable).
@@ -56,9 +59,34 @@ You run a band. Your members write songs, you release them, they climb charts, a
 streams are your money. Grow from a garage to stadiums, then break up the band for
 permanent Legacy bonuses.
 
-## 2. CHARACTERS
-4 band members drawn as animated **inline SVG** (no images), and each one actually
-**plays**: the drummer's jointed arms swing sticks down onto the kit in alternation,
+## 2. PALETTE AND TYPE
+
+Warm, energetic, high-contrast on cream. Tokens live in `:root` — change them there,
+never in a rule:
+
+| token | value | use |
+|---|---|---|
+| `--cream` / `--cream2` / `--cream3` | `#FFF3E2` `#FFE7C4` `#FFDCAE` | page, stage, stage floor |
+| `--panel` | `#FFFAF0` | cards, sheets, chips |
+| `--line` / `--line2` | `#EBD9BE` `#D9BE99` | 2px borders (this UI outlines, it does not shadow) |
+| `--ink` / `--dim` / `--dim2` | `#2C1D16` `#8A6F5E` `#A9856B` | text |
+| `--accent` / `--accent-dk` / `--accent-sh` | `#FF5A45` `#D93A26` `#C0331F` | coral: primary action, money |
+| `--gold` / `--gold-dk` | `#FFC22E` `#E39A00` | yellow: timers, rising, picks |
+| `--accent2` / `--accent2-dk` | `#12A79C` `#0B7A72` | teal: confirm, streams, NODS |
+
+Buttons carry a solid `0 5px 0` shadow in their own dark tone and press *down* into
+it — no gradients, no blur. Borders are 2px. Icons in persistent chrome are inline
+SVG on a 24px grid (`ICON` + `ico()`); emoji survive only as expressive punctuation
+inside toast text.
+
+Design sources for the overhaul are in `design/` as `.dc.html` artboards — the
+canvas the screens were drawn on. They are reference, not build input.
+
+## 3. CHARACTERS
+4 band members drawn as animated **inline SVG** (no images) holding **real
+instruments** — a bass drum with hoop, lugs and a visible head, rack toms and snare
+with rims, hi-hat and ride, 4- and 6-string necks with frets, dot inlays, pickups and
+tuners, and a mic with a cross-hatched grille. Each one actually **plays**: the drummer's jointed arms swing sticks down onto the kit in alternation,
 bassist and guitarist fret with one hand and strum across the body with the other,
 the vocalist holds a mic to their mouth and their jaw moves. Limbs are round-capped
 stroked paths (shoulder → elbow → hand) inside groups with
@@ -69,7 +97,7 @@ hair style, hair colour, accessory). Rarity changes the outfit style (jacket pan
 shoulder studs → trim + glow → aura). Equipped gear will be drawn on the character.
 Locked members are a dark silhouette with a lock. Flat, bold, slightly cartoonish.
 
-## 3. SONGWRITING SESSION (the core loop)
+## 4. SONGWRITING SESSION (the core loop)
 - WRITE A SONG → pick a genre from 4 offered (the hottest genre is always one of
   them, each showing its trend status and multiplier), then a **20-second session**: one decision per *unlocked* track, in order
   drums → bass → guitar → vocals.
@@ -95,13 +123,13 @@ Locked members are a dark silhouette with a lock. Flat, bold, slightly cartoonis
   offline. A trickle that rewards returning, never the main income. Player sessions
   played well reach 90+.
 
-## 4. RELEASE
+## 5. RELEASE
 Slot-machine chart reveal: title → procedural cover → chart-position reel → tier.
 Flop / Solid / Hit / Viral / #1, **weighted by Quality** (`ODDS` table, interpolated:
 at Q90 exactly 40% land Hit or better). 25% of Flops and Solids show the reel land
 one tier higher before settling. Skippable after the first reveal.
 
-## 5. TWO RATES: STREAMS/sec AND MONEY/sec
+## 6. TWO RATES: STREAMS/sec AND MONEY/sec
 The top bar shows both, each with its total and its rate. They are separate numbers
 with separate jobs: **streams are reach, money is what you spend.**
 
@@ -146,7 +174,7 @@ immediate payoff before you have any catalogue.
   and on the Catalog tab. Trends apply live to the whole back catalogue.
 - Release payout = 90 seconds of that song's streams, up front.
 
-## 6. YOUR CHARACTER, AND HIRING THE REST
+## 7. YOUR CHARACTER, AND HIRING THE REST
 On first run a **setup screen** asks for a band name, your name, the instrument you
 play, and shuffles your character's look. That slot is yours and **free**, owned at
 level 1. Both names are editable later from the Band tab, and every hire prompts for
@@ -159,16 +187,16 @@ no starting role is a dominant pick. Role `sps` values are deliberately close
 together (0.9 → 1.2) for the same reason: choosing your instrument should be about
 which writing cards you start with, not which is strongest.
 
-## 7. UPGRADES (all bought with money)
+## 8. UPGRADES (all bought with money)
 - **Member levels** — cost `lvlCost × 1.15^n`. Raises that member's streams/sec,
   scales every song, unlocks better cards, sharpens hints, speeds up solo demos.
-- **Royalty rate** — the payout multiplier, see §5.
+- **Royalty rate** — the payout multiplier, see §6.
 - **Rarity** — Common→Rare→Epic→Legendary→Mythic, from crates; merge 3 → one up.
 - **Gear** — 2 slots per member; visible on the character; unlocks writing cards.
 - **Studios** — Garage → Bedroom → Rehearsal → Pro Studio → Label HQ → Tour Bus →
   Stadium → Space. Each x4 all song streams and repaints the stage.
 
-## 8. PACING — why the curve is shaped the way it is
+## 9. PACING — why the curve is shaped the way it is
 
 The first cut of this economy finished itself in **under an hour**: 1M money at 12
 minutes, 1B at 45, every member at level 145, the whole studio ladder spent. The
@@ -208,7 +236,7 @@ it was simulated. One trap: the game's top-level `const` helpers (`memberSPS`,
 `studioMult`, …) are **not** `window` properties, so `window.memberSPS = …` in an
 injected override silently does nothing and the run measures unchanged formulas.
 
-## 9. SOUND (the differentiator — do not skip)
+## 10. SOUND (the differentiator — do not skip)
 Web Audio synth only, no samples. Every tap plays a pentatonic note in the song's
 key. **Each decided track fades its instrument layer into the loop** — so the song
 assembles as you make decisions, and a finished demo is a 4-layer loop. The chosen
@@ -216,14 +244,14 @@ card's energy shapes its layer (filter cutoff, hat density). BPM comes from the
 genre's energy and drives both the loop and the characters' bob. Studio upgrades add
 reverb. Release plays a chord. Mute toggle. Haptics on tap and on Hit/Viral.
 
-## 10. CURRENCIES
+## 11. CURRENCIES
 - **Streams** — reach. Accumulates from the rate above; drives Legacy at prestige.
 - **Money** — the spend currency. Members, levels, royalties, studios.
 - **Picks** (premium) — crates, skips, streak saves.
 - **Legacy** (prestige) — permanent multipliers.
 Formatting: 1.2K, 3.4M, 8.9B, 1.1T… Counters animate up.
 
-## 11. UI (portrait, one-thumb)
+## 12. UI (portrait, one-thumb)
 Top: two animated counters side by side — MONEY (total + /s) and STREAMS
 (total + /s) — then band name, Picks and studio chips.
 Middle: the stage — 4 SVG characters, the active one stepped forward.
@@ -235,7 +263,7 @@ Bottom dock, one of four states: **idle** (solo-demo progress + WRITE A SONG),
 RELEASE IT). Tabs: Band | Gear | Catalog | Shop | League open as bottom sheets over
 the stage. Targets ≥44px, `env(safe-area-inset-*)` respected.
 
-## 12. SHOP (stub)
+## 13. SHOP (stub)
 Picks 100/₪12, 550/₪45, 1200/₪90, 3500/₪219. Crates: Bronze 50 (C60 R30 E8 L1.8
 M0.2), Gold 150 (Epic+), Mythic 500 (Legendary). Battle Pass ₪35/mo. VIP ₪19/mo
 (x2 income, 24h offline, no ads, daily Gold Crate). Daily Deal, rewarded ads.
@@ -251,6 +279,10 @@ M0.2), Gold 150 (Epic+), Mythic 500 (Legendary). Battle Pass ₪35/mo. VIP ₪19
   random 55, best-card play 69–81; at level 12 best play reaches 88 (+4 from jamming
   → 90+). Levelling visibly matters.
 
+- Visual overhaul applied from `design/`: warm palette throughout, characters
+  redrawn with real instruments (animation and pivots unchanged), UI emoji replaced
+  with an inline SVG icon set, procedural cover hues constrained to the warm/teal
+  family.
 - Economy verified: a fresh band sits at **0 streams/sec and 1.0 money/sec**; hiring
   raises gig money (1.0→1.5) with no songs out; the first release starts streams;
   hire ladder 30/300/2200; first level 14; royalty 4% at 250. Pacing per §8.
@@ -267,6 +299,13 @@ base payout rate, levels, ownership, songs, time away) rather than discarded.
 
 ## CONVENTIONS
 
+- Palette tokens live in `:root`. Never write a raw hex in a rule — if a colour is
+  missing, add a token. The JS colour tables (`MEMBERS.c1/c2`, `RARITY`, `TIERS`,
+  `TRENDS`, `STUDIOS.bg`, `SKIN`, `HAIRC`, `RARITY_TRIM`) carry the same palette and
+  must move with it.
+- A member's own colour is their shirt; **rarity is a treatment on top** (jacket
+  panels → studs → trim + glow → aura), not a recolour. That keeps the four members
+  distinguishable at every rarity.
 - Everything lives in `index.html`. Keep the section-comment banners
   (`/* ===== AUDIO ===== */` etc.) and add new systems as new banners.
 - Tunables live in the tables near the top of the script — `BAL`, `MEMBERS`,

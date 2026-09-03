@@ -13,77 +13,79 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{
-  --bg0:#100b1e; --bg1:#1d1140; --bg2:#33195e;
-  --accent:#ff2e83; --accent2:#00e6c3; --gold:#ffc23d; --bad:#ff5b5b;
-  --ink:#fff; --dim:#9d93c4; --panel:#1a1233; --line:rgba(255,255,255,.11);
+  --cream:#FFF3E2; --cream2:#FFE7C4; --cream3:#FFDCAE;
+  --panel:#FFFAF0; --line:#EBD9BE; --line2:#D9BE99;
+  --ink:#2C1D16; --dim:#8A6F5E; --dim2:#A9856B; --onDark:#FFF6E6;
+  --accent:#FF5A45; --accent-dk:#D93A26; --accent-sh:#C0331F;
+  --gold:#FFC22E; --gold-dk:#E39A00;
+  --accent2:#12A79C; --accent2-dk:#0B7A72;
+  --bad:#D93A26;
   --safe-b:env(safe-area-inset-bottom,0px); --safe-t:env(safe-area-inset-top,0px);
   --beat:.577s;
 }
 html,body{height:100%;overflow:hidden;overscroll-behavior:none}
-body{background:var(--bg0);color:var(--ink);
+body{background:var(--cream);color:var(--ink);
   font:600 15px/1.35 ui-rounded,-apple-system,BlinkMacSystemFont,"SF Pro Rounded","Segoe UI",Roboto,system-ui,sans-serif;
-  -webkit-user-select:none;user-select:none;touch-action:manipulation}
+  -webkit-user-select:none;user-select:none;touch-action:manipulation;-webkit-font-smoothing:antialiased}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .num{font-variant-numeric:tabular-nums}
 #app{position:fixed;inset:0;display:flex;flex-direction:column}
 
 /* ===== TOP BAR ===== */
-#top{padding:calc(var(--safe-t) + 8px) 14px 8px;flex:0 0 auto;z-index:6;
-  background:linear-gradient(180deg,rgba(16,11,30,.97),rgba(16,11,30,.6) 72%,transparent)}
+#top{padding:calc(var(--safe-t) + 12px) 16px 10px;flex:0 0 auto;z-index:6;
+  background:var(--cream);border-bottom:2px solid var(--line)}
 .rates{display:flex;align-items:flex-start;gap:14px}
 .rate{flex:1;min-width:0}
-.rate .rl{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);font-weight:800}
-.rate .rv{font-size:27px;font-weight:800;letter-spacing:-.8px;line-height:1.05;
-  background:linear-gradient(180deg,#fff,#cbb8ff);-webkit-background-clip:text;background-clip:text;color:transparent}
-.rate .rs{font-size:11.5px;font-weight:800;color:var(--accent2);margin-top:1px}
-.rate.money .rv{background:linear-gradient(180deg,#fff,#ffe08a);-webkit-background-clip:text;background-clip:text}
-.rate.money .rs{color:var(--gold)}
-.sub{display:flex;align-items:center;gap:7px;margin-top:7px}
-#bandChip{font-weight:800;max-width:44%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rate .rl{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim2);font-weight:800}
+.rate .rv{font-size:29px;font-weight:800;letter-spacing:-1px;line-height:1.05;color:var(--ink)}
+.rate .rs{font-size:11.5px;font-weight:800;color:var(--accent2-dk);margin-top:1px}
+.rate.money .rv{color:var(--accent-dk)}
+.rate.money .rs{color:var(--gold-dk)}
+.sub{display:flex;align-items:center;gap:7px;margin-top:9px}
+#bandChip{font-weight:800;max-width:44%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  background:var(--ink);color:var(--cream);border-color:var(--ink)}
 .chip{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:800;
-  background:rgba(255,255,255,.07);border:1px solid var(--line);border-radius:999px;padding:4px 10px}
-.chip.pk{color:var(--gold)}
-#muteBtn{margin-left:auto;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.07);
-  border:1px solid var(--line);display:grid;place-items:center;font-size:14px}
+  background:var(--panel);border:2px solid var(--line);border-radius:999px;padding:4px 11px;color:var(--dim)}
+.chip.pk{color:var(--gold-dk)}
+#muteBtn{margin-left:auto;width:34px;height:34px;border-radius:50%;background:var(--panel);
+  border:2px solid var(--line);display:grid;place-items:center;padding:0;flex:0 0 auto}
 
 /* ===== STAGE ===== */
 #stage{flex:1 1 auto;position:relative;overflow:hidden;display:flex;flex-direction:column;min-height:0}
-#bg{position:absolute;inset:0;z-index:0;transition:background 1.4s ease;
-  background:radial-gradient(125% 72% at 50% 0%,var(--bg2),var(--bg1) 48%,var(--bg0) 100%)}
+#bg{position:absolute;inset:0;z-index:0;transition:background 1.4s ease,filter .14s ease;
+  background:radial-gradient(120% 78% at 50% 6%,var(--cream2) 0%,var(--cream3) 48%,#FFCE95 100%)}
 #bg::after{content:"";position:absolute;inset:0;
-  background:radial-gradient(58% 34% at 50% 74%,rgba(255,46,131,.22),transparent 70%);
+  background:radial-gradient(58% 46% at 50% 2%,rgba(255,255,255,.72),transparent 72%);
   animation:breathe 5s ease-in-out infinite}
-@keyframes breathe{0%,100%{opacity:.5}50%{opacity:1}}
-.crowd{position:absolute;left:0;right:0;bottom:0;height:15%;z-index:1;opacity:.5;
-  background:radial-gradient(circle at 8% 100%,#000 13px,transparent 14px),
-             radial-gradient(circle at 24% 100%,#000 16px,transparent 17px),
-             radial-gradient(circle at 40% 100%,#000 12px,transparent 13px),
-             radial-gradient(circle at 57% 100%,#000 17px,transparent 18px),
-             radial-gradient(circle at 73% 100%,#000 13px,transparent 14px),
-             radial-gradient(circle at 90% 100%,#000 15px,transparent 16px)}
+@keyframes breathe{0%,100%{opacity:.55}50%{opacity:1}}
+.crowd{position:absolute;left:0;right:0;bottom:0;height:15%;z-index:1;opacity:.35;
+  background:radial-gradient(circle at 8% 100%,#C98F5B 13px,transparent 14px),
+             radial-gradient(circle at 24% 100%,#C98F5B 16px,transparent 17px),
+             radial-gradient(circle at 40% 100%,#C98F5B 12px,transparent 13px),
+             radial-gradient(circle at 57% 100%,#C98F5B 17px,transparent 18px),
+             radial-gradient(circle at 73% 100%,#C98F5B 13px,transparent 14px),
+             radial-gradient(circle at 90% 100%,#C98F5B 15px,transparent 16px)}
 #flash{position:absolute;inset:0;z-index:4;pointer-events:none;background:#fff;opacity:0}
 #flash.on{animation:flash .2s ease-out}
-@keyframes flash{0%{opacity:.09}100%{opacity:0}}
+@keyframes flash{0%{opacity:.5}100%{opacity:0}}
 #stage.shake{animation:shake .5s cubic-bezier(.36,.07,.19,.97)}
 @keyframes shake{10%,90%{transform:translateX(-3px)}20%,80%{transform:translateX(5px)}
   30%,50%,70%{transform:translateX(-8px)}40%,60%{transform:translateX(8px)}}
 
-/* ===== BAND (inline-SVG characters) ===== */
+/* ===== BAND ===== */
 #band{position:relative;z-index:2;flex:1 1 auto;min-height:0;display:flex;align-items:center;
   justify-content:center;gap:2px;padding:10px 10px 4px}
 .mem{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
   transition:transform .4s cubic-bezier(.2,1.3,.4,1),opacity .35s ease;transform-origin:bottom center}
 .mem svg{width:100%;height:auto;max-height:100%;display:block;overflow:visible}
-.mem .tag{margin-top:2px;font-size:9px;font-weight:800;letter-spacing:.05em;color:var(--dim);
+.mem .tag{margin-top:2px;font-size:9.5px;font-weight:800;letter-spacing:.05em;color:var(--dim);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
-.mem.locked{opacity:.5}
+.mem.locked{opacity:.75}
 #band.focus .mem{opacity:.22;transform:scale(.74)}
 #band.focus .mem.up{opacity:1;position:absolute;left:50%;bottom:0;width:26%;
   transform:translateX(-50%) scale(1.18);z-index:3}
 .ch-bob{animation:bob calc(var(--beat)*2) ease-in-out infinite;transform-box:fill-box;transform-origin:bottom center}
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3.5px)}}
-/* playing motions. transform-box:view-box lets each limb pivot on its own shoulder
-   in viewBox coordinates, so hands actually land on the instrument. */
 .pl-l,.pl-r,.pl-strum,.pl-fret,.pl-mic,.pl-free{transform-box:view-box}
 .pl-l{animation:stickL var(--beat) ease-in-out infinite;transform-origin:31px 60px}
 .pl-r{animation:stickR var(--beat) ease-in-out infinite;transform-origin:69px 60px}
@@ -105,248 +107,238 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .mem.wince .ch-head{animation:wince .45s ease-in-out 2}
 @keyframes wince{0%,100%{transform:rotate(0)}30%{transform:rotate(-8deg) translateX(-2px)}70%{transform:rotate(6deg)}}
 .paused *{animation-play-state:paused}
-
 .bubble{position:absolute;top:-4px;left:50%;transform:translate(-50%,-100%) scale(.6);opacity:0;
-  background:#fff;color:#170f2b;font-size:10.5px;font-weight:900;letter-spacing:.03em;
-  padding:5px 9px;border-radius:10px;white-space:nowrap;z-index:5;pointer-events:none}
-.bubble::after{content:"";position:absolute;bottom:-4px;left:50%;margin-left:-4px;
-  border:4px solid transparent;border-top-color:#fff}
+  background:var(--ink);color:var(--cream);font-size:11px;font-weight:800;letter-spacing:.03em;
+  padding:6px 11px;border-radius:11px;white-space:nowrap;z-index:5;pointer-events:none}
+.bubble::after{content:"";position:absolute;bottom:-5px;left:50%;margin-left:-5px;
+  border:5px solid transparent;border-top-color:var(--ink)}
 .bubble.on{animation:bub 1.05s ease-out}
 @keyframes bub{0%{opacity:0;transform:translate(-50%,-100%) scale(.6)}
   18%{opacity:1;transform:translate(-50%,-100%) scale(1)}
   80%{opacity:1}100%{opacity:0;transform:translate(-50%,-115%) scale(1)}}
 
-/* ===== DOCK: idle / genre / writing / quality ===== */
-#dock{position:relative;z-index:3;flex:0 0 auto;padding:8px 12px 10px;
-  background:linear-gradient(180deg,transparent,rgba(16,11,30,.72) 26%,rgba(16,11,30,.94) 55%)}
-.dtitle{text-align:center;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);
-  margin-bottom:5px}
-.dsong{text-align:center;font-size:17px;font-weight:800;letter-spacing:-.2px;margin-bottom:8px}
-
-#idlebox .writers{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}
-.wrow{display:flex;align-items:center;gap:8px;font-size:10.5px;color:var(--dim);font-weight:700}
-.wrow .nm{width:64px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.wrow .wb{flex:1;height:4px;border-radius:3px;background:rgba(255,255,255,.09);overflow:hidden}
+/* ===== DOCK ===== */
+#dock{position:relative;z-index:3;flex:0 0 auto;padding:14px 16px 16px;
+  background:var(--cream);border-top:2px solid var(--line)}
+.dtitle{text-align:center;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim2);
+  margin-bottom:4px;font-weight:800}
+.dsong{text-align:center;font-size:19px;font-weight:800;letter-spacing:-.2px;margin-bottom:10px}
+#idlebox .writers{display:flex;flex-direction:column;gap:7px;margin-bottom:12px}
+.wrow{display:flex;align-items:center;gap:9px;font-size:10.5px;color:var(--dim);font-weight:700}
+.wrow .nm{width:62px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wrow .wb{flex:1;height:6px;border-radius:3px;background:var(--line);overflow:hidden}
 .wrow .wf{height:100%;width:100%;transform:scaleX(0);transform-origin:left;border-radius:3px;
-  background:linear-gradient(90deg,#6b4dff,var(--accent2))}
-
-.bigbtn{display:block;width:100%;padding:16px;border-radius:17px;font-size:16px;font-weight:900;
-  letter-spacing:.11em;background:linear-gradient(135deg,var(--accent),#ff7a3d);color:#fff;
-  box-shadow:0 8px 26px rgba(255,46,131,.45);position:relative;overflow:hidden}
-.bigbtn:active{transform:scale(.975)}
-.bigbtn.pulse{animation:rpulse 1.15s ease-in-out infinite}
-@keyframes rpulse{0%,100%{box-shadow:0 8px 26px rgba(255,46,131,.4)}50%{box-shadow:0 10px 40px rgba(255,46,131,.85)}}
+  background:var(--accent2)}
+.bigbtn{display:block;width:100%;padding:18px;border-radius:18px;font-size:17px;font-weight:800;
+  letter-spacing:.11em;background:var(--accent);color:var(--onDark);
+  box-shadow:0 5px 0 var(--accent-sh);position:relative;overflow:hidden}
+.bigbtn:active{transform:translateY(3px);box-shadow:0 2px 0 var(--accent-sh)}
+.bigbtn.pulse{animation:rpulse 1.5s ease-in-out infinite}
+@keyframes rpulse{0%,100%{box-shadow:0 5px 0 var(--accent-sh)}
+  50%{box-shadow:0 5px 0 var(--accent-sh),0 0 0 7px rgba(255,90,69,.16)}}
 .bigbtn::after{content:"";position:absolute;top:0;bottom:0;width:34%;
-  background:linear-gradient(100deg,transparent,rgba(255,255,255,.22),transparent);animation:sweep 1.9s linear infinite}
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.3),transparent);animation:sweep 1.9s linear infinite}
 @keyframes sweep{0%{left:-50%}100%{left:105%}}
-.bigbtn.teal{background:linear-gradient(135deg,var(--accent2),#12b8a0);color:#04352e;
-  box-shadow:0 8px 26px rgba(0,230,195,.35)}
+.bigbtn.teal{background:var(--accent2);color:var(--onDark);box-shadow:0 5px 0 var(--accent2-dk)}
+.bigbtn.teal:active{box-shadow:0 2px 0 var(--accent2-dk)}
 
-/* timer + track label */
-#timerbar{height:5px;border-radius:3px;background:rgba(255,255,255,.1);overflow:hidden;margin-bottom:8px}
-#timerfill{height:100%;width:100%;transform-origin:left;border-radius:3px;
-  background:linear-gradient(90deg,var(--accent2),var(--gold))}
-#timerbar.low #timerfill{background:linear-gradient(90deg,#ff7a3d,var(--bad))}
-.trackhead{display:flex;align-items:baseline;gap:7px;margin-bottom:7px}
-.trackhead .tk{font-size:13px;font-weight:900;letter-spacing:.13em}
+#timerbar{height:7px;border-radius:4px;background:var(--line);overflow:hidden;margin-bottom:12px}
+#timerfill{height:100%;width:100%;transform-origin:left;border-radius:4px;background:var(--gold)}
+#timerbar.low #timerfill{background:var(--accent-dk)}
+.trackhead{display:flex;align-items:baseline;gap:8px;margin:14px 0 9px}
+.trackhead .tk{font-size:15px;font-weight:800;letter-spacing:.13em}
 .trackhead .who{font-size:10.5px;color:var(--dim);font-weight:700;flex:1;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.trackhead .jam{font-size:10px;font-weight:900;color:var(--gold)}
-
-/* cards */
-#cards{display:flex;flex-direction:column;gap:7px}
-.card2{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:14px;
-  background:rgba(255,255,255,.06);border:1px solid var(--line);text-align:left;
-  transition:transform .12s ease,background .2s ease}
-.card2:active{transform:scale(.98);background:rgba(255,255,255,.11)}
+.trackhead .jam{font-size:10px;font-weight:800;color:var(--gold-dk)}
+#cards{display:flex;flex-direction:column;gap:8px}
+.card2{display:flex;align-items:center;gap:10px;padding:12px 13px;border-radius:15px;
+  background:var(--panel);border:2px solid var(--line);text-align:left;
+  transition:transform .12s ease,border-color .2s ease}
+.card2:active{transform:scale(.98);border-color:var(--dim2)}
 .card2 .cn{flex:1;min-width:0}
-.card2 .t{font-size:14px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card2 .t{font-size:14.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .card2 .d{font-size:10.5px;color:var(--dim);font-weight:600;margin-top:1px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.react{flex:0 0 auto;font-size:9px;font-weight:900;letter-spacing:.08em;padding:4px 8px;border-radius:8px;
-  background:rgba(255,255,255,.08);color:var(--dim);opacity:0;transition:opacity .25s ease}
+.react{flex:0 0 auto;font-size:9px;font-weight:800;letter-spacing:.08em;padding:5px 9px;border-radius:9px;
+  background:#EFE2CE;color:var(--dim);opacity:0;transition:opacity .25s ease}
 .react.show{opacity:1}
-.react.good{background:rgba(61,220,132,.18);color:#5ef0a0}
-.react.bad{background:rgba(255,91,91,.16);color:#ff8f8f}
-.react.meh{background:rgba(255,255,255,.08);color:var(--dim)}
-.card2.chosen{border-color:var(--accent2);background:rgba(0,230,195,.12)}
-
-/* the song sheet: which cards are locked in */
-#sheetstrip{display:flex;gap:5px;margin-bottom:8px}
-.slot{flex:1;min-width:0;padding:5px 6px;border-radius:9px;background:rgba(255,255,255,.05);
-  border:1px solid var(--line)}
-.slot .sl{font-size:7.5px;font-weight:900;letter-spacing:.1em;color:var(--dim)}
-.slot .sv{font-size:9px;font-weight:800;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  color:rgba(255,255,255,.35)}
-.slot.done{background:rgba(0,230,195,.1);border-color:rgba(0,230,195,.3)}
-.slot.done .sv{color:#fff}
-.slot.now{border-color:var(--gold);background:rgba(255,194,61,.12)}
-
-/* genre picker */
+.react.good{background:var(--accent2);color:var(--onDark)}
+.react.bad{background:#FBE3DE;color:var(--accent-dk)}
+.react.meh{background:#EFE2CE;color:var(--dim)}
+.card2.chosen{border-color:var(--accent2);background:#E6F5F3}
+#sheetstrip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-bottom:2px}
+.slot{min-width:0;padding:7px 8px;border-radius:11px;background:var(--panel);border:2px solid var(--line)}
+.slot .sl{font-size:7.5px;font-weight:800;letter-spacing:.1em;color:var(--dim2)}
+.slot .sv{font-size:9.5px;font-weight:800;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  color:#CBB49A}
+.slot.done{background:#E6F5F3;border-color:var(--accent2)}
+.slot.done .sl{color:var(--accent2-dk)}
+.slot.done .sv{color:var(--ink)}
+.slot.now{border-color:var(--gold);background:#FFF1CE}
+.slot.now .sl{color:var(--gold-dk)}
 .gpick{display:flex;flex-direction:column;gap:7px;margin-bottom:9px}
-.gbtn{display:flex;align-items:center;gap:9px;padding:12px;border-radius:14px;text-align:left;
-  background:rgba(255,255,255,.06);border:1px solid var(--line)}
+.gbtn{display:flex;align-items:center;gap:9px;padding:12px;border-radius:15px;text-align:left;
+  background:var(--panel);border:2px solid var(--line)}
 .gbtn:active{transform:scale(.98)}
-.gbtn .gn{flex:1;font-size:14px;font-weight:900;letter-spacing:.04em}
-.trend{font-size:8.5px;font-weight:900;letter-spacing:.09em;padding:3px 7px;border-radius:7px;color:#120c22}
-
-/* quality reveal */
+.gbtn .gn{flex:1;font-size:14px;font-weight:800;letter-spacing:.02em}
+.trend{font-size:9px;font-weight:800;letter-spacing:.09em;padding:4px 8px;border-radius:8px;color:var(--onDark)}
 #qualbox{text-align:center}
-#qbar{height:12px;border-radius:7px;background:rgba(255,255,255,.09);overflow:hidden;margin:8px 0 6px;
-  border:1px solid var(--line)}
+#qbar{height:12px;border-radius:7px;background:var(--line);overflow:hidden;margin:8px 0 6px}
 #qfill{height:100%;width:100%;transform:scaleX(0);transform-origin:left;
-  background:linear-gradient(90deg,#ff5b5b,var(--gold) 55%,var(--accent2));transition:transform .9s cubic-bezier(.2,.9,.3,1)}
-#qnum{font-size:40px;font-weight:900;letter-spacing:-1.5px;line-height:1}
-#qlabel{font-size:12px;font-weight:900;letter-spacing:.16em;text-transform:uppercase;color:var(--gold)}
-#qnote{font-size:10.5px;color:var(--dim);font-weight:600;margin:4px 0 9px}
+  background:linear-gradient(90deg,var(--accent-dk),var(--gold) 55%,var(--accent2));transition:transform .9s cubic-bezier(.2,.9,.3,1)}
+#qnum{font-size:42px;font-weight:800;letter-spacing:-1.5px;line-height:1}
+#qlabel{font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-dk)}
+#qnote{font-size:10.5px;color:var(--dim);font-weight:600;margin:4px 0 10px}
 
-.fly{position:fixed;z-index:20;pointer-events:none;font-weight:900;font-size:16px;color:#fff;
-  text-shadow:0 2px 10px rgba(0,0,0,.6);animation:fly .75s ease-out forwards}
+.fly{position:fixed;z-index:20;pointer-events:none;font-weight:800;font-size:16px;color:var(--accent-dk);
+  text-shadow:0 2px 8px rgba(255,243,226,.9);animation:fly .75s ease-out forwards}
 @keyframes fly{0%{transform:translate(-50%,-50%) scale(.7);opacity:1}
   100%{transform:translate(-50%,-165%) scale(1.1);opacity:0}}
 .ripple{position:fixed;z-index:19;pointer-events:none;width:16px;height:16px;margin:-8px 0 0 -8px;
-  border-radius:50%;border:2px solid rgba(255,255,255,.55);animation:ripple .45s ease-out forwards}
+  border-radius:50%;border:2px solid rgba(217,58,38,.5);animation:ripple .45s ease-out forwards}
 @keyframes ripple{0%{transform:scale(.4);opacity:.9}100%{transform:scale(5.5);opacity:0}}
 
 /* ===== TABS ===== */
 #tabs{flex:0 0 auto;display:flex;z-index:8;padding-bottom:var(--safe-b);
-  background:rgba(14,10,26,.97);border-top:1px solid var(--line)}
-.tab{flex:1;padding:8px 0 7px;display:flex;flex-direction:column;align-items:center;gap:3px;
-  font-size:9px;letter-spacing:.06em;color:var(--dim);font-weight:800;position:relative;min-height:50px}
-.tab .ic{font-size:16px;line-height:1}
+  background:var(--panel);border-top:2px solid var(--line)}
+.tab{flex:1;padding:9px 0 8px;display:flex;flex-direction:column;align-items:center;gap:4px;
+  font-size:9px;letter-spacing:.06em;color:var(--dim2);font-weight:800;position:relative;min-height:54px}
+.tab .ic{line-height:0}
 .tab.sel{color:var(--ink)}
-.tab.sel::before{content:"";position:absolute;top:0;left:22%;right:22%;height:2px;border-radius:2px;
-  background:var(--accent);box-shadow:0 0 10px var(--accent)}
-.tab .dot{position:absolute;top:5px;right:26%;width:7px;height:7px;border-radius:50%;
+.tab.sel::before{content:"";position:absolute;top:0;left:22%;right:22%;height:3px;border-radius:0 0 3px 3px;
+  background:var(--accent)}
+.tab .dot{position:absolute;top:6px;right:26%;width:7px;height:7px;border-radius:50%;
   background:var(--accent2);display:none}
 .tab.alert .dot{display:block}
 
 /* ===== SHEET ===== */
-#scrim{position:fixed;inset:0;z-index:9;background:rgba(0,0,0,.62);opacity:0;pointer-events:none;
+#scrim{position:fixed;inset:0;z-index:9;background:rgba(44,29,22,.42);opacity:0;pointer-events:none;
   transition:opacity .25s ease}
 #scrim.on{opacity:1;pointer-events:auto}
 #sheet{position:fixed;left:0;right:0;bottom:0;z-index:10;max-height:78%;display:flex;flex-direction:column;
-  background:var(--panel);border-radius:22px 22px 0 0;border:1px solid var(--line);border-bottom:0;
+  background:var(--cream);border-radius:22px 22px 0 0;border:2px solid var(--line);border-bottom:0;
   transform:translateY(102%);transition:transform .3s cubic-bezier(.22,1,.36,1);padding-bottom:var(--safe-b)}
 #sheet.on{transform:translateY(0)}
-/* the Band tab is a full screen, not a panel */
-#sheet.full{top:0;max-height:none;border-radius:0;border-left:0;border-right:0;
-  padding-top:var(--safe-t)}
+#sheet.full{top:0;max-height:none;border-radius:0;border-left:0;border-right:0;padding-top:var(--safe-t)}
 #sheet.full .grab{display:none}
-#sheet.full .shhead{padding-top:14px}
-#sheet.full .shhead h2{font-size:21px}
-.grab{width:38px;height:4px;border-radius:3px;background:rgba(255,255,255,.22);margin:8px auto 0}
-.shhead{display:flex;align-items:center;padding:12px 16px 10px;gap:10px;flex:0 0 auto}
-.shhead h2{font-size:17px;font-weight:900}
-.shhead .x{margin-left:auto;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.08);
-  display:grid;place-items:center;font-size:15px}
-#shbody{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 14px 18px;flex:1 1 auto}
-.card{background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:16px;
-  padding:11px;margin-bottom:9px;display:flex;gap:11px;align-items:center}
+#sheet.full .shhead{padding-top:16px}
+#sheet.full .shhead h2{font-size:24px}
+.grab{width:38px;height:4px;border-radius:3px;background:var(--line2);margin:8px auto 0}
+.shhead{display:flex;align-items:center;padding:12px 18px 10px;gap:10px;flex:0 0 auto}
+.shhead h2{font-size:20px;font-weight:800;letter-spacing:-.3px}
+.shhead .x{margin-left:auto;width:34px;height:34px;border-radius:50%;background:var(--panel);
+  border:2px solid var(--line);display:grid;place-items:center}
+#shbody{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 18px 18px;flex:1 1 auto}
+.card{background:var(--panel);border:2px solid var(--line);border-radius:18px;
+  padding:11px 13px;margin-bottom:9px;display:flex;gap:11px;align-items:center}
 .card .por{width:46px;height:58px;flex:0 0 auto;display:grid;place-items:end center}
 .card .por svg{width:100%;height:100%;overflow:visible}
-.card .av{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;flex:0 0 auto;
-  font-size:17px;font-weight:900;color:#120c22;background:linear-gradient(160deg,var(--c1),var(--c2))}
+.card .av{width:46px;height:46px;border-radius:15px;display:grid;place-items:center;flex:0 0 auto;
+  background:var(--c1)}
 .card .info{flex:1;min-width:0}
-.card .t{font-size:14px;font-weight:800;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.card .t{font-size:14.5px;font-weight:800;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .card .d{font-size:11px;color:var(--dim);margin-top:2px;font-weight:600;
   display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.rar{font-size:8.5px;font-weight:900;letter-spacing:.09em;padding:2px 6px;border-radius:5px;
-  background:rgba(255,255,255,.1);color:var(--dim)}
-.buy{flex:0 0 auto;min-width:80px;padding:9px 10px;border-radius:12px;text-align:center;
-  font-size:11.5px;font-weight:900;background:linear-gradient(135deg,var(--accent2),#12b8a0);color:#04352e}
-.buy.no{background:rgba(255,255,255,.07);color:var(--dim)}
-.buy.alt{background:rgba(255,255,255,.08);color:var(--dim);min-width:0;padding:9px 12px}
-.buy small{display:block;font-size:9px;font-weight:700;opacity:.75}
-.buy:active{transform:scale(.96)}
-.locked{opacity:.5}
+.rar{font-size:8.5px;font-weight:800;letter-spacing:.09em;padding:3px 7px;border-radius:6px;
+  background:#EFE2CE;color:var(--dim)}
+.buy{flex:0 0 auto;min-width:80px;padding:9px 11px;border-radius:12px;text-align:center;
+  font-size:11.5px;font-weight:800;background:var(--accent2);color:var(--onDark);box-shadow:0 3px 0 var(--accent2-dk)}
+.buy.no{background:#EFE2CE;color:var(--dim2);box-shadow:none}
+.buy.alt{background:#EFE2CE;color:var(--dim);min-width:0;padding:9px 12px;box-shadow:none}
+.buy small{display:block;font-size:10px;font-weight:700;opacity:.9}
+.buy:active{transform:translateY(2px);box-shadow:none}
+.locked{opacity:.72;border-style:dashed;border-color:var(--line2)}
 .hint{font-size:11px;color:var(--dim);text-align:center;padding:8px 6px 14px;line-height:1.55;font-weight:600}
-.sect{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);
+.sect{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim2);
   margin:6px 2px 8px;font-weight:800}
 .empty{text-align:center;padding:38px 16px;color:var(--dim);font-size:12.5px;line-height:1.6;font-weight:600}
-.empty .big{font-size:34px;display:block;margin-bottom:10px;opacity:.6}
+.empty svg{display:block;margin:0 auto 12px;opacity:.75}
 .trendgrid{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px}
-.tpill{font-size:9.5px;font-weight:900;letter-spacing:.05em;padding:5px 9px;border-radius:9px;
-  background:rgba(255,255,255,.06);border:1px solid var(--line);color:var(--dim)}
-.song{display:flex;gap:10px;align-items:center;background:rgba(255,255,255,.05);
-  border:1px solid var(--line);border-radius:14px;padding:9px;margin-bottom:8px}
-.cover{width:44px;height:44px;border-radius:10px;flex:0 0 auto;overflow:hidden;display:grid;place-items:center}
-.cover span{font-size:7.5px;font-weight:900;color:#fff;text-align:center;padding:2px;line-height:1.05;
-  text-shadow:0 1px 4px rgba(0,0,0,.55)}
+.tpill{font-size:9.5px;font-weight:800;letter-spacing:.05em;padding:5px 9px;border-radius:9px;
+  background:var(--panel);border:2px solid var(--line);color:var(--dim)}
+.song{display:flex;gap:10px;align-items:center;background:var(--panel);
+  border:2px solid var(--line);border-radius:16px;padding:9px;margin-bottom:8px}
+.cover{width:46px;height:46px;border-radius:12px;flex:0 0 auto;overflow:hidden;display:grid;place-items:center}
+.cover span{font-size:7.5px;font-weight:800;color:#fff;text-align:center;padding:2px;line-height:1.05;
+  text-shadow:0 1px 4px rgba(0,0,0,.5)}
 .song .info{flex:1;min-width:0}
 .song .t{font-size:13.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .song .d{font-size:10.5px;color:var(--dim);margin-top:1px;font-weight:600}
-.tierbadge{font-size:8.5px;font-weight:900;letter-spacing:.08em;padding:3px 7px;border-radius:6px;
-  flex:0 0 auto;color:#120c22}
+.tierbadge{font-size:8.5px;font-weight:800;letter-spacing:.08em;padding:4px 8px;border-radius:7px;
+  flex:0 0 auto;color:var(--onDark)}
 
 /* ===== REVEAL ===== */
 #reveal{position:fixed;inset:0;z-index:30;display:none;flex-direction:column;align-items:center;
-  justify-content:center;gap:13px;padding:24px;
-  background:radial-gradient(80% 60% at 50% 40%,var(--bg2),var(--bg0) 75%)}
+  justify-content:center;gap:13px;padding:26px 24px;
+  background:radial-gradient(90% 62% at 50% 30%,#FFF9EC 0%,var(--cream2) 55%,#FFDDB0 100%)}
 #reveal.on{display:flex}
-#rvTitle{font-size:25px;font-weight:900;text-align:center;letter-spacing:-.5px;opacity:0;line-height:1.15}
-#rvGenre{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--dim);opacity:0}
-#rvCover{width:172px;height:172px;border-radius:22px;opacity:0;position:relative;overflow:hidden;
-  display:grid;place-items:center;box-shadow:0 20px 60px rgba(0,0,0,.6)}
-#rvCover span{font-size:15px;font-weight:900;text-align:center;padding:14px;line-height:1.12;color:#fff;
-  text-shadow:0 2px 10px rgba(0,0,0,.5)}
+#rvTitle{font-size:29px;font-weight:800;text-align:center;letter-spacing:-.6px;opacity:0;line-height:1.1;
+  text-wrap:pretty}
+#rvGenre{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--dim);opacity:0;font-weight:800}
+#rvCover{width:186px;height:186px;border-radius:24px;opacity:0;position:relative;overflow:hidden;
+  display:grid;place-items:center;box-shadow:0 12px 0 #E9C89B,0 22px 40px rgba(120,70,30,.28)}
+#rvCover span{font-size:15px;font-weight:800;text-align:center;padding:14px;line-height:1.12;color:#fff;
+  text-shadow:0 2px 10px rgba(0,0,0,.45)}
 .pop{animation:pop .45s cubic-bezier(.2,1.4,.4,1) forwards}
 @keyframes pop{0%{opacity:0;transform:scale(.8)}100%{opacity:1;transform:scale(1)}}
 .fadein{animation:fadein .35s ease forwards}
 @keyframes fadein{to{opacity:1}}
-#rvChart{font-size:50px;font-weight:900;letter-spacing:-2px;opacity:0;min-height:56px;line-height:1}
-#rvChart.rolling{color:var(--dim)}
-#rvChart.near{color:var(--gold);animation:nearmiss .3s ease-in-out 2}
+#rvChart{font-size:58px;font-weight:800;letter-spacing:-2.5px;opacity:0;min-height:62px;line-height:1;
+  color:var(--accent-dk)}
+#rvChart.rolling{color:var(--dim2)}
+#rvChart.near{color:var(--gold-dk);animation:nearmiss .3s ease-in-out 2}
 @keyframes nearmiss{50%{transform:scale(1.12)}}
-#rvTier{font-size:32px;font-weight:900;letter-spacing:.06em;opacity:0}
-#rvPay{font-size:16px;font-weight:800;color:var(--accent2);opacity:0}
-#rvQuote{font-size:11.5px;color:var(--dim);font-style:italic;text-align:center;max-width:300px;opacity:0}
-#rvGo{margin-top:4px;padding:14px 38px;border-radius:16px;font-size:15px;font-weight:900;
-  letter-spacing:.1em;background:#fff;color:#120c22;opacity:0}
-#rvSkip{position:absolute;top:calc(var(--safe-t) + 14px);right:16px;font-size:11px;color:var(--dim);
-  letter-spacing:.1em;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.07);opacity:0}
-.conf{position:fixed;top:-14px;width:9px;height:14px;z-index:31;pointer-events:none;border-radius:2px}
+#rvTier{font-size:30px;font-weight:800;letter-spacing:.1em;opacity:0;padding:6px 22px;border-radius:14px;
+  background:var(--panel);border:3px solid currentColor}
+#rvPay{font-size:16px;font-weight:800;color:var(--accent2-dk);opacity:0}
+#rvQuote{font-size:12px;color:var(--dim);font-style:italic;text-align:center;max-width:300px;opacity:0;
+  line-height:1.5;text-wrap:pretty}
+#rvGo{margin-top:4px;padding:16px 44px;border-radius:18px;font-size:16px;font-weight:800;
+  letter-spacing:.1em;background:var(--ink);color:var(--cream);opacity:0;box-shadow:0 5px 0 #150C08}
+#rvSkip{position:absolute;top:calc(var(--safe-t) + 18px);right:18px;font-size:11px;color:var(--dim);
+  letter-spacing:.1em;padding:8px 14px;border-radius:999px;background:var(--panel);border:2px solid var(--line);
+  opacity:0;font-weight:800}
+.conf{position:fixed;top:-14px;width:10px;height:15px;z-index:31;pointer-events:none;border-radius:2px}
 @keyframes fall{to{transform:translateY(108vh) rotate(720deg);opacity:.15}}
 
 /* ===== SETUP / NAME ===== */
 #setup{position:fixed;inset:0;z-index:45;display:none;flex-direction:column;
   padding:calc(var(--safe-t) + 18px) 18px calc(var(--safe-b) + 26px);
-  background:radial-gradient(90% 60% at 50% 0%,var(--bg2),var(--bg0) 70%);overflow-y:auto}
+  background:radial-gradient(90% 60% at 50% 0%,var(--cream2),var(--cream) 70%);overflow-y:auto}
 #setup.on{display:flex}
-#setup h3{font-size:21px;font-weight:900;text-align:center;letter-spacing:-.3px}
+#setup h3{font-size:23px;font-weight:800;text-align:center;letter-spacing:-.3px}
 #setup .sh{font-size:11.5px;color:var(--dim);text-align:center;margin:4px 0 8px;font-weight:600}
-.flab{font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);
+.flab{font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim2);
   font-weight:800;margin:12px 2px 5px}
-.fin{width:100%;padding:13px 14px;border-radius:13px;background:rgba(255,255,255,.07);
-  border:1px solid var(--line);color:#fff;font:800 15px/1.2 inherit;-webkit-user-select:text;user-select:text}
+.fin{width:100%;padding:13px 14px;border-radius:14px;background:var(--panel);
+  border:2px solid var(--line);color:var(--ink);font:800 15px/1.2 inherit;-webkit-user-select:text;user-select:text}
 .fin:focus{outline:none;border-color:var(--accent2)}
 .frow{display:flex;gap:8px}
-.roles{display:grid;grid-template-columns:1fr 1fr;gap:7px}
-.rolebtn{padding:10px;border-radius:13px;background:rgba(255,255,255,.06);border:1px solid var(--line);
-  text-align:left}
-.rolebtn.sel{border-color:var(--accent2);background:rgba(0,230,195,.13)}
-.rolebtn .rn{font-size:13.5px;font-weight:900}
+.roles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.rolebtn{padding:10px;border-radius:14px;background:var(--panel);border:2px solid var(--line);text-align:left}
+.rolebtn.sel{border-color:var(--accent2);background:#E6F5F3}
+.rolebtn .rn{font-size:13.5px;font-weight:800}
 .rolebtn .rd{font-size:10px;color:var(--dim);font-weight:700;margin-top:2px}
 #setPrev{height:140px;display:grid;place-items:center;margin:6px 0}
 #setPrev svg{width:108px;height:140px;overflow:visible}
-.ghost{width:100%;padding:11px;border-radius:13px;background:rgba(255,255,255,.07);
-  border:1px solid var(--line);font-size:12px;font-weight:800;letter-spacing:.08em}
+.ghost{width:100%;padding:11px;border-radius:14px;background:var(--panel);
+  border:2px solid var(--line);font-size:12px;font-weight:800;letter-spacing:.08em;color:var(--dim)}
 
 /* ===== MODAL / TOAST ===== */
 #modal{position:fixed;inset:0;z-index:40;display:none;align-items:center;justify-content:center;padding:22px;
-  background:rgba(8,5,16,.92)}
+  background:rgba(44,29,22,.55)}
 #modal.on{display:flex}
-.mbox{width:100%;max-width:340px;background:var(--panel);border:1px solid var(--line);border-radius:22px;
-  padding:24px 20px;text-align:center}
-.mbox h3{font-size:19px;font-weight:900;margin-bottom:6px}
+.mbox{width:100%;max-width:340px;background:var(--cream);border:2px solid var(--line);border-radius:24px;
+  padding:24px 20px;text-align:center;box-shadow:0 16px 40px rgba(80,45,20,.25)}
+.mbox h3{font-size:20px;font-weight:800;margin-bottom:6px}
 .mbox p{font-size:12.5px;color:var(--dim);line-height:1.55;font-weight:600}
-.mbox .big{font-size:34px;font-weight:900;color:var(--accent2);margin:14px 0 4px;letter-spacing:-1px}
-.mbox button{margin-top:16px;width:100%;padding:15px;border-radius:15px;font-weight:900;font-size:14px;
-  letter-spacing:.1em;background:linear-gradient(135deg,var(--accent2),#12b8a0);color:#04352e}
-#toasts{position:fixed;left:0;right:0;top:calc(var(--safe-t) + 66px);z-index:25;
+.mbox .big{font-size:36px;font-weight:800;color:var(--accent-dk);margin:14px 0 4px;letter-spacing:-1px}
+.mbox button{margin-top:16px;width:100%;padding:16px;border-radius:16px;font-weight:800;font-size:15px;
+  letter-spacing:.1em;background:var(--accent2);color:var(--onDark);box-shadow:0 4px 0 var(--accent2-dk)}
+#toasts{position:fixed;left:0;right:0;top:calc(var(--safe-t) + 70px);z-index:25;
   display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none}
-.toast{background:rgba(26,18,51,.97);border:1px solid var(--line);border-radius:13px;
-  padding:9px 15px;font-size:12px;font-weight:700;box-shadow:0 8px 26px rgba(0,0,0,.5);
+.toast{background:var(--ink);color:var(--cream);border-radius:14px;
+  padding:10px 16px;font-size:12px;font-weight:700;box-shadow:0 8px 22px rgba(80,45,20,.3);
   animation:tin .3s ease-out,tout .3s ease-in 2.6s forwards;max-width:88%;text-align:center}
 @keyframes tin{from{opacity:0;transform:translateY(-14px)}}
 @keyframes tout{to{opacity:0;transform:translateY(-10px)}}
@@ -368,11 +360,11 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
         <div class="rv num" id="streams">0</div>
         <div class="rs num" id="sps">+0/s</div>
       </div>
-      <button id="muteBtn" aria-label="Sound">🔊</button>
+      <button id="muteBtn" aria-label="Sound"></button>
     </div>
     <div class="sub">
       <div class="chip" id="bandChip">—</div>
-      <div class="chip pk"><span>🪝</span><span id="picks" class="num">0</span></div>
+      <div class="chip pk"><span id="pickIco"></span><span id="picks" class="num">0</span></div>
       <div class="chip" id="studioChip">Garage</div>
     </div>
   </header>
@@ -424,11 +416,11 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   </main>
 
   <nav id="tabs">
-    <button class="tab" data-tab="band"><span class="ic">🎚️</span><span>BAND</span><i class="dot"></i></button>
-    <button class="tab" data-tab="gear"><span class="ic">🎸</span><span>GEAR</span><i class="dot"></i></button>
-    <button class="tab" data-tab="catalog"><span class="ic">💿</span><span>CATALOG</span><i class="dot"></i></button>
-    <button class="tab" data-tab="shop"><span class="ic">🛒</span><span>SHOP</span><i class="dot"></i></button>
-    <button class="tab" data-tab="league"><span class="ic">🏆</span><span>LEAGUE</span><i class="dot"></i></button>
+    <button class="tab" data-tab="band"><span class="ic"></span><span>BAND</span><i class="dot"></i></button>
+    <button class="tab" data-tab="gear"><span class="ic"></span><span>GEAR</span><i class="dot"></i></button>
+    <button class="tab" data-tab="catalog"><span class="ic"></span><span>CATALOG</span><i class="dot"></i></button>
+    <button class="tab" data-tab="shop"><span class="ic"></span><span>SHOP</span><i class="dot"></i></button>
+    <button class="tab" data-tab="league"><span class="ic"></span><span>LEAGUE</span><i class="dot"></i></button>
   </nav>
 </div>
 
@@ -535,32 +527,32 @@ const BAL = {
    the role you take free at setup should be a flavour choice (which cards you
    start with), not an economic one. */
 const MEMBERS = [
-  { id:'drums',  role:'Drummer',   track:'DRUMS',  sps:0.90, lvlCost:14, c1:'#ff6b4a', c2:'#ff2e83' },
-  { id:'bass',   role:'Bassist',   track:'BASS',   sps:1.00, lvlCost:22, c1:'#7a5cff', c2:'#3d2bff' },
-  { id:'guitar', role:'Guitarist', track:'GUITAR', sps:1.10, lvlCost:34, c1:'#00e6c3', c2:'#00a2ff' },
-  { id:'vocals', role:'Vocalist',  track:'VOCALS', sps:1.20, lvlCost:50, c1:'#ffc23d', c2:'#ff7a3d' }
+  { id:'drums',  role:'Drummer',   track:'DRUMS',  sps:0.90, lvlCost:14, c1:'#12A79C', c2:'#0B7A72' },
+  { id:'bass',   role:'Bassist',   track:'BASS',   sps:1.00, lvlCost:22, c1:'#FF5A45', c2:'#D93A26' },
+  { id:'guitar', role:'Guitarist', track:'GUITAR', sps:1.10, lvlCost:34, c1:'#FFC22E', c2:'#E39A00' },
+  { id:'vocals', role:'Vocalist',  track:'VOCALS', sps:1.20, lvlCost:50, c1:'#2C1D16', c2:'#554034' }
 ];
 const RARITY = [
-  { n:'COMMON', m:1,   c:'#9d93c4' }, { n:'RARE', m:1.6, c:'#4ea8de' },
-  { n:'EPIC',   m:2.6, c:'#a06bff' }, { n:'LEGENDARY', m:4.5, c:'#ffc23d' },
-  { n:'MYTHIC', m:8,   c:'#ff2e83' }
+  { n:'COMMON', m:1,   c:'#8A6F5E' }, { n:'RARE', m:1.6, c:'#3D6FA8' },
+  { n:'EPIC',   m:2.6, c:'#0B7A72' }, { n:'LEGENDARY', m:4.5, c:'#E39A00' },
+  { n:'MYTHIC', m:8,   c:'#D93A26' }
 ];
 const STUDIOS = [
-  { n:'Garage',          cost:0,      bg:['#33195e','#1d1140'] },
-  { n:'Bedroom Studio',  cost:8e3,    bg:['#123a4d','#0d1b33'] },
-  { n:'Rehearsal Space', cost:3e5,    bg:['#4d2b1b','#331a12'] },
-  { n:'Pro Studio',      cost:1.2e7,  bg:['#1b4d3a','#0d3326'] },
-  { n:'Label HQ',        cost:6e8,    bg:['#4d1b3a','#33122a'] },
-  { n:'Tour Bus',        cost:4e10,   bg:['#2b4d1b','#1a3312'] },
-  { n:'Stadium',         cost:3e12,   bg:['#4d451b','#332d12'] },
-  { n:'Space',           cost:2.5e14, bg:['#1b2a4d','#0a1233'] }
+  { n:'Garage',          cost:0,      bg:['#FFE7C4','#FFCE95'] },
+  { n:'Bedroom Studio',  cost:8e3,    bg:['#E8F1DE','#C9DDBE'] },
+  { n:'Rehearsal Space', cost:3e5,    bg:['#FFE0D6','#FFC0AC'] },
+  { n:'Pro Studio',      cost:1.2e7,  bg:['#DCF0EE','#B4DFDA'] },
+  { n:'Label HQ',        cost:6e8,    bg:['#FDE6F0','#F6C2D8'] },
+  { n:'Tour Bus',        cost:4e10,   bg:['#FFF0C9','#FFD98A'] },
+  { n:'Stadium',         cost:3e12,   bg:['#E4EAF7','#BFCDEB'] },
+  { n:'Space',           cost:2.5e14, bg:['#EDE4F7','#CFBCEA'] }
 ];
 const TIERS = [
-  { id:'flop',  n:'FLOP',  mult:0.35, c:'#7b8794', lo:200, hi:960 },
-  { id:'solid', n:'SOLID', mult:1,    c:'#4ea8de', lo:41,  hi:199 },
-  { id:'hit',   n:'HIT',   mult:3,    c:'#3ddc84', lo:11,  hi:40  },
-  { id:'viral', n:'VIRAL', mult:8,    c:'#ffc23d', lo:2,   hi:10  },
-  { id:'one',   n:'#1',    mult:20,   c:'#ff2e83', lo:1,   hi:1   }
+  { id:'flop',  n:'FLOP',  mult:0.35, c:'#A9856B', lo:200, hi:960 },
+  { id:'solid', n:'SOLID', mult:1,    c:'#3D6FA8', lo:41,  hi:199 },
+  { id:'hit',   n:'HIT',   mult:3,    c:'#0B7A72', lo:11,  hi:40  },
+  { id:'viral', n:'VIRAL', mult:8,    c:'#E39A00', lo:2,   hi:10  },
+  { id:'one',   n:'#1',    mult:20,   c:'#D93A26', lo:1,   hi:1   }
 ];
 /* Quality -> chart odds. At Q90 hit+viral+#1 = 40%, as specified. */
 const ODDS = [
@@ -650,10 +642,10 @@ function cardPoints(card, genre, prev){
    Status is heat plus direction, so the same heat reads RISING on the way up and
    FADING on the way down. */
 const TRENDS = [
-  { n:'COLD',   m:0.60, c:'#4ea8de' },
-  { n:'FADING', m:0.90, c:'#9d93c4' },
-  { n:'RISING', m:1.35, c:'#ffc23d' },
-  { n:'HOT',    m:2.20, c:'#ff2e83' }
+  { n:'COLD',   m:0.60, c:'#3D6FA8' },
+  { n:'FADING', m:0.90, c:'#8A6F5E' },
+  { n:'RISING', m:1.35, c:'#E39A00' },
+  { n:'HOT',    m:2.20, c:'#D93A26' }
 ];
 function trendOf(gi){
   const h = S.heat[gi], v = S.heatVel[gi];
@@ -750,12 +742,40 @@ function coverCSS(c){
   ];
   return `${shapes[c.s]}, linear-gradient(${c.ang}deg, ${a}, ${b})`;
 }
-const newCover = () => ({ h: rndi(0,359), h2: rndi(0,359), ang: rndi(0,359), s: rndi(0,4) });
+/* hues stay in the warm band (coral->yellow) or the teal accent, so covers sit
+   inside the palette instead of fighting it */
+function newCover(){
+  const warm = () => rndi(0, 1) ? rndi(2, 52) : rndi(160, 190);
+  return { h: warm(), h2: warm(), ang: rndi(0,359), s: rndi(0,4) };
+}
+
+
+/* ===== ICONS (inline SVG on a 24px grid — no emoji in persistent chrome) ===== */
+const ico = (d, o) => `<svg width="${(o&&o.s)||20}" height="${(o&&o.s)||20}" viewBox="0 0 24 24" fill="none"
+  stroke="${(o&&o.c)||'currentColor'}" stroke-width="${(o&&o.w)||2}" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+const ICON = {
+  band:'<path d="M6 4v16M12 4v16M18 4v16"/><circle cx="6" cy="9" r="2.2" fill="var(--panel)"/><circle cx="12" cy="15" r="2.2" fill="var(--panel)"/><circle cx="18" cy="8" r="2.2" fill="var(--panel)"/>',
+  gear:'<path d="M14 3 9.5 7.5"/><circle cx="7" cy="16" r="4.6"/><path d="M10.2 12.6 18 5c1.2-1.2 3-.2 3 1.4L21 9"/>',
+  catalog:'<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="2.4"/>',
+  shop:'<path d="M4 5h2l2.2 10h9.2l2-6.6H7.4"/><circle cx="10" cy="19" r="1.4"/><circle cx="17" cy="19" r="1.4"/>',
+  league:'<path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3"/><path d="M12 14v4M9 20h6"/>',
+  pick:'<path d="M12 3 5 8v5c0 5 3 7 7 8 4-1 7-3 7-8V8z"/>',
+  sound:'<path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/>',
+  muted:'<path d="M11 5 6 9H3v6h3l5 4z"/><path d="M16 9.5l5 5M21 9.5l-5 5"/>',
+  mic:'<rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0"/><path d="M12 17.5V21M9 21h6"/>',
+  money:'<rect x="2.5" y="6" width="19" height="12" rx="2.5"/><circle cx="12" cy="12" r="3"/><path d="M6 9.5v5M18 9.5v5"/>',
+  house:'<path d="M3.5 10.5 12 4l8.5 6.5V20H3.5z"/><path d="M9.5 20v-5h5v5"/>',
+  crate:'<path d="M3 8.5h18V20H3z"/><path d="M3 8.5 5 4h14l2 4.5M12 8.5V20"/>',
+  pass:'<rect x="2.5" y="6" width="19" height="12" rx="2.5"/><path d="M8 6v12"/><circle cx="15" cy="12" r="2"/>',
+  globe:'<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5a13 13 0 0 1 0 17a13 13 0 0 1 0-17"/>'
+};
 
 /* ===== CHARACTERS (inline SVG, flat and bold, no images) ===== */
-const SKIN = ['#f6cfa8','#e3ab7c','#c98a55','#9b6033','#6b3f21'];
-const HAIRC = ['#17141f','#4a2f21','#d0803a','#efe3c4','#8b3fd0','#2f7ad6','#e04a6e'];
-const FIT = [['#3d3660','#59507f'],['#1f4fa8','#3a7ae0'],['#6b2fb5','#a065ff'],['#8a6410','#ffc23d'],['#a1114f','#ff2e83']];
+const SKIN = ['#F6C99E','#E0A276','#C98A55','#9B6033','#7E4A2B'];
+const HAIRC = ['#2A1C14','#6B3A1F','#C97A2C','#EBD9A8','#1B1310','#8A4E18','#D9534F'];
+/* rarity is a treatment on top of the member's own colour, not a recolour:
+   plain -> jacket panels -> shoulder studs -> trim + glow -> aura */
+const RARITY_TRIM = ['#EBD9BE','#3D6FA8','#0B7A72','#FFC22E','#FF5A45'];
 
 function hairSVG(style, col){
   switch(style){
@@ -778,80 +798,122 @@ function accSVG(acc, col){
 /* a jointed limb: shoulder -> elbow -> hand, drawn as one round-capped stroke */
 const limb = (sk, pts, w) => `<path d="M${pts}" stroke="${sk}" stroke-width="${w||9}" fill="none"
   stroke-linecap="round" stroke-linejoin="round"/>`;
-/* One character: role 0..3, drawn to a 100x130 box standing on the floor. */
+/* One character: role 0..3, in a 100x130 box. The head, hair and accessory
+   geometry is unchanged (hairSVG/accSVG are drawn for a head at 50,38 r17) and
+   the limb pivots stay on the shoulders the CSS animates: 31,60 and 69,60. */
 function charSVG(role, look, rarity, locked){
   if (locked){
     return `<svg viewBox="0 0 100 130" aria-hidden="true">
-      <g fill="#241a3d">
-        <rect x="38" y="92" width="9" height="34" rx="4"/><rect x="53" y="92" width="9" height="34" rx="4"/>
-        <rect x="32" y="54" width="36" height="44" rx="11"/>
-        <rect x="23" y="58" width="9" height="32" rx="4.5"/><rect x="68" y="58" width="9" height="32" rx="4.5"/>
-        <circle cx="50" cy="38" r="17"/>
+      <ellipse cx="50" cy="127" rx="26" ry="4" fill="#E8C79C"></ellipse>
+      <g fill="#E4D0B4">
+        <path d="M39 92 h22 l4 32 h-11 l-3 -20 l-3 20 h-11z"></path>
+        <path d="M50 52 q14 1 17 14 l4 32 h-42 l4 -32 q3 -13 17 -14z"></path>
+        <circle cx="50" cy="38" r="17"></circle>
       </g>
-      <path d="M44 70v-5a6 6 0 0 1 12 0v5" stroke="#4a3d78" stroke-width="3" fill="none"/>
-      <rect x="41" y="70" width="18" height="14" rx="3" fill="#4a3d78"/>
+      <path d="M45 40v-5a5 5 0 0 1 10 0v5" stroke="#A9856B" stroke-width="2.6" fill="none" stroke-linecap="round"></path>
+      <rect x="42" y="40" width="16" height="12" rx="3" fill="#A9856B"></rect>
     </svg>`;
   }
-  const sk = SKIN[look.sk], hc = HAIRC[look.hc], fit = FIT[rarity] || FIT[0];
-  const glow = rarity >= 3 ? ' filter="drop-shadow(0 0 6px ' + fit[1] + ')"' : '';
-  const aura = rarity >= 4 ? `<circle cx="50" cy="62" r="46" fill="none" stroke="${fit[1]}" stroke-width="2" opacity=".35"/>` : '';
-  const jacket = rarity >= 1 ? `<rect x="30" y="56" width="9" height="40" rx="4" fill="${fit[1]}"/><rect x="61" y="56" width="9" height="40" rx="4" fill="${fit[1]}"/>` : '';
-  const studs = rarity >= 2 ? `<circle cx="35" cy="61" r="2.2" fill="#fff" opacity=".85"/><circle cx="65" cy="61" r="2.2" fill="#fff" opacity=".85"/>` : '';
-  const trim = rarity >= 3 ? `<rect x="46" y="56" width="8" height="42" rx="3" fill="${fit[1]}" opacity=".9"/>` : '';
-  const mouth = role === 3
-    ? `<ellipse class="ch-sing" cx="50" cy="46" rx="3.6" ry="3.4" fill="#1a1226"/>`
-    : `<path d="M45 46q5 4 10 0" stroke="#1a1226" stroke-width="2" fill="none" stroke-linecap="round"/>`;
-  const head = `<g class="ch-head"><circle cx="50" cy="38" r="17" fill="${sk}"/>
-      <circle cx="44" cy="38" r="2.1" fill="#1a1226"/><circle cx="56" cy="38" r="2.1" fill="#1a1226"/>
-      ${mouth}${hairSVG(look.hs, hc)}${accSVG(look.ac, fit[1])}</g>`;
-  const legs = `<rect x="38" y="92" width="9" height="32" rx="4" fill="#241d3e"/>
-      <rect x="53" y="92" width="9" height="32" rx="4" fill="#241d3e"/>
-      <rect x="35" y="122" width="14" height="6" rx="3" fill="#15101f"/>
-      <rect x="51" y="122" width="14" height="6" rx="3" fill="#15101f"/>`;
-  const torso = `<rect x="32" y="54" width="36" height="44" rx="11" fill="${fit[0]}"/>${jacket}${trim}${studs}`;
+  const sk = SKIN[look.sk], hc = HAIRC[look.hc];
+  const M = MEMBERS[role], c1 = M.c1, c2 = M.c2;
+  const trim = RARITY_TRIM[rarity] || RARITY_TRIM[0];
+  const glow = rarity >= 3 ? ` filter="drop-shadow(0 0 5px ${trim})"` : '';
+  const aura = rarity >= 4 ? `<circle cx="50" cy="70" r="46" fill="none" stroke="${trim}" stroke-width="2" opacity=".4"></circle>` : '';
+  const panels = rarity >= 1 ? `<path d="M33 58 l-2 40 h7 l1 -40z" fill="${trim}"></path><path d="M67 58 l2 40 h-7 l-1 -40z" fill="${trim}"></path>` : '';
+  const studs = rarity >= 2 ? `<circle cx="38" cy="60" r="1.8" fill="#FFF6E6"></circle><circle cx="62" cy="60" r="1.8" fill="#FFF6E6"></circle>` : '';
+  const stripe = rarity >= 3 ? `<rect x="47" y="56" width="6" height="42" rx="2" fill="${trim}" opacity=".9"></rect>` : '';
 
-  if (role === 0){   // DRUMMER — sticks swing down onto the kit, alternating
-    return `<svg viewBox="0 0 100 130" aria-hidden="true"${glow}>${aura}
+  const mouth = role === 3
+    ? `<ellipse class="ch-sing" cx="50" cy="46" rx="3.6" ry="3.4" fill="#5A2018"></ellipse>`
+    : `<path d="M45 46q5 4 10 0" stroke="#2C1D16" stroke-width="2" fill="none" stroke-linecap="round"></path>`;
+  const head = `<g class="ch-head"><circle cx="50" cy="38" r="17" fill="${sk}"></circle>
+      <circle cx="44" cy="38" r="2.1" fill="#2C1D16"></circle><circle cx="56" cy="38" r="2.1" fill="#2C1D16"></circle>
+      <circle cx="44.7" cy="37.3" r=".8" fill="#FFF3E2"></circle><circle cx="56.7" cy="37.3" r=".8" fill="#FFF3E2"></circle>
+      ${mouth}${hairSVG(look.hs, hc)}${accSVG(look.ac, trim)}</g>`;
+  const legs = `<path d="M39 92 h22 l4 32 h-11 l-3 -20 l-3 20 h-11z" fill="#3A2A20"></path>
+      <path d="M34 120 h13 v5 h-15z" fill="#241811"></path><path d="M53 120 h13 v5 h-15z" fill="#241811"></path>`;
+  const torso = `<path d="M50 52 q14 1 17 14 l4 32 h-42 l4 -32 q3 -13 17 -14z" fill="${c1}"></path>
+      <path d="M50 52 q14 1 17 14 l1 5 q-18 -7 -36 0 l1 -5 q3 -13 17 -14z" fill="${c2}" opacity=".45"></path>
+      ${panels}${stripe}${studs}`;
+  const shadow = `<ellipse cx="50" cy="127" rx="28" ry="4" fill="#E8C79C"></ellipse>`;
+
+  if (role === 0){        // DRUMMER — kit with real heads, hoops and lugs
+    return `<svg viewBox="0 0 100 130" aria-hidden="true"${glow}>${aura}${shadow}
+      <path d="M10 68 v42 M4 118 l6 -8 M16 118 l-6 -8" stroke="#B9AFA0" stroke-width="1.6" stroke-linecap="round"></path>
+      <ellipse cx="10" cy="66" rx="10" ry="2.2" fill="#E0A72E"></ellipse>
+      <ellipse cx="10" cy="63.5" rx="10" ry="2.2" fill="#FFC22E"></ellipse>
+      <path d="M90 62 v48 M84 118 l6 -8 M96 118 l-6 -8" stroke="#B9AFA0" stroke-width="1.6" stroke-linecap="round"></path>
+      <ellipse cx="90" cy="60" rx="12" ry="2.6" fill="#FFC22E"></ellipse>
+      <ellipse cx="90" cy="59.6" rx="6" ry="1.4" fill="none" stroke="#E0A72E" stroke-width=".8"></ellipse>
       <g class="ch-bob">${legs}${torso}${head}</g>
-      <ellipse cx="50" cy="113" rx="25" ry="18" fill="#2a1f4d"/>
-      <ellipse cx="50" cy="113" rx="14" ry="10" fill="#3b2c6b"/>
-      <ellipse cx="22" cy="97" rx="12" ry="8" fill="#332752"/><ellipse cx="78" cy="97" rx="12" ry="8" fill="#332752"/>
-      <ellipse cx="13" cy="76" rx="13" ry="3" fill="#c9a227"/><ellipse cx="87" cy="76" rx="13" ry="3" fill="#c9a227"/>
-      <g class="pl-l">${limb(sk, '34 61 L24 77 L41 90')}
-        <path d="M41 90 L57 99" stroke="#e8d9b0" stroke-width="3.4" stroke-linecap="round"/></g>
-      <g class="pl-r">${limb(sk, '66 61 L76 77 L59 90')}
-        <path d="M59 90 L43 99" stroke="#e8d9b0" stroke-width="3.4" stroke-linecap="round"/></g>
+      <ellipse cx="33" cy="78" rx="12" ry="7.5" fill="#FFF6E6" stroke="${c2}" stroke-width="2.4"></ellipse>
+      <path d="M21 78 v7 a12 7.5 0 0 0 24 0 v-7" fill="${c2}"></path>
+      <ellipse cx="67" cy="76" rx="11" ry="7" fill="#FFF6E6" stroke="${c2}" stroke-width="2.4"></ellipse>
+      <path d="M56 76 v6 a11 7 0 0 0 22 0 v-6" fill="${c2}"></path>
+      <ellipse cx="18" cy="92" rx="12" ry="7" fill="#FFF6E6" stroke="#B9AFA0" stroke-width="2.2"></ellipse>
+      <path d="M6 92 v7 a12 7 0 0 0 24 0 v-7" fill="#D9CFC0"></path>
+      <ellipse cx="50" cy="102" rx="29" ry="24" fill="#FFF6E6"></ellipse>
+      <ellipse cx="50" cy="102" rx="29" ry="24" fill="none" stroke="${c2}" stroke-width="3.6"></ellipse>
+      <ellipse cx="50" cy="102" rx="24" ry="19.5" fill="none" stroke="#F0DCBC" stroke-width="1"></ellipse>
+      <circle cx="50" cy="78" r="2" fill="${c2}"></circle><circle cx="50" cy="126" r="2" fill="${c2}"></circle>
+      <circle cx="21" cy="102" r="2" fill="${c2}"></circle><circle cx="79" cy="102" r="2" fill="${c2}"></circle>
+      <circle cx="71" cy="85" r="2" fill="${c2}"></circle><circle cx="29" cy="119" r="2" fill="${c2}"></circle>
+      <circle cx="50" cy="102" r="11" fill="none" stroke="#FFC22E" stroke-width="2"></circle>
+      <path d="M47 96 l-2 7h3l-1 6 5 -8h-3l2 -5z" fill="${c2}"></path>
+      <g class="pl-l">${limb(sk, '31 61 L22 74 L35 85', 7)}<circle cx="35" cy="85" r="4.4" fill="${sk}"></circle>
+        <path d="M31 81 L52 97" stroke="#EFDCB8" stroke-width="2.4" stroke-linecap="round"></path></g>
+      <g class="pl-r">${limb(sk, '69 61 L78 73 L65 84', 7)}<circle cx="65" cy="84" r="4.4" fill="${sk}"></circle>
+        <path d="M69 80 L48 96" stroke="#EFDCB8" stroke-width="2.4" stroke-linecap="round"></path></g>
     </svg>`;
   }
-  if (role === 3){   // VOCALIST — mic held to the mouth, jaw moving on the beat
-    return `<svg viewBox="0 0 100 130" aria-hidden="true"${glow}>${aura}
-      <rect x="82" y="46" width="3" height="82" rx="1.5" fill="#3a3160"/>
-      <rect x="74" y="44" width="12" height="3" rx="1.5" fill="#3a3160"/>
+  if (role === 3){        // VOCALIST — mic with a real grille
+    return `<svg viewBox="0 0 100 130" aria-hidden="true"${glow}>${aura}${shadow}
+      <rect x="86" y="44" width="2" height="80" rx="1" fill="#B9AFA0"></rect>
+      <rect x="79" y="43" width="10" height="2" rx="1" fill="#B9AFA0"></rect>
       <g class="ch-bob">${legs}${torso}${head}
-        <g class="pl-free">${limb(sk, '34 61 L24 71 L29 53')}</g>
-        <g class="pl-mic">${limb(sk, '66 61 L77 71 L64 53')}
-          <rect x="58" y="45" width="9" height="13" rx="4.5" fill="#3f3768" transform="rotate(-32 62 51)"/>
-          <circle cx="59" cy="46" r="4.8" fill="#8d84c0"/></g>
+        <g class="pl-free">${limb(sk, '32 61 L23 70 L28 50', 7)}<circle cx="28" cy="47" r="4.6" fill="${sk}"></circle></g>
+        <g class="pl-mic">${limb(sk, '68 61 L77 70 L64 54', 7)}
+          <rect x="57" y="46" width="7" height="11" rx="3.5" fill="#3A322C" transform="rotate(-32 60 51)"></rect>
+          <circle cx="57" cy="45" r="5.6" fill="#C6BFB3" stroke="#8E877B" stroke-width="1.1"></circle>
+          <path d="M51.6 42 h10.8 M51.2 45 h11.6 M52 48 h9.4" stroke="#8E877B" stroke-width=".7"></path>
+          <path d="M54 39.8 q-1.6 5.2 0 10.4 M57 39.4 q-1.2 5.6 0 11.2 M60 39.8 q1.6 5.2 0 10.4" stroke="#8E877B" stroke-width=".7" fill="none"></path>
+          <path d="M53.4 41.6 a5.6 5.6 0 0 1 4.6 -1" stroke="#EDE7DC" stroke-width="1.4" fill="none" stroke-linecap="round"></path>
+          <circle cx="64" cy="55" r="4.6" fill="${sk}"></circle></g>
       </g>
     </svg>`;
   }
-  // BASSIST (1) / GUITARIST (2) — body under the strumming hand, neck under the fretting hand
+  // BASSIST (1) / GUITARIST (2)
   const big = role === 1;
-  const bodyC = big ? '#7a5cff' : '#00c9ab', neckC = '#4a3a22';
-  const bx = 60, by = 96, brx = big ? 17 : 14, bry = big ? 13 : 11;   // body sits under the strumming hand
-  const hx = big ? 24 : 27, hy = big ? 52 : 56;                       // headstock
-  return `<svg viewBox="0 0 100 130" aria-hidden="true"${glow}>${aura}
+  const bodyC = big ? '#0E9186' : '#C0331F', bodyHi = big ? '#12A79C' : '#D93A26';
+  const strings = big
+    ? `<path d="M-16 -3 H60M-16 -1 H60M-16 1 H60M-16 3 H60" stroke="#F4E7CC" stroke-width=".7"></path>`
+    : `<path d="M-16 -3.4 H60M-16 -2 H60M-16 -.7 H60M-16 .7 H60M-16 2 H60M-16 3.4 H60" stroke="#F4E7CC" stroke-width=".55"></path>`;
+  const tuners = big
+    ? `<circle cx="56" cy="-8" r="1.8" fill="#D8CBB2"></circle><circle cx="61" cy="-8" r="1.8" fill="#D8CBB2"></circle>
+       <circle cx="56" cy="8" r="1.8" fill="#D8CBB2"></circle><circle cx="61" cy="8" r="1.8" fill="#D8CBB2"></circle>`
+    : `<circle cx="55" cy="-8" r="1.5" fill="#D8CBB2"></circle><circle cx="59.5" cy="-8" r="1.5" fill="#D8CBB2"></circle>
+       <circle cx="64" cy="-8" r="1.5" fill="#D8CBB2"></circle><circle cx="55" cy="8" r="1.5" fill="#D8CBB2"></circle>
+       <circle cx="59.5" cy="8" r="1.5" fill="#D8CBB2"></circle><circle cx="64" cy="8" r="1.5" fill="#D8CBB2"></circle>`;
+  return `<svg viewBox="0 0 100 130" aria-hidden="true"${glow}>${aura}${shadow}
     <g class="ch-bob">${legs}${torso}${head}
-      <g>
-        <path d="M${bx-2} ${by-4} L${hx+2} ${hy+2}" stroke="${neckC}" stroke-width="6" stroke-linecap="round"/>
-        <rect x="${hx-5}" y="${hy-6}" width="11" height="9" rx="2" fill="#2b2140"
-              transform="rotate(-40 ${hx} ${hy})"/>
-        <ellipse cx="${bx}" cy="${by}" rx="${brx}" ry="${bry}" fill="${bodyC}"/>
-        <circle cx="${bx}" cy="${by}" r="3.6" fill="#1b1430"/>
-        <path d="M${bx-2} ${by-4} L${hx+3} ${hy+3}" stroke="#e8dcc0" stroke-width="1" opacity=".5"/>
+      <path d="M36 58 L64 90" stroke="#2C1D16" stroke-width="3.4" stroke-linecap="round" opacity=".85"></path>
+      <g transform="translate(64 94) rotate(-133)">
+        <ellipse cx="-5" cy="0" rx="15" ry="12" fill="${bodyC}"></ellipse>
+        <ellipse cx="8" cy="0" rx="11" ry="9" fill="${bodyC}"></ellipse>
+        <ellipse cx="-5" cy="-2" rx="12.5" ry="9" fill="${bodyHi}"></ellipse>
+        <rect x="16" y="-5" width="38" height="10" rx="1.5" fill="#7A4A22"></rect>
+        <rect x="16" y="-5" width="38" height="10" rx="1.5" fill="#5C3416" opacity=".4"></rect>
+        <path d="M21 -5v10M25 -5v10M29 -5v10M34 -5v10M39 -5v10M45 -5v10M51 -5v10" stroke="#CFC0A6" stroke-width=".7"></path>
+        <circle cx="31" cy="0" r="1" fill="#E8DCC4"></circle><circle cx="42" cy="0" r="1" fill="#E8DCC4"></circle>
+        <rect x="-2" y="-7" width="4" height="13" rx="1" fill="#221812"></rect>
+        <rect x="-10" y="-7" width="4" height="13" rx="1" fill="#221812"></rect>
+        <rect x="-18" y="-6" width="4" height="12" rx="1" fill="#C9BCA6"></rect>
+        ${strings}
+        <path d="M54 -6 h9 q3 0 3 3 v6 q0 3 -3 3 h-9z" fill="${bodyC}"></path>
+        ${tuners}
       </g>
-      <g class="pl-fret">${limb(sk, '34 61 L26 73 L' + (hx+11) + ' ' + (hy+11))}</g>
-      <g class="pl-strum">${limb(sk, '66 61 L77 79 L' + bx + ' ' + (by-3))}</g>
+      <g class="pl-fret">${limb(sk, '32 61 L25 71 L35 63', 7)}<circle cx="35" cy="62" r="4.4" fill="${sk}"></circle></g>
+      <g class="pl-strum">${limb(sk, '68 61 L77 78 L63 91', 7)}<circle cx="62" cy="92" r="4.6" fill="${sk}"></circle></g>
     </g></svg>`;
 }
 
@@ -1029,8 +1091,15 @@ function newState(){
     band:'', you:null, setup:false, payoutLvl:0,
     heat: seedHeat(), heatVel: GENRES.map(() => (Math.random() - 0.4) * 1.5),
     heatT: Date.now(),
-    members: MEMBERS.map((m,i) => ({ lvl:1, rarity:0, owned:false, name:genName(),
-                                     bio:pick(GEN.bios), look:newLook(), solo:0 })),
+    members: (() => {
+      const used = [];
+      return MEMBERS.map(() => {
+        let n = genName();
+        for (let k = 0; k < 30 && used.includes(n); k++) n = genName();
+        used.push(n);
+        return { lvl:1, rarity:0, owned:false, name:n, bio:pick(GEN.bios), look:newLook(), solo:0 };
+      });
+    })(),
     studio:0, playtime:0, mute:false, seenReveal:false,
     session:null, pending:null, flags:{ gear:false },
     lastSeen:Date.now(), created:Date.now()
@@ -1631,20 +1700,20 @@ function renderSheet(t, soft){
 function htmlBand(){
   const nx = STUDIOS[S.studio + 1];
   let h = `<div class="sect">Your band</div>
-    <div class="card"><div class="av" style="--c1:#ff2e83;--c2:#ff7a3d">🎤</div>
+    <div class="card"><div class="av" style="--c1:#FF5A45">${ico(ICON.mic, {c:'#FFF6E6', s:24})}</div>
       <div class="info"><div class="t">${esc(S.band || 'Your Band')}</div>
       <div class="d">${ownedCount()} of 4 slots filled · band multiplier x${fmt(bandMult())}
         · ${fmt(catalogSPS())}/s from ${S.songs.length} songs · ${fmt(gigMoney())} money/s from gigs</div></div>
       <button class="buy alt" data-act="rename" data-i="-1">RENAME</button></div>`;
   h += `<div class="sect">Royalty rate</div>
-    <div class="card"><div class="av" style="--c1:#ffc23d;--c2:#ff7a3d">💵</div>
+    <div class="card"><div class="av" style="--c1:#FFC22E">${ico(ICON.money, {c:'#5A3F00', s:24})}</div>
       <div class="info"><div class="t">${(payoutRate()*100).toFixed(0)}% payout</div>
       <div class="d">Every stream/sec pays ${payoutRate().toFixed(2)} money/sec.
         Next deal: ${((payoutRate()+BAL.payoutStep)*100).toFixed(0)}%</div></div>
       <button class="buy ${S.money >= payoutUpCost() ? '' : 'no'}" data-act="payout" data-i="-1">
         BETTER DEAL<small>${fmt(payoutUpCost())}</small></button></div>`;
   h += '<div class="sect">Studio</div>';
-  h += `<div class="card"><div class="av" style="--c1:#7a5cff;--c2:#3d2bff">🏠</div>
+  h += `<div class="card"><div class="av" style="--c1:#12A79C">${ico(ICON.house, {c:'#FFF6E6', s:24})}</div>
     <div class="info"><div class="t">${STUDIOS[S.studio].n}</div>
     <div class="d">All song streams x${fmt(studioMult())}${nx ? ' · next: ' + nx.n + ' (x4)' : ' · maxed'}</div></div>
     ${nx ? `<button class="buy ${S.money >= nx.cost ? '' : 'no'}" data-act="studio">MOVE IN<small>${fmt(nx.cost)}</small></button>`
@@ -1689,7 +1758,8 @@ function htmlCatalog(){
   });
   h += `</div><div class="hint" style="padding:2px 0 12px">Trends drift on their own — and a strong
     release heats its genre up. Your back catalogue follows whatever is hot.</div>`;
-  if (!S.songs.length) return h + '<div class="empty"><span class="big">💿</span>No songs yet.<br>Write one, or let the band finish a demo.</div>';
+  if (!S.songs.length) return h + '<div class="empty">' + ico(ICON.catalog, {s:44, c:'#A9856B', w:1.6}) +
+    'No songs yet.<br>Write one, or let the band finish a demo.</div>';
   h += `<div class="hint" style="padding-top:0">${S.songs.length} songs · ${fmt(totalSPS())}/s</div>`;
   S.songs.slice(0, 60).forEach(s => {
     const T = TIERS[s.t], dec = decayOf(s), tr = trendOf(s.g);
@@ -1704,8 +1774,8 @@ function htmlCatalog(){
   return h;
 }
 function htmlGear(){
-  if (!S.flags.gear) return '<div class="empty"><span class="big">🎸</span>Gear unlocks after 12 minutes of play.</div>';
-  return `<div class="empty"><span class="big">🎸</span>Crates are dropping — the rack is not built yet.<br>
+  if (!S.flags.gear) return '<div class="empty">' + ico(ICON.gear, {s:44, c:'#A9856B', w:1.6}) + 'Gear unlocks after 12 minutes of play.</div>';
+  return `<div class="empty">${ico(ICON.gear, {s:44, c:'#A9856B', w:1.6})}Crates are dropping — the rack is not built yet.<br>
     Guitars, pedals, amps and mics land next: worn by the characters,<br>and each one unlocks better writing cards.
     <br><br>Your ${fmt(S.picks)} Picks are safe until then.</div>`;
 }
@@ -1714,24 +1784,24 @@ function htmlShop(){
   const crates = [['Bronze Crate','50 Picks','C60 R30 E8 L1.8 M0.2'],['Gold Crate','150 Picks','Epic or better guaranteed'],
                   ['Mythic Crate','500 Picks','Legendary guaranteed']];
   let h = '<div class="hint" style="padding-top:0">Storefront preview — nothing is purchasable in this build.</div><div class="sect">Picks</div>';
-  packs.forEach(p => h += `<div class="card locked"><div class="av" style="--c1:#ffc23d;--c2:#ff7a3d">🪝</div>
+  packs.forEach(p => h += `<div class="card locked"><div class="av" style="--c1:#FFC22E">${ico(ICON.pick, {c:'#5A3F00', s:22})}</div>
     <div class="info"><div class="t">${p[0]} ${p[2] ? '<span class="rar" style="color:#ffc23d">' + p[2] + '</span>' : ''}</div>
     <div class="d">Premium currency</div></div><button class="buy no">${p[1]}</button></div>`);
   h += '<div class="sect">Crates</div>';
-  crates.forEach(c => h += `<div class="card locked"><div class="av" style="--c1:#a06bff;--c2:#3d2bff">🎁</div>
+  crates.forEach(c => h += `<div class="card locked"><div class="av" style="--c1:#0B7A72">${ico(ICON.crate, {c:'#FFF6E6', s:22})}</div>
     <div class="info"><div class="t">${c[0]}</div><div class="d">${c[2]}</div></div>
     <button class="buy no">${c[1]}</button></div>`);
   h += `<div class="sect">Subscriptions</div>
-    <div class="card locked"><div class="av" style="--c1:#00e6c3;--c2:#00a2ff">🎫</div>
+    <div class="card locked"><div class="av" style="--c1:#12A79C">${ico(ICON.pass, {c:'#FFF6E6', s:22})}</div>
       <div class="info"><div class="t">Backstage Pass (VIP)</div><div class="d">x2 income · 24h offline · no ads · daily Gold Crate</div></div>
       <button class="buy no">₪19/mo</button></div>
-    <div class="card locked"><div class="av" style="--c1:#ff2e83;--c2:#ff6b4a">🌍</div>
+    <div class="card locked"><div class="av" style="--c1:#FF5A45">${ico(ICON.globe, {c:'#FFF6E6', s:22})}</div>
       <div class="info"><div class="t">World Tour Battle Pass</div><div class="d">Seasonal reward track</div></div>
       <button class="buy no">₪35/mo</button></div>`;
   return h;
 }
 function htmlLeague(){
-  return `<div class="empty"><span class="big">🏆</span>Leagues open after your first Break Up The Band.<br>
+  return `<div class="empty">${ico(ICON.league, {s:44, c:'#A9856B', w:1.6})}Leagues open after your first Break Up The Band.<br>
     50 managers, ranked by Legacy.<br><br>
     Lifetime streams: <b>${fmt(S.lifetime)}</b><br>
     Legacy at prestige: <b>${Math.sqrt(S.lifetime/1e6).toFixed(2)}</b></div>`;
@@ -1920,9 +1990,13 @@ function boot(){
   $('#rvSkip').addEventListener('click', () => { skipped = true; if (skipResolve) skipResolve(); });
   $('#muteBtn').addEventListener('click', () => {
     S.mute = !S.mute; AU.init(); AU.setMute(S.mute);
-    $('#muteBtn').textContent = S.mute ? '🔇' : '🔊'; save();
+    $('#muteBtn').innerHTML = ico(S.mute ? ICON.muted : ICON.sound, {s:17}); save();
   });
-  $('#muteBtn').textContent = S.mute ? '🔇' : '🔊';
+  $('#muteBtn').innerHTML = ico(S.mute ? ICON.muted : ICON.sound, {s:17});
+  $('#pickIco').innerHTML = ico(ICON.pick, {s:13, w:2.4});
+  document.querySelectorAll('.tab .ic').forEach(n => {
+    n.innerHTML = ico(ICON[n.parentNode.dataset.tab], {s:19});
+  });
   document.addEventListener('visibilitychange', () => { if (document.hidden) save(); else AU.resume(); });
   window.addEventListener('pagehide', save);
   window.addEventListener('contextmenu', e => e.preventDefault());
