@@ -117,16 +117,17 @@ plays live for cash. This is why money can start at 1.0/sec while streams start 
 without it the two requirements contradict each other. It also gives hiring an
 immediate payoff before you have any catalogue.
 
-- **Members multiply the catalogue** — `bandMult = 1 + Σ (sps × level × rarity)` —
+- **Members multiply the catalogue** — `bandMult = 1 + Σ (sps × level^0.55 × rarity)` —
   rather than emitting streams themselves. A level-up therefore lifts *every song you
   have ever released*, retroactively, and shows in the top bar at once.
+- The `level^0.55` is load-bearing, not decoration. See PACING below.
 - A song's `base` is fixed at release from Quality and chart tier; band multiplier,
   studio, trend and decay are all applied **live**.
-- **payoutRate** rises `+0.02` per Royalty Rate upgrade (cost `60 × 1.7^n`). It is
-  the multiplier on *everything*, so it stays worth buying forever.
+- **payoutRate** starts at 0.04 and rises `+0.008` per Royalty Rate upgrade
+  (cost `250 × 2.1^n`). It multiplies *everything*, so it stays worth buying forever.
 - **No passive money from tapping.** Every released song earns its own streams/sec:
 
-    base  = 1.5 × qFactor(Quality) × tierMultiplier          (fixed at release)
+    base  = 1.0 × qFactor(Quality) × tierMultiplier          (fixed at release)
     live  = base × bandMult × studioMultiplier × genreTrend(now) × decay(now)
 
 - `qFactor` = `0.25 + 1.75 × (Q/100)^1.6`.
@@ -165,9 +166,49 @@ which writing cards you start with, not which is strongest.
 - **Rarity** — Common→Rare→Epic→Legendary→Mythic, from crates; merge 3 → one up.
 - **Gear** — 2 slots per member; visible on the character; unlocks writing cards.
 - **Studios** — Garage → Bedroom → Rehearsal → Pro Studio → Label HQ → Tour Bus →
-  Stadium → Space. Each x5 all song streams and repaints the stage.
+  Stadium → Space. Each x4 all song streams and repaints the stage.
 
-## 8. SOUND (the differentiator — do not skip)
+## 8. PACING — why the curve is shaped the way it is
+
+The first cut of this economy finished itself in **under an hour**: 1M money at 12
+minutes, 1B at 45, every member at level 145, the whole studio ladder spent. The
+cause was structural, not pricing. A member's level multiplied the *entire
+catalogue*, and the catalogue itself grows with every release — so income compounded
+on two axes at once while level costs grew at only 1.15. Cheap linear levels
+outran an exponential price curve, and no amount of re-pricing fixes that shape.
+
+Three changes fixed it, and they must be kept together:
+1. `level^0.55` instead of `level` in `memberSPS` — diminishing returns per level, so
+   a multiplier that touches every song cannot outrun its own cost curve.
+2. `costGrow` 1.15 → **1.25**.
+3. Studios x5 → **x4**, with costs rescaled to `8e3 … 2.5e14`.
+
+Plus supporting cuts: `songScale` 1.5→1.0, `payoutBase` 0.10→0.04, `payoutSecs`
+90→40, member prices `[30, 300, 2200]`, level costs `[14, 22, 34, 50]`.
+
+**Measured** (greedy buyer, headless, real game code):
+
+| milestone | steady (a song every 2 min) | casual (every 10 min) |
+|---|---|---|
+| 2nd member | 2m | 2m |
+| full band | 25m | 84m |
+| Bedroom Studio | 43m | 2.7h |
+| Rehearsal Space | 82m | 5.8h |
+| Pro Studio | 3.1h | ~16h |
+| Label HQ | ~23h | ~45h |
+| Tour Bus / Stadium / Space | days | days |
+
+A week of steady play lands around Label HQ — studio 5 of 8 — which leaves the top
+three as the long tail prestige is meant to sit behind.
+
+**If you retune, re-run the simulation** (`scratchpad/.../verify.js` pattern: drive a
+greedy buyer through the real `moneyRate`/`upCost`/`addSong` functions for 168
+simulated hours). Reading the tables is not enough — the runaway was invisible until
+it was simulated. One trap: the game's top-level `const` helpers (`memberSPS`,
+`studioMult`, …) are **not** `window` properties, so `window.memberSPS = …` in an
+injected override silently does nothing and the run measures unchanged formulas.
+
+## 9. SOUND (the differentiator — do not skip)
 Web Audio synth only, no samples. Every tap plays a pentatonic note in the song's
 key. **Each decided track fades its instrument layer into the loop** — so the song
 assembles as you make decisions, and a finished demo is a 4-layer loop. The chosen
@@ -175,14 +216,14 @@ card's energy shapes its layer (filter cutoff, hat density). BPM comes from the
 genre's energy and drives both the loop and the characters' bob. Studio upgrades add
 reverb. Release plays a chord. Mute toggle. Haptics on tap and on Hit/Viral.
 
-## 9. CURRENCIES
+## 10. CURRENCIES
 - **Streams** — reach. Accumulates from the rate above; drives Legacy at prestige.
 - **Money** — the spend currency. Members, levels, royalties, studios.
 - **Picks** (premium) — crates, skips, streak saves.
 - **Legacy** (prestige) — permanent multipliers.
 Formatting: 1.2K, 3.4M, 8.9B, 1.1T… Counters animate up.
 
-## 10. UI (portrait, one-thumb)
+## 11. UI (portrait, one-thumb)
 Top: two animated counters side by side — MONEY (total + /s) and STREAMS
 (total + /s) — then band name, Picks and studio chips.
 Middle: the stage — 4 SVG characters, the active one stepped forward.
@@ -194,7 +235,7 @@ Bottom dock, one of four states: **idle** (solo-demo progress + WRITE A SONG),
 RELEASE IT). Tabs: Band | Gear | Catalog | Shop | League open as bottom sheets over
 the stage. Targets ≥44px, `env(safe-area-inset-*)` respected.
 
-## 11. SHOP (stub)
+## 12. SHOP (stub)
 Picks 100/₪12, 550/₪45, 1200/₪90, 3500/₪219. Crates: Bronze 50 (C60 R30 E8 L1.8
 M0.2), Gold 150 (Epic+), Mythic 500 (Legendary). Battle Pass ₪35/mo. VIP ₪19/mo
 (x2 income, 24h offline, no ads, daily Gold Crate). Daily Deal, rewarded ads.
@@ -211,9 +252,8 @@ M0.2), Gold 150 (Epic+), Mythic 500 (Legendary). Battle Pass ₪35/mo. VIP ₪19
   → 90+). Levelling visibly matters.
 
 - Economy verified: a fresh band sits at **0 streams/sec and 1.0 money/sec**; hiring
-  raises gig money (1.0→1.5) with no songs out; the first release starts streams
-  (0→2.8/sec); five member levels multiplied the catalogue 3.5→9.0/sec; hire ladder
-  15/120/900.
+  raises gig money (1.0→1.5) with no songs out; the first release starts streams;
+  hire ladder 30/300/2200; first level 14; royalty 4% at 250. Pacing per §8.
 
 **Known gaps (deliberate, deferred):** gear, crates as real drops, rarity/merge,
 daily gig, streaks, prestige, league, weekend events, real shop, LLM content,
