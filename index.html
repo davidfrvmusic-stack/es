@@ -47,7 +47,9 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .chip{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:800;
   background:var(--panel);border:2px solid var(--line);border-radius:999px;padding:4px 11px;color:var(--dim)}
 .chip.pk{color:var(--gold-dk)}
-#muteBtn{margin-left:auto;width:34px;height:34px;border-radius:50%;background:var(--panel);
+#setBtn{margin-left:auto;width:34px;height:34px;border-radius:50%;background:var(--panel);
+  border:2px solid var(--line);display:grid;place-items:center;padding:0;flex:0 0 auto}
+#muteBtn{width:34px;height:34px;border-radius:50%;background:var(--panel);
   border:2px solid var(--line);display:grid;place-items:center;padding:0;flex:0 0 auto}
 
 /* ===== STAGE ===== */
@@ -324,6 +326,50 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .ghost{width:100%;padding:11px;border-radius:14px;background:var(--panel);
   border:2px solid var(--line);font-size:12px;font-weight:800;letter-spacing:.08em;color:var(--dim)}
 
+/* ===== WHILE YOU WERE GONE ===== */
+#gone{position:fixed;inset:0;z-index:42;display:none;flex-direction:column;align-items:center;
+  justify-content:center;gap:6px;padding:calc(var(--safe-t) + 26px) 24px calc(var(--safe-b) + 26px);
+  background:radial-gradient(92% 62% at 50% 22%,#FFF9EC 0%,var(--cream2) 56%,#FFDDB0 100%)}
+#gone.on{display:flex}
+#gone .gt{font-size:10px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--dim2)}
+#gone h3{font-size:27px;font-weight:800;letter-spacing:-.5px;text-align:center;margin-bottom:2px}
+#gone .gaway{font-size:12.5px;font-weight:700;color:var(--dim);margin-bottom:14px}
+.gcap{font-size:10.5px;font-weight:800;letter-spacing:.06em;color:var(--accent-dk);
+  background:#FBE3DE;border:2px solid var(--accent);border-radius:10px;padding:6px 12px;margin-bottom:14px}
+.grow{display:flex;align-items:baseline;gap:10px;width:100%;max-width:300px;
+  padding:11px 14px;border-radius:16px;background:var(--panel);border:2px solid var(--line);margin-bottom:8px}
+.grow .gl{flex:1;font-size:11.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--dim2)}
+.grow .gv{font-size:23px;font-weight:800;letter-spacing:-.6px}
+.grow.money .gv{color:var(--accent-dk)}
+.grow.streams .gv{color:var(--ink)}
+.grow.songs .gv{color:var(--accent2-dk)}
+#gone .btns{width:100%;max-width:300px;margin-top:10px;display:flex;flex-direction:column;gap:9px}
+#gone .ad{padding:14px;border-radius:16px;font-size:13px;font-weight:800;letter-spacing:.06em;
+  background:var(--panel);border:2px solid var(--gold);color:var(--gold-dk);
+  display:flex;align-items:center;justify-content:center;gap:8px}
+#gone .ad:active{transform:translateY(2px)}
+#gone .ad.spent{opacity:.5;border-color:var(--line);color:var(--dim2)}
+
+/* ===== SETTINGS ===== */
+.srow{display:flex;align-items:center;gap:11px;padding:12px 13px;border-radius:16px;
+  background:var(--panel);border:2px solid var(--line);margin-bottom:9px}
+.srow .si{flex:0 0 auto;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:var(--c1)}
+.srow .st{flex:1;min-width:0}
+.srow .st b{display:block;font-size:14px;font-weight:800}
+.srow .st span{display:block;font-size:11px;font-weight:600;color:var(--dim);margin-top:2px}
+.sw{flex:0 0 auto;width:50px;height:29px;border-radius:15px;background:#E4D3B8;position:relative;
+  transition:background .2s ease}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:23px;height:23px;border-radius:50%;
+  background:var(--panel);transition:transform .2s ease;box-shadow:0 1px 3px rgba(80,45,20,.35)}
+.sw.on{background:var(--accent2)}
+.sw.on::after{transform:translateX(21px)}
+.sbtn{flex:0 0 auto;padding:10px 14px;border-radius:12px;font-size:11.5px;font-weight:800;
+  background:var(--accent2);color:var(--onDark);box-shadow:0 3px 0 var(--accent2-dk)}
+.sbtn:active{transform:translateY(2px);box-shadow:none}
+.sbtn.ghosty{background:#EFE2CE;color:var(--dim);box-shadow:none}
+.sbtn.danger{background:var(--accent);color:var(--onDark);box-shadow:0 3px 0 var(--accent-sh)}
+.synced{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:800;color:var(--accent2-dk)}
+
 /* ===== MODAL / TOAST ===== */
 #modal{position:fixed;inset:0;z-index:40;display:none;align-items:center;justify-content:center;padding:22px;
   background:rgba(44,29,22,.55)}
@@ -360,6 +406,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
         <div class="rv num" id="streams">0</div>
         <div class="rs num" id="sps">+0/s</div>
       </div>
+      <button id="setBtn" aria-label="Settings"></button>
       <button id="muteBtn" aria-label="Sound"></button>
     </div>
     <div class="sub">
@@ -459,6 +506,20 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   <button class="bigbtn teal" id="setGo" style="margin-top:12px">START THE BAND</button>
 </div>
 
+<div id="gone">
+  <div class="gt">while you were gone</div>
+  <h3 id="goneTitle">Your band kept working</h3>
+  <div class="gaway" id="goneAway">—</div>
+  <div class="gcap" id="goneCap" hidden>Storage was full — the last stretch was lost</div>
+  <div class="grow songs"><div class="gl">Songs out</div><div class="gv num" id="goneSongs">0</div></div>
+  <div class="grow streams"><div class="gl">Streams</div><div class="gv num" id="goneStreams">0</div></div>
+  <div class="grow money"><div class="gl">Money</div><div class="gv num" id="goneMoney">0</div></div>
+  <div class="btns">
+    <button class="ad" id="goneAd">WATCH AD FOR x2</button>
+    <button class="bigbtn teal" id="goneGo">COLLECT</button>
+  </div>
+</div>
+
 <div id="modal"><div class="mbox" id="mbox"></div></div>
 <div id="toasts"></div>
 <script>
@@ -504,9 +565,9 @@ const BAL = {
   jamPerTap: 0.22,        // Quality per tap...
   jamCap: 4,              // ...capped per track, so tapping is a garnish
   wGenre: 0.45, wCoher: 0.35, wBase: 0.20,   // Quality weights, 25 pts per decision
-  soloSecs: 900,          // a member writes a solo demo this often (level speeds it up).
-  soloQ: [20, 50],        // deliberately slow: solo demos are a trickle that rewards
-  soloMaxOffline: 12,     // coming back, never the main income. Player songs are the engine.
+  soloBandSecs: 600,      // the BAND finishes one solo demo this often, split across
+  soloQ: [20, 50],        // whoever is in it. Offline output is bounded by the time cap
+                          // alone (8h -> 48 songs, 24h VIP -> 144).
   payoutSecs: 40,         // release payout = this many seconds of the song's streams
   songScale: 1.0,
   gigBase: 1.0,           // money/sec from playing live, before any release exists
@@ -521,7 +582,8 @@ const BAL = {
   decayFloor: 0.15,       // ...down to this
   costGrow: 1.25,
   lvlExp: 0.55,           // diminishing returns per level
-  offlineCap: 8 * 3600
+  offlineCap: 8 * 3600,
+  offlineCapVIP: 24 * 3600
 };
 /* sps = streams/sec this member adds per level. Kept close together on purpose:
    the role you take free at setup should be a flavour choice (which cards you
@@ -767,6 +829,11 @@ const ICON = {
   house:'<path d="M3.5 10.5 12 4l8.5 6.5V20H3.5z"/><path d="M9.5 20v-5h5v5"/>',
   crate:'<path d="M3 8.5h18V20H3z"/><path d="M3 8.5 5 4h14l2 4.5M12 8.5V20"/>',
   pass:'<rect x="2.5" y="6" width="19" height="12" rx="2.5"/><path d="M8 6v12"/><circle cx="15" cy="12" r="2"/>',
+  cog:'<circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M21.5 12h-3M5.5 12h-3M18.7 5.3l-2.1 2.1M7.4 16.6l-2.1 2.1M18.7 18.7l-2.1-2.1M7.4 7.4L5.3 5.3"/>',
+  cloud:'<path d="M7 18.5A4.5 4.5 0 0 1 7.6 9.6a5.5 5.5 0 0 1 10.6 1.6A3.8 3.8 0 0 1 17.5 18.5z"/>',
+  bell:'<path d="M6.5 9a5.5 5.5 0 0 1 11 0c0 5 2 6 2 6h-15s2-1 2-6z"/><path d="M10 19a2.2 2.2 0 0 0 4 0"/>',
+  trash:'<path d="M4 6.5h16M9.5 6.5V4h5v2.5M6.5 6.5 7.5 20h9l1-13.5"/><path d="M10.5 10v6M13.5 10v6"/>',
+  play:'<path d="M8 5.5 18.5 12 8 18.5z"/>',
   globe:'<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5a13 13 0 0 1 0 17a13 13 0 0 1 0-17"/>'
 };
 
@@ -1089,6 +1156,7 @@ function newState(){
   return {
     v:3, streams:0, money:0, lifetime:0, picks:0, songs:[], released:0,
     band:'', you:null, setup:false, payoutLvl:0,
+    vip:false, cloud:{ on:false, email:null, at:0 }, capHit:false,
     heat: seedHeat(), heatVel: GENRES.map(() => (Math.random() - 0.4) * 1.5),
     heatT: Date.now(),
     members: (() => {
@@ -1105,7 +1173,12 @@ function newState(){
     lastSeen:Date.now(), created:Date.now()
   };
 }
-function save(){ S.lastSeen = Date.now(); try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch(e){} }
+function save(){
+  S.lastSeen = Date.now();
+  if (S.cloud && S.cloud.on) S.cloud.at = S.lastSeen;      // mock cloud sync stamp
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch(e){}
+  if (sheetTab === 'settings') renderSheet('settings');
+}
 function load(){
   let raw = null;
   try { raw = localStorage.getItem(SAVE_KEY); } catch(e){}
@@ -1115,6 +1188,7 @@ function load(){
       s.members = MEMBERS.map((m,i) => Object.assign(base.members[i], (d.members||[])[i] || {}));
       s.members.forEach(m => { if (!m.look) m.look = newLook(); });
       s.flags = Object.assign(base.flags, d.flags || {});
+      s.cloud = Object.assign(base.cloud, d.cloud || {});
       if (!Array.isArray(s.heat) || s.heat.length !== GENRES.length){
         s.heat = base.heat; s.heatVel = base.heatVel; s.heatT = Date.now();
       }
@@ -1186,7 +1260,10 @@ const gigMoney = () => BAL.gigBase * (1 + BAL.gigPerMember * Math.max(0, ownedCo
 const moneyRate = () => gigMoney() + totalSPS() * payoutRate();
 const qFactor = q => 0.25 + 1.75 * Math.pow(clamp(q,0,100) / 100, 1.6);
 const baseFor = (q, ti) => BAL.songScale * qFactor(q) * TIERS[ti].mult;   // band/studio applied live
-const soloRate = i => (1 + 0.06 * (S.members[i].lvl - 1)) / BAL.soloSecs;   // fraction of a song per second
+/* the band as a whole finishes one demo per soloBandSecs, so adding members splits
+   the same output rather than multiplying it */
+const soloRate = i => (1 + 0.06 * (S.members[i].lvl - 1)) / (BAL.soloBandSecs * Math.max(1, ownedCount()));
+const offlineCap = () => S.vip ? BAL.offlineCapVIP : BAL.offlineCap;
 function rollTier(q){
   const w = oddsFor(q), tot = w.reduce((a,b) => a+b, 0);
   let r = Math.random() * tot;
@@ -1200,7 +1277,14 @@ function addSong(o){
   const s = { title:o.title, g:o.g, q:o.q, t:o.t, chart:o.chart, cover:o.cover,
               base:baseFor(o.q, o.t), at:o.at || Date.now(), by:o.by || null };
   S.songs.unshift(s);
-  if (S.songs.length > 200) S.songs.length = 200;
+  if (S.songs.length > 200){
+    // trim the oldest SOLO demos first — at offline volumes a plain tail-trim would
+    // delete the player's own early releases, which are the ones that never decay
+    for (let i = S.songs.length - 1; i >= 0 && S.songs.length > 200; i--){
+      if (S.songs[i].by) S.songs.splice(i, 1);
+    }
+    if (S.songs.length > 200) S.songs.length = 200;
+  }
   return s;
 }
 const chartFor = ti => rndi(TIERS[ti].lo, TIERS[ti].hi);
@@ -1657,7 +1741,7 @@ function confetti(tier){
 }
 
 /* ===== SHEETS (tabs) ===== */
-const TAB_TITLES = { band:'Band', gear:'Gear', catalog:'Catalog', shop:'Shop', league:'League' };
+const TAB_TITLES = { band:'Band', gear:'Gear', catalog:'Catalog', shop:'Shop', league:'League', settings:'Settings' };
 function openTab(t){
   sheetTab = t;
   el.sheet.classList.toggle('full', t === 'band');
@@ -1695,7 +1779,8 @@ function renderSheet(t, soft){
   b.dataset.tab = t;
   if (t === 'band') lastBandSig = bandSig();
   b.innerHTML = t === 'band' ? htmlBand() : t === 'catalog' ? htmlCatalog()
-              : t === 'gear' ? htmlGear() : t === 'shop' ? htmlShop() : htmlLeague();
+              : t === 'gear' ? htmlGear() : t === 'shop' ? htmlShop()
+              : t === 'settings' ? htmlSettings() : htmlLeague();
 }
 function htmlBand(){
   const nx = STUDIOS[S.studio + 1];
@@ -1800,6 +1885,38 @@ function htmlShop(){
       <button class="buy no">₪35/mo</button></div>`;
   return h;
 }
+function htmlSettings(){
+  const c = S.cloud || {}, perm = (window.Notification && Notification.permission) || 'default';
+  const ago = c.at ? dur((Date.now() - c.at) / 1000) + ' ago' : 'never';
+  let h = '<div class="sect">Game</div>';
+  h += `<div class="srow"><div class="si" style="--c1:#12A79C">${ico(ICON.sound, {c:'#FFF6E6', s:20})}</div>
+    <div class="st"><b>Sound</b><span>Taps, layers and the release chord</span></div>
+    <button class="sw ${S.mute ? '' : 'on'}" data-set="sound"></button></div>`;
+  h += `<div class="srow"><div class="si" style="--c1:#FFC22E">${ico(ICON.bell, {c:'#5A3F00', s:20})}</div>
+    <div class="st"><b>Storage-full reminder</b><span>${
+      perm === 'granted' ? 'On — you will be told when offline storage fills up'
+      : perm === 'denied' ? 'Blocked in your browser settings'
+      : 'Off — a nudge when the ' + (offlineCap()/3600) + 'h cap is reached'}</span></div>
+    ${perm === 'granted' ? '<span class="synced">ON</span>'
+      : `<button class="sbtn ${perm === 'denied' ? 'ghosty' : ''}" data-set="notify">ENABLE</button>`}</div>`;
+
+  h += '<div class="sect">Cloud save</div>';
+  h += `<div class="srow"><div class="si" style="--c1:#EFE2CE">${ico(ICON.cloud, {c:'#8A6F5E', s:20})}</div>
+    <div class="st"><b>${c.on ? esc(c.email) : 'Not signed in'}</b>
+      <span>${c.on ? 'Synced ' + ago : 'Your save lives only on this device'}</span></div>
+    ${c.on ? `<button class="sbtn ghosty" data-set="signout">SIGN OUT</button>`
+           : `<button class="sbtn" data-set="signin">SIGN IN</button>`}</div>`;
+  h += `<div class="hint" style="padding:0 4px 14px">Sign-in is a demo — it stores a placeholder
+    account on this device and syncs nothing. A real backend comes later.</div>`;
+
+  h += '<div class="sect">Danger</div>';
+  h += `<div class="srow"><div class="si" style="--c1:#FBE3DE">${ico(ICON.trash, {c:'#D93A26', s:20})}</div>
+    <div class="st"><b>Reset game</b><span>Deletes this save for good — band, catalogue, money</span></div>
+    <button class="sbtn danger" data-set="reset">RESET</button></div>`;
+  h += `<div class="hint">Save v${S.v} · autosaves every 5s and on every purchase and release.<br>
+    Offline earnings cap at ${offlineCap()/3600}h${S.vip ? ' (VIP)' : ''}.</div>`;
+  return h;
+}
 function htmlLeague(){
   return `<div class="empty">${ico(ICON.league, {s:44, c:'#A9856B', w:1.6})}Leagues open after your first Break Up The Band.<br>
     50 managers, ranked by Legacy.<br><br>
@@ -1899,11 +2016,97 @@ function askName(what, suggested, cb, isBand){
     cb(v);
   };
 }
-function modal(html, btn, onOk){
+/* ===== WHILE YOU WERE GONE ===== */
+let gone = null, goneRaf = 0;
+function countTo(el, target, money){
+  const t0 = performance.now(), dur = 1100;
+  const step = now => {
+    const k = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+    el.textContent = (money ? '+' : '+') + fmt(target * e);
+    if (k < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+function showGone(secs, songs, streams, money){
+  gone = { streams, money, songs, doubled:false };
+  $('#goneAway').textContent = dur(secs) + ' away' + (S.vip ? ' · VIP 24h' : '');
+  $('#goneCap').hidden = !S.capHit;
+  $('#goneTitle').textContent = songs ? 'Your band kept working' : 'The catalogue kept streaming';
+  $('#goneSongs').textContent = '0'; $('#goneStreams').textContent = '0'; $('#goneMoney').textContent = '0';
+  const ad = $('#goneAd');
+  ad.classList.remove('spent');
+  ad.innerHTML = ico(ICON.play, {s:15, w:2.4}) + '<span>WATCH AD FOR x2</span>';
+  $('#gone').classList.add('on');
+  requestAnimationFrame(() => {
+    $('#goneSongs').textContent = songs;
+    countTo($('#goneStreams'), streams);
+    countTo($('#goneMoney'), money, true);
+  });
+  if (S.capHit) markCapped(true);
+}
+function collectGone(){
+  if (!gone) return;
+  S.streams += gone.streams; S.lifetime += gone.streams; S.money += gone.money;
+  disp = S.streams; dispM = S.money;
+  gone = null;
+  $('#gone').classList.remove('on');
+  S.capHit = false; markCapped(false);
+  renderIdle(); renderTop(); save();
+}
+/* the 8h ceiling, surfaced where a player can see it from outside the game */
+function markCapped(on){
+  document.title = on ? 'Storage full · Chart Breaker' : 'Chart Breaker';
+  try { on ? (navigator.setAppBadge && navigator.setAppBadge(1))
+           : (navigator.clearAppBadge && navigator.clearAppBadge()); } catch(e){}
+}
+let capTimer = 0;
+function armCapTimer(){
+  clearTimeout(capTimer);
+  const ms = offlineCap() * 1000;
+  capTimer = setTimeout(() => {
+    markCapped(true);
+    try {
+      if (window.Notification && Notification.permission === 'granted'){
+        new Notification('Storage full', { body: (S.band || 'Your band') + " has stopped banking demos — come and collect." });
+      }
+    } catch(e){}
+  }, ms);
+}
+
+function settingsAct(what){
+  if (what === 'sound'){
+    S.mute = !S.mute; AU.init(); AU.setMute(S.mute);
+    $('#muteBtn').innerHTML = ico(S.mute ? ICON.muted : ICON.sound, {s:17});
+  } else if (what === 'notify'){
+    try {
+      if (window.Notification && Notification.permission === 'default'){
+        Notification.requestPermission().then(() => renderSheet('settings'));
+      }
+    } catch(e){}
+  } else if (what === 'signin'){
+    S.cloud = { on:true, email:'player@chartbreaker.demo', at:Date.now() };
+    toast('Signed in (demo) — nothing left this device');
+  } else if (what === 'signout'){
+    S.cloud = { on:false, email:null, at:0 };
+    toast('Signed out — the save stays on this device');
+  } else if (what === 'reset'){
+    modal(`<h3>Reset the game?</h3><p>This deletes <b>${esc(S.band || 'your band')}</b>, every song
+      in the catalogue and all money. It cannot be undone.</p>`, 'DELETE EVERYTHING', () => {
+      try { localStorage.removeItem(SAVE_KEY); OLD_KEYS.forEach(k => localStorage.removeItem(k)); } catch(e){}
+      location.reload();
+    }, true);
+    return;
+  }
+  save(); renderSheet('settings');
+}
+
+function modal(html, btn, onOk, danger){
   const m = $('#modal');
-  $('#mbox').innerHTML = html + `<button id="mok">${btn}</button>`;
+  $('#mbox').innerHTML = html + `<button id="mok"${danger ? ' style="background:#FF5A45;color:#FFF6E6;box-shadow:0 4px 0 #C0331F"' : ''}>${btn}</button>` +
+    (danger ? '<button id="mno" style="margin-top:8px;background:#EFE2CE;color:#8A6F5E;box-shadow:none">CANCEL</button>' : '');
   m.classList.add('on');
   $('#mok').onclick = () => { m.classList.remove('on'); if (onOk) onOk(); };
+  if (danger) $('#mno').onclick = () => m.classList.remove('on');
 }
 
 /* ===== BOOT ===== */
@@ -1917,35 +2120,27 @@ function boot(){
   // what happened while you were gone: the band kept writing, the catalogue kept streaming
   const away = (Date.now() - (S.lastSeen || Date.now())) / 1000;
   if (S.setup && away > 60){
+    const cap = offlineCap(), capped = Math.min(away, cap);
+    S.capHit = away >= cap;
     stepTrends(Math.floor(away / 60));
     const before = totalSPS();
     let wrote = 0;
     for (let i = 0; i < 4; i++){
       if (!S.members[i].owned) continue;
-      const prog = S.members[i].solo + away * soloRate(i);
-      let n = Math.floor(prog);
+      const prog = S.members[i].solo + capped * soloRate(i);   // nothing accrues past the cap
+      const n = Math.floor(prog);
       S.members[i].solo = prog - n;
-      n = Math.min(n, BAL.soloMaxOffline);
-      for (let k = 0; k < n && wrote < BAL.soloMaxOffline; k++){
+      for (let k = 0; k < n; k++){
         const q = rndi(BAL.soloQ[0], BAL.soloQ[1]), g = rndi(0, GENRES.length-1), ti = rollTier(q);
         addSong({ title:genTitle(), g, q, t:ti, chart:chartFor(ti), cover:newCover(),
-                  by:S.members[i].name, at:Date.now() - Math.random() * away * 1000 });
+                  by:S.members[i].name, at:Date.now() - Math.random() * capped * 1000 });
         wrote++;
       }
     }
-    const capped = Math.min(away, BAL.offlineCap);
     const after = totalSPS();
     const earned = before * capped + (after - before) * capped * 0.5;
     const earnedMoney = gigMoney() * capped + earned * payoutRate();
-    if (earned > 1 || wrote){
-      S.streams += earned; S.lifetime += earned; S.money += earnedMoney;
-      disp = S.streams; dispM = S.money;
-      modal(`<h3>While you were gone</h3>
-        <p>${dur(capped)} of streaming${away > BAL.offlineCap ? ' (8h cap)' : ''}${
-          wrote ? ' · the band finished ' + wrote + (wrote === 1 ? ' demo' : ' demos') : ''}.</p>
-        <div class="big num">+${fmt(earnedMoney)}</div><p>money</p>
-        <div class="big num" style="font-size:24px;color:#cbb8ff">+${fmt(earned)}</div><p>streams</p>`, 'COLLECT');
-    }
+    if (earned > 1 || wrote) showGone(capped, wrote, earned, earnedMoney);
   }
   if (S.pending) showDock('qual'); else showDock('idle');
   renderIdle();
@@ -1980,9 +2175,25 @@ function boot(){
   document.querySelectorAll('.tab').forEach(b => {
     b.addEventListener('click', () => sheetTab === b.dataset.tab ? closeSheet() : openTab(b.dataset.tab));
   });
+  $('#setBtn').addEventListener('click', e => { e.stopPropagation(); openTab('settings'); });
+  $('#setBtn').innerHTML = ico(ICON.cog, {s:17});
+  $('#goneGo').addEventListener('click', collectGone);
+  $('#goneAd').addEventListener('click', () => {
+    if (!gone || gone.doubled) return;                  // stub: no ad, just the reward
+    gone.doubled = true;
+    gone.streams *= 2; gone.money *= 2;
+    countTo($('#goneStreams'), gone.streams);
+    countTo($('#goneMoney'), gone.money, true);
+    const ad = $('#goneAd');
+    ad.classList.add('spent');
+    ad.innerHTML = '<span>x2 APPLIED</span>';
+    buzz(20);
+  });
   $('#shClose').addEventListener('click', closeSheet);
   el.scrim.addEventListener('click', closeSheet);
   el.shBody.addEventListener('click', e => {
+    const st = e.target.closest('[data-set]');
+    if (st){ settingsAct(st.dataset.set); return; }
     const t = e.target.closest('[data-act]');
     if (t) buy(t.dataset.act, +t.dataset.i);
   });
@@ -1997,8 +2208,12 @@ function boot(){
   document.querySelectorAll('.tab .ic').forEach(n => {
     n.innerHTML = ico(ICON[n.parentNode.dataset.tab], {s:19});
   });
-  document.addEventListener('visibilitychange', () => { if (document.hidden) save(); else AU.resume(); });
-  window.addEventListener('pagehide', save);
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden){ save(); armCapTimer(); }
+    else { clearTimeout(capTimer); AU.resume(); }
+  });
+  window.addEventListener('pagehide', () => { save(); armCapTimer(); });
+  if (S.capHit) markCapped(true);
   window.addEventListener('contextmenu', e => e.preventDefault());
   document.addEventListener('gesturestart', e => e.preventDefault());
   if (!S.released && !S.songs.length) setTimeout(() => toast('Write a song — the cards decide its Quality'), 900);

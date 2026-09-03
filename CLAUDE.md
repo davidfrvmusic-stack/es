@@ -119,9 +119,11 @@ Locked members are a dark silhouette with a lock. Flat, bold, slightly cartoonis
 - Quality is normalised over however many tracks are unlocked, so an early one-track
   song can still score well.
 - Members also **auto-write solo demos** in the background and while you are away,
-  at random Quality 20–50 — one per member per 15 minutes, capped at 12 while
-  offline. A trickle that rewards returning, never the main income. Player sessions
-  played well reach 90+.
+  at random Quality 20–50, auto-released. The **band** finishes one per
+  `BAL.soloBandSecs` (600s), split across whoever is in it, so hiring shares the
+  output rather than multiplying it; member level still speeds it up. Offline output
+  is bounded by the time cap alone, which is a lot of songs — see SAVES below.
+  Player sessions played well reach 90+.
 
 ## 5. RELEASE
 Slot-machine chart reveal: title → procedural cover → chart-position reel → tier.
@@ -236,7 +238,52 @@ it was simulated. One trap: the game's top-level `const` helpers (`memberSPS`,
 `studioMult`, …) are **not** `window` properties, so `window.memberSPS = …` in an
 injected override silently does nothing and the run measures unchanged formulas.
 
-## 10. SOUND (the differentiator — do not skip)
+## 10. SAVES, OFFLINE AND SETTINGS
+
+**Saves.** Autosave every 5s in the tick, plus on every purchase, release, rename and
+settings change, and on `visibilitychange`/`pagehide`. `save()` writes a versioned
+object under `chartbreaker.v3`; `load()` migrates v1 and v2 rather than throwing, and
+fills defaults for anything a newer field added.
+
+**Offline.** `save()` stamps `lastSeen`. On return, elapsed time is capped —
+**8h, or 24h when `S.vip`** — and *nothing accrues past the cap*: solo demos and
+streams both use the capped span, not the raw one. Reaching the cap sets `S.capHit`.
+
+The return is a full-screen `#gone` panel, not a modal: time away, songs released,
+streams and money, counted up with an eased `requestAnimationFrame` ramp. **WATCH AD
+FOR x2** is a stub — it doubles the pending reward once, with no ad and no network.
+COLLECT banks it and clears the capped state.
+
+**Measured offline output** (full band at level 5): 3h → 20 songs, the 8h cap → 56,
+the 24h VIP cap → 176. That is deliberate per the brief's "1 song per 10 min", but it
+is roughly 4x the earlier trickle and a returning player's catalogue will be mostly
+solo demos. `BAL.soloBandSecs` is the one knob — raise it to thin them out.
+
+Because of that volume, `addSong` trims the catalogue at 200 by dropping the oldest
+**solo demos first**. A plain tail-trim would delete the player's own early releases,
+which are the Hit-or-better ones that never decay.
+
+**Storage full.** Without a service worker nothing can run while the tab is gone, so
+the badge is best-effort: on hide a timer is armed for the cap, and if the page is
+still resident when it fires it sets `navigator.setAppBadge` and — only if permission
+was already granted — a local notification. On return, a capped save sets the app
+badge and the document title to "Storage full · Chart Breaker" until COLLECT. Real
+background delivery needs `sw.js`, which is still deferred.
+
+**Settings** (cog in the top bar, opens as a sheet): sound, storage-full reminder
+permission, cloud save, reset.
+
+**Cloud save is a stub and must look like one.** SIGN IN stores
+`player@chartbreaker.demo` locally and stamps `S.cloud.at` on every save so the
+"Synced N ago" line moves; nothing leaves the device. It deliberately does *not*
+present a sign-in form or any Google branding — a fake credential form would be more
+misleading than a plainly-labelled demo. The panel says so in copy. When a real
+backend arrives, replace `settingsAct('signin')` and keep the shape.
+
+**Reset** is behind a two-button confirm naming the band, and clears every save key
+including the old ones before reloading.
+
+## 11. SOUND (the differentiator — do not skip)
 Web Audio synth only, no samples. Every tap plays a pentatonic note in the song's
 key. **Each decided track fades its instrument layer into the loop** — so the song
 assembles as you make decisions, and a finished demo is a 4-layer loop. The chosen
@@ -244,14 +291,16 @@ card's energy shapes its layer (filter cutoff, hat density). BPM comes from the
 genre's energy and drives both the loop and the characters' bob. Studio upgrades add
 reverb. Release plays a chord. Mute toggle. Haptics on tap and on Hit/Viral.
 
-## 11. CURRENCIES
+## 12. CURRENCIES
 - **Streams** — reach. Accumulates from the rate above; drives Legacy at prestige.
 - **Money** — the spend currency. Members, levels, royalties, studios.
 - **Picks** (premium) — crates, skips, streak saves.
 - **Legacy** (prestige) — permanent multipliers.
+- **VIP** — `S.vip` only raises the offline cap to 24h today. Nothing grants it yet;
+  the Shop card is still a stub, so the 24h path is reachable only by setting the flag.
 Formatting: 1.2K, 3.4M, 8.9B, 1.1T… Counters animate up.
 
-## 12. UI (portrait, one-thumb)
+## 13. UI (portrait, one-thumb)
 Top: two animated counters side by side — MONEY (total + /s) and STREAMS
 (total + /s) — then band name, Picks and studio chips.
 Middle: the stage — 4 SVG characters, the active one stepped forward.
@@ -263,7 +312,7 @@ Bottom dock, one of four states: **idle** (solo-demo progress + WRITE A SONG),
 RELEASE IT). Tabs: Band | Gear | Catalog | Shop | League open as bottom sheets over
 the stage. Targets ≥44px, `env(safe-area-inset-*)` respected.
 
-## 13. SHOP (stub)
+## 14. SHOP (stub)
 Picks 100/₪12, 550/₪45, 1200/₪90, 3500/₪219. Crates: Bronze 50 (C60 R30 E8 L1.8
 M0.2), Gold 150 (Epic+), Mythic 500 (Legendary). Battle Pass ₪35/mo. VIP ₪19/mo
 (x2 income, 24h offline, no ads, daily Gold Crate). Daily Deal, rewarded ads.
@@ -279,6 +328,10 @@ M0.2), Gold 150 (Epic+), Mythic 500 (Legendary). Battle Pass ₪35/mo. VIP ₪19
   random 55, best-card play 69–81; at level 12 best play reaches 88 (+4 from jamming
   → 90+). Levelling visibly matters.
 
+- Saves, offline and settings verified: settings sheet, cloud stub round trip, sound
+  toggle persisting into the save, reset confirm + cancel; offline at 3h / 9h (capped
+  to 8h, storage-full badge and title) / 30h VIP (capped to 24h); the x2 stub and
+  COLLECT; and 3 player releases surviving a flood of 250 solo demos.
 - Visual overhaul applied from `design/`: warm palette throughout, characters
   redrawn with real instruments (animation and pivots unchanged), UI emoji replaced
   with an inline SVG icon set, procedural cover hues constrained to the warm/teal
@@ -289,7 +342,8 @@ M0.2), Gold 150 (Epic+), Mythic 500 (Legendary). Battle Pass ₪35/mo. VIP ₪19
 
 **Known gaps (deliberate, deferred):** gear, crates as real drops, rarity/merge,
 daily gig, streaks, prestige, league, weekend events, real shop, LLM content,
-`sw.js` offline.
+`sw.js` offline (and with it, true background storage-full notifications), a real
+cloud-save backend, any way to actually grant VIP.
 
 **Removed along the way:** the tap-to-fill-tracks loop, Hook Moments, the Hype stat
 (Quality shifts chart odds instead), and weekly-seeded genre trends (replaced by the
