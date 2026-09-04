@@ -428,6 +428,21 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   font-size:9.5px;font-weight:800;letter-spacing:.11em;text-align:center;padding:8px}
 .gearslot:active{transform:translateY(2px)}
 .gearslot b{font-size:19px;font-weight:800;color:var(--dim2);line-height:1}
+/* ---- RESERVED SURFACES: a rail that says what will be here and when, and never
+   pretends to be the thing itself. Same dashed language as an empty gear slot. ---- */
+.reserved{padding:12px 13px 13px;border-radius:var(--r3);background:var(--panel);
+  border:2px dashed var(--line2);margin-bottom:var(--s3)}
+.reserved .rh{display:flex;align-items:center;gap:9px;margin-bottom:5px}
+.reserved .ri{width:34px;height:34px;border-radius:11px;flex:0 0 auto;display:grid;place-items:center;
+  background:var(--elev)}
+.reserved .rn{flex:1;min-width:0;font-size:14px;font-weight:800;letter-spacing:.01em}
+.reserved .rw{flex:0 0 auto;font-size:8.5px;font-weight:800;letter-spacing:.13em;padding:4px 8px;
+  border-radius:7px;background:var(--elev);color:var(--dim2)}
+.reserved .rd{font-size:11px;font-weight:600;color:var(--dim);line-height:1.5}
+.ghosts{display:flex;gap:6px;margin-top:9px}
+.ghost2{flex:1;min-width:0;height:44px;border-radius:var(--r1);display:grid;place-items:center;
+  font-size:8.5px;font-weight:800;letter-spacing:.1em;color:var(--dim3);
+  background:var(--elev);background-image:repeating-linear-gradient(115deg,var(--line) 0 6px,transparent 6px 12px)}
 /* before -> after: an upgrade should say what it buys before it takes the money */
 .ba{display:flex;align-items:center;gap:9px;padding:8px 12px;border-radius:var(--r2);
   background:var(--panel);border:2px solid var(--line);margin-bottom:7px}
@@ -2477,7 +2492,21 @@ function ctaAct(){
 }
 /* Each rail icon belongs to a system that can have something waiting. None of them exist
    yet, so the rail renders nothing — that is the rule working, not a gap. */
-const RAIL = [];
+/* The three systems that will earn a place on Home. Each reads the state it will own,
+   and none of that state exists yet, so every `when` is falsy and the rail draws nothing
+   (§13). When Daily, Events or the Inbox land they set their field and light their icon —
+   no new component, no layout to find room for. */
+const RAIL = [
+  { id:'daily', icon:ICON.bell,  when:() => !!(S.daily && S.daily.ready),
+    badge:() => 1,                                   // the daily gig, build step 4
+    say:'Your daily gig is waiting' },
+  { id:'event', icon:ICON.flag,  when:() => !!(S.event && S.event.live),
+    badge:null,                                      // weekend event genres, build step 6
+    say:'A weekend event is live' },
+  { id:'inbox', icon:ICON.crate, when:() => !!(S.inbox && S.inbox.length),
+    badge:() => S.inbox.length,                      // rewards posted to you, build step 7
+    say:'Something is waiting in your inbox' }
+];
 function renderRail(){
   el.rail.innerHTML = RAIL.filter(r => r.when()).map(r =>
     `<button class="railbtn" data-rail="${r.id}">${ico(r.icon, {s:20})}${
@@ -3635,6 +3664,38 @@ function renderSheet(t, soft){
               : t === 'shop' ? htmlShop() : htmlSettings();
   b.scrollTop = sc;
 }
+/* ===== RESERVED SURFACES =====
+   Everything the shop will sell, stated plainly and sold to nobody. A reserved rail
+   names the surface, what it will hold, and which build step brings it — it never
+   mimics the product with a price and a dead button, because a greyed-out BUY reads as
+   "you cannot afford this" rather than "this does not exist yet". Adding the real thing
+   later means replacing one entry, not inventing a layout. */
+const RESERVED = [
+  { id:'gear', n:'Gear', i:'gear', c:'gold', w:'BUILD STEP 2',
+    d:'Guitars, pedals, amps and mics. Each piece hangs on the character it is equipped to and opens writing cards the way levels do. Two slots a member — they are already drawn on the character sheet.',
+    t:['INSTRUMENT','RIG','AMP'] },
+  { id:'crates', n:'Crates', i:'crate', c:'violet', w:'BUILD STEP 3',
+    d:'Bronze 50 · Gold 150 · Mythic 500 Picks. Members and gear drop from them, and three of a rarity merge into one of the next. The rank you have already earned carries better odds into them.',
+    t:['BRONZE','GOLD','MYTHIC'] },
+  { id:'picks', n:'Picks', i:'pick', c:'gold', w:'BUILD STEP 7',
+    d:'The premium currency, spent on crates, skips and streak saves. Packs of 100 · 550 · 1200 · 3500.',
+    t:['100','550','1200','3500'] },
+  { id:'vip', n:'Backstage Pass', i:'pass', c:'violet', w:'BUILD STEP 7',
+    d:'x2 income, a 24-hour offline cap instead of 8, no ads, and a Gold Crate a day. The offline half is the only piece already wired — nothing grants it yet.',
+    t:['MONTHLY'] },
+  { id:'offers', n:'Offers', i:'globe', c:'accent', w:'BUILD STEP 7',
+    d:'The Daily Deal and the seasonal Battle Pass track.',
+    t:['DAILY DEAL','BATTLE PASS'] }
+];
+function htmlReserved(r){
+  return `<div class="reserved">
+    <div class="rh"><span class="ri">${ico(ICON[r.i], {c:PAL[r.c], s:19})}</span>
+      <span class="rn">${r.n}</span><span class="rw">${r.w}</span></div>
+    <div class="rd">${r.d}</div>
+    <div class="ghosts">${r.t.map(t => '<span class="ghost2">' + t + '</span>').join('')}</div>
+  </div>`;
+}
+
 /* ===== CHARACTER SHEET =====
    Everything about one member in one place. The four stat rails and the two gear slots
    are drawn and labelled but empty: they are what the next two build steps fill, and a
@@ -3842,28 +3903,16 @@ function htmlSongs(){
   return h;
 }
 function htmlShop(){
-  const packs = [['100 Picks','₪12',''],['550 Picks','₪45','BEST VALUE'],['1200 Picks','₪90',''],['3500 Picks','₪219','']];
-  const crates = [['Bronze Crate','50 Picks','C60 R30 E8 L1.8 M0.2'],['Gold Crate','150 Picks','Epic or better guaranteed'],
-                  ['Mythic Crate','500 Picks','Legendary guaranteed']];
   let h = `<div class="card"><div class="av" style="--c1:${PAL.gold}">${ico(ICON.pick, {c:PAL.onGold, s:22})}</div>
     <div class="info"><div class="t">${fmt(S.picks)} Picks</div>
-    <div class="d">Premium currency — crates, skips and streak saves, once those exist</div></div></div>
-    <div class="hint" style="padding-top:0">Storefront preview — nothing is purchasable in this build.</div>
-    <div class="sect">Picks</div>`;
-  packs.forEach(p => h += `<div class="card locked"><div class="av" style="--c1:${PAL.gold}">${ico(ICON.pick, {c:PAL.onGold, s:22})}</div>
-    <div class="info"><div class="t">${p[0]} ${p[2] ? '<span class="rar" style="color:${PAL.gold}">' + p[2] + '</span>' : ''}</div>
-    <div class="d">Premium currency</div></div><button class="buy no">${p[1]}</button></div>`);
-  h += '<div class="sect">Crates</div>';
-  crates.forEach(c => h += `<div class="card locked"><div class="av" style="--c1:${PAL.accent2Dk}">${ico(ICON.crate, {c:PAL.onAccent, s:22})}</div>
-    <div class="info"><div class="t">${c[0]}</div><div class="d">${c[2]}</div></div>
-    <button class="buy no">${c[1]}</button></div>`);
-  h += `<div class="sect">Subscriptions</div>
-    <div class="card locked"><div class="av" style="--c1:${PAL.accent2}">${ico(ICON.pass, {c:PAL.onAccent, s:22})}</div>
-      <div class="info"><div class="t">Backstage Pass (VIP)</div><div class="d">x2 income · 24h offline · no ads · daily Gold Crate</div></div>
-      <button class="buy no">₪19/mo</button></div>
-    <div class="card locked"><div class="av" style="--c1:${PAL.accent}">${ico(ICON.globe, {c:PAL.onAccent, s:22})}</div>
-      <div class="info"><div class="t">World Tour Battle Pass</div><div class="d">Seasonal reward track</div></div>
-      <button class="buy no">₪35/mo</button></div>`;
+    <div class="d">Your premium balance. Nothing spends it yet, and nothing in this
+      build can be bought.</div></div></div>
+    <div class="sect">Reserved for later</div>`;
+  RESERVED.forEach(r => h += htmlReserved(r));
+  h += `<div class="hint">Every rail above says what it will hold and which build step brings
+    it. None of them is a product with the price greyed out — a disabled BUY reads as
+    &ldquo;you cannot afford this&rdquo;, and that would be a lie about a thing that does not
+    exist. When one ships it replaces its rail; the shape of this screen does not move.</div>`;
   return h;
 }
 function htmlSettings(){
@@ -4171,6 +4220,12 @@ function boot(){
   last = now(); lastSave = now();
   requestAnimationFrame(tick);
 
+  el.rail.addEventListener('click', e => {
+    const b = e.target.closest('[data-rail]');
+    if (!b) return;
+    const r = RAIL.find(x => x.id === b.dataset.rail);
+    if (r) toast(r.say);                       // nothing renders yet; the wiring is here for when it does
+  });
   el.stage.addEventListener('pointerdown', e => {
     if (e.target.closest('button')) return;
     // a tap on a member opens them — except mid-session, where every tap is a jam

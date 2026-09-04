@@ -730,10 +730,26 @@ Two counters were **snapping instead of moving**: `collectGig()` set `dispM = S.
 `collectGone()` set all three `disp*` to their new totals, so the single most rewarding
 moments in the game showed no movement at all. Both now leave the easing alone.
 
-## 14. SHOP (stub)
-Picks 100/₪12, 550/₪45, 1200/₪90, 3500/₪219. Crates: Bronze 50 (C60 R30 E8 L1.8
-M0.2), Gold 150 (Epic+), Mythic 500 (Legendary). Battle Pass ₪35/mo. VIP ₪19/mo
-(x2 income, 24h offline, no ads, daily Gold Crate). Daily Deal, rewarded ads.
+## 14. SHOP — RESERVED, NOT FAKED
+
+Shop is your **Picks balance** (real state) and then `RESERVED`: one labelled rail per
+surface the shop will hold — Gear, Crates, Picks, Backstage Pass, Offers. Each names what
+it will contain, which BUILD ORDER step brings it, and shows hatched ghost tiles in the
+shape of the future content.
+
+**No rail mimics a product.** There are no prices on buttons and no buttons at all: a
+greyed-out `BUY ₪12` reads as *you cannot afford this*, which is a lie about something
+that does not exist. The rails carry the spec as text instead — Bronze 50 · Gold 150 ·
+Mythic 500 Picks, packs of 100 · 550 · 1200 · 3500, VIP's x2 income and 24h offline cap —
+so nothing is lost and nothing is pretended. When a surface ships it replaces its rail and
+the screen's shape does not move.
+
+**The Home rail is declared, not empty** (`RAIL`, §13). Its three entries — daily, event,
+inbox — each read the state they will own (`S.daily.ready`, `S.event.live`,
+`S.inbox.length`). None of that state exists, so every `when()` is falsy and the rail
+draws nothing; the moment a system sets its field, its icon and badge appear with no new
+component and no layout to find room for. `newState()` is untouched, so the save shape
+does not move either.
 
 ---
 
@@ -1018,6 +1034,34 @@ the band nodded, that a sound and a haptic fired, and that the counters are **be
 totals afterwards (i.e. still easing, not snapped). It also asserts the four panels
 resolve identically and that every collect button is the same gold. Seventeen suites pass,
 no console errors, frame time median 16.7ms / p95 17.1ms.
+
+**Phase Two, stage 8 — reserved surfaces, and Phase Two is done.** The last stage is the
+one that makes the next phases cheap: every surface Phase Three needs is drawn, labelled
+and honest about not existing yet.
+
+- **Shop stopped pretending to be a shop.** It had nine `.card locked` rows with `₪12`,
+  `50 Picks`, `₪19/mo` on disabled buttons — which reads as a store you cannot afford
+  rather than a store that is not built. `RESERVED` replaces them with five labelled
+  rails carrying the same information as text and no pressable surface at all. The suite
+  asserts the screen contains **zero buttons** and no currency glyph.
+- **`RAIL` went from `[]` to three declared entries** whose predicates read the state
+  their systems will own. Nothing renders — the suite asserts that, and asserts that
+  setting one field (`S.inbox = [1,2,3]`) lights exactly one icon with a badge of 3, that
+  tapping it answers, and that removing the field empties the rail again.
+- Both tables sit with `GOALS` and `HYPE_TIERS` under the CONVENTIONS rule: an ordered
+  table you extend with an entry, never with a branch.
+
+**A flaky suite, and why it was the suite's fault.** `t2` intermittently timed out
+clicking the HOME tab. The cause is real and by design: fans arrive every tick from gig
+money, so a **rank-up card can land on any frame**, and it is modal. The suite now clears
+an open rank-up immediately before every tab press. Fourteen consecutive runs pass. The
+game behaviour is correct — a rank-up is meant to interrupt.
+
+**Phase Two is complete.** Eight stages: tokenise, flip, consolidate, navigate, Home, HUD,
+character sheet, moments, reserved surfaces. Eighteen suites pass, no console errors,
+frame time median 16.7ms / p95 17.2ms, and a `chartbreaker.v3` save written before Phase
+Two still loads — no `newState()` field was added or removed across the whole phase, and
+no balance number moved.
 
 **Removed along the way:** the tap-to-fill-tracks loop, Hook Moments, the Hype stat
 (Quality shifts chart odds instead), and weekly-seeded genre trends (replaced by the
