@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Chart Breaker">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23181030'/%3E%3Ccircle cx='24' cy='42' r='9' fill='%23ff2e83'/%3E%3Crect x='31' y='14' width='5' height='30' rx='2.5' fill='%23ff2e83'/%3E%3Cpath d='M33 14l16-5v10l-16 5z' fill='%2300e6c3'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23171B24'/%3E%3Ccircle cx='24' cy='42' r='9' fill='%23FF5364'/%3E%3Crect x='31' y='14' width='5' height='30' rx='2.5' fill='%23FF5364'/%3E%3Cpath d='M33 14l16-5v10l-16 5z' fill='%2320D6C7'/%3E%3C/svg%3E">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{
@@ -273,7 +273,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 
 /* ===== TABS ===== */
 /* position matters: an unpositioned element ignores z-index, and the tab bar has to
-   sit above the scrim and the sheet now that it is the primary navigation */
+   sit above the screen it switches, because it is the primary navigation */
 #tabs{position:relative;flex:0 0 auto;display:flex;z-index:12;padding-bottom:var(--safe-b);
   background:var(--panel);border-top:2px solid var(--line)}
 .tab{flex:1;padding:9px 0 8px;display:flex;flex-direction:column;align-items:center;gap:4px;
@@ -286,26 +286,22 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   background:var(--accent2);display:none}
 .tab.alert .dot{display:block}
 
-/* ===== SHEET ===== */
-/* the scrim dims the stage, never the navigation — #app is position:fixed, so it is
-   its own stacking context and the tab bar cannot simply out-z-index a sibling */
-#scrim{position:fixed;left:0;right:0;top:0;bottom:calc(var(--safe-b) + 56px);z-index:9;background:rgba(44,29,22,.42);opacity:0;pointer-events:none;
-  transition:opacity .25s ease}
-#scrim.on{opacity:1;pointer-events:auto}
-#sheet{position:fixed;left:0;right:0;bottom:calc(var(--safe-b) + 56px);z-index:10;max-height:72%;
-  display:flex;flex-direction:column;
-  background:var(--cream);border-radius:22px 22px 0 0;border:2px solid var(--line);border-bottom:0;
-  transform:translateY(140%);transition:transform var(--m3) cubic-bezier(.22,1,.36,1)}
-#sheet.on{transform:translateY(0)}
-#sheet.full{top:0;max-height:none;border-radius:0;border-left:0;border-right:0;padding-top:var(--safe-t)}
-#sheet.full .grab{display:none}
-#sheet.full .shhead{padding-top:16px}
-#sheet.full .shhead h2{font-size:24px}
-.grab{width:38px;height:4px;border-radius:3px;background:var(--line2);margin:8px auto 0}
-.shhead{display:flex;align-items:center;padding:12px 18px 10px;gap:10px;flex:0 0 auto}
-.shhead h2{font-size:20px;font-weight:800;letter-spacing:-.3px}
+/* ===== SCREEN (the tabs) ===== */
+/* A tab is a screen, not a drawer. It fills everything above the tab bar and swaps in
+   place, so BAND is somewhere you go rather than something that slides over the stage.
+   No grab handle, no scrim: a sheet you can drag is a promise this UI does not keep. */
+#sheet{position:fixed;left:0;right:0;top:0;bottom:calc(var(--safe-b) + 56px);z-index:10;
+  display:flex;flex-direction:column;background:var(--cream);padding-top:var(--safe-t);
+  opacity:0;pointer-events:none;transform:translateY(8px);
+  transition:opacity var(--m2) ease,transform var(--m2) cubic-bezier(.22,1,.36,1)}
+#sheet.on{opacity:1;pointer-events:auto;transform:none}
+.shhead{display:flex;align-items:center;padding:16px 18px 10px;gap:10px;flex:0 0 auto}
+.shhead h2{font-size:24px;font-weight:800;letter-spacing:-.3px}
 .shhead .x{margin-left:auto;width:34px;height:34px;border-radius:50%;background:var(--panel);
-  border:2px solid var(--line);display:grid;place-items:center}
+  border:2px solid var(--line);display:none;place-items:center}
+/* a screen with a tab of its own is left by pressing another tab; only Settings, which
+   is reached from the cog and owns no tab, needs a way out of its own */
+#sheet.noTab .shhead .x{display:grid}
 #shbody{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 18px 18px;flex:1 1 auto}
 /* ---- the one surface: every card-like row shares its ground and its border ---- */
 .card,.card2,.venue,.songpick,.srow,.grow,.rolebtn,#tix{
@@ -784,9 +780,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   </nav>
 </div>
 
-<div id="scrim"></div>
 <aside id="sheet">
-  <div class="grab"></div>
   <div class="shhead"><h2 id="shTitle">Band</h2><button class="x" id="shClose">✕</button></div>
   <div id="shbody"></div>
 </aside>
@@ -954,8 +948,9 @@ const PAL = (() => {
     badW:t('bad-w'), selW:t('sel-w'), nowW:t('now-w')
   };
 })();
-/* the release burst — its own table so it moves with the palette */
-const CONFETTI = { big:['#ffc23d','#fff3c4','#ff2e83','#fff'], small:['#3ddc84','#00e6c3','#fff','#7a5cff'] };
+/* the release burst — read from the tokens, so it moves with the palette */
+const CONFETTI = { big:[PAL.gold, PAL.ink, PAL.accent, PAL.accent2],
+                   small:[PAL.ok, PAL.accent2, PAL.ink, PAL.violet] };
 
 /* ===== BALANCE (tune here, never inline) ===== */
 const BAL = {
@@ -2176,7 +2171,7 @@ const el = {
   timerbar:$('#timerbar'), timerfill:$('#timerfill'), strip:$('#sheetstrip'),
   whTrack:$('#whTrack'), whWho:$('#whWho'), whJam:$('#whJam'), cards:$('#cards'),
   qnum:$('#qnum'), qlabel:$('#qlabel'), qfill:$('#qfill'), qnote:$('#qnote'),
-  sheet:$('#sheet'), scrim:$('#scrim'), shBody:$('#shbody'), shTitle:$('#shTitle')
+  sheet:$('#sheet'), shBody:$('#shbody'), shTitle:$('#shTitle')
 };
 let memEls = [];
 function buildBand(){
@@ -3290,16 +3285,18 @@ const TAB_TITLES = { band:'Band', music:'Music', shop:'Shop', settings:'Settings
    simply closes whatever is open. That keeps one shell instead of a router. */
 function openTab(t){
   if (t === 'home') return closeSheet();
+  const swap = sheetTab && sheetTab !== t;
   sheetTab = t;
-  el.sheet.classList.toggle('full', t === 'band');
+  el.sheet.classList.toggle('noTab', !document.querySelector('.tab[data-tab="' + t + '"]'));
   el.shTitle.textContent = TAB_TITLES[t];
   renderSheet(t);
-  el.sheet.classList.add('on'); el.scrim.classList.add('on');
+  if (swap) el.shBody.scrollTop = 0;   // a new screen starts at its top; a refresh keeps place
+  el.sheet.classList.add('on');
   document.querySelectorAll('.tab').forEach(b => b.classList.toggle('sel', b.dataset.tab === t));
 }
 function closeSheet(){
   sheetTab = null;
-  el.sheet.classList.remove('on'); el.scrim.classList.remove('on');
+  el.sheet.classList.remove('on');
   document.querySelectorAll('.tab').forEach(b => b.classList.toggle('sel', b.dataset.tab === 'home'));
 }
 function bandSig(){ return S.studio + '|' + S.payoutLvl + '|' + S.rank + '|' + S.home + '|' +
@@ -3832,7 +3829,6 @@ function boot(){
     buzz(20);
   });
   $('#shClose').addEventListener('click', closeSheet);
-  el.scrim.addEventListener('click', closeSheet);
   el.shBody.addEventListener('click', e => {
     const seg = e.target.closest('[data-mt]');
     if (seg){ musicTab = seg.dataset.mt; renderSheet('music'); buzz(10); return; }
@@ -3864,9 +3860,10 @@ function boot(){
   if (!S.released && !S.songs.length) setTimeout(() => toast('Write a song — the cards decide its Quality'), 900);
 
   try {
+    const u = c => '%23' + c.replace('#', '');   // the icon is a URI, so its hex is escaped
     const mf = { name:'Chart Breaker', short_name:'Chart Breaker', start_url:'.', display:'fullscreen',
-      orientation:'portrait', background_color:'#100b1e', theme_color:'#100b1e',
-      icons:[{ src:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='112' fill='%23181030'/%3E%3Ccircle cx='192' cy='336' r='72' fill='%23ff2e83'/%3E%3Crect x='248' y='112' width='40' height='240' rx='20' fill='%23ff2e83'/%3E%3Cpath d='M264 112l128-40v80l-128 40z' fill='%2300e6c3'/%3E%3C/svg%3E",
+      orientation:'portrait', background_color:PAL.cream, theme_color:PAL.cream,
+      icons:[{ src:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='112' fill='" + u(PAL.panel) + "'/%3E%3Ccircle cx='192' cy='336' r='72' fill='" + u(PAL.accent) + "'/%3E%3Crect x='248' y='112' width='40' height='240' rx='20' fill='" + u(PAL.accent) + "'/%3E%3Cpath d='M264 112l128-40v80l-128 40z' fill='" + u(PAL.accent2) + "'/%3E%3C/svg%3E",
         sizes:'512x512', type:'image/svg+xml', purpose:'any' }] };
     const l = document.createElement('link');
     l.rel = 'manifest';

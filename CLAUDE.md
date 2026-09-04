@@ -566,11 +566,15 @@ Top: three animated counters side by side — MONEY, STREAMS and FANS (each tota
 for the Band tab), then band name, Picks and studio chips. The toast rail sits below
 all of that.
 Middle: the stage — 4 SVG characters, the active one stepped forward.
-The **Band tab is a full-page screen** (`#sheet.full`), not a bottom panel: band
-identity, rank, royalty rate, studio, every member with level and upgrade, empty slots
-with prices, and *Your genres* at the bottom. The other tabs remain bottom sheets.
-Full page means everything **above the tab bar** — `#sheet` and `#scrim` both stop at
-`calc(var(--safe-b) + 56px)`, so navigation is never covered and never trapped.
+**Every tab is a screen, not a drawer.** `#sheet` fills everything from the top to the
+tab bar (`bottom:calc(var(--safe-b) + 56px)`) and swaps its content in place — a tab is
+somewhere you go, not something that slides over the stage. There is no scrim, no grab
+handle and no slide-up: pressing BAND cross-fades HOME out and BAND in, and pressing
+HOME brings the stage back. The ✕ survives only on **Settings**, which is reached from
+the cog and owns no tab of its own (`#sheet.noTab`); every other screen is left by
+pressing another tab. The cog itself lives in the top bar, so Settings is reached from
+HOME. BAND holds band identity, rank, royalty rate, studio, every member with level and
+upgrade, empty slots with prices, and *Your genres* at the bottom.
 The idle dock also carries **GIGS** (with the ticket count), which opens `#gigs`, a
 full-screen panel: tickets and next refill, the venue ladder, then the venue brief and
 setlist. The show itself reuses `#takefs` with `.gig` on it — same lanes, hype instead
@@ -584,10 +588,11 @@ own `pointerdown`; `jam()` returns early while a take is running, so the only in
 during a take is the lanes.
 **Four tabs: HOME | BAND | MUSIC | SHOP.** HOME is not a screen — it is the stage with
 nothing over it, so the tab just calls `closeSheet()` and is the selected one at rest;
-that keeps one shell instead of a router. BAND is the full-page screen above. MUSIC
+that keeps one shell instead of a router. BAND is the screen above. MUSIC
 holds the home-genre card and a `.seg` of **SONGS** (the catalogue, `htmlSongs()`) and
-**TRENDS** (`htmlGenres()`), remembered in `musicTab`. SHOP is the stub, and Settings
-is still reached from the cog rather than a tab. Gear and League are gone from the bar
+**TRENDS** (`htmlGenres()`), remembered in `musicTab`; switching tabs scrolls the new
+screen to its top, while re-rendering the one you are on keeps your place. SHOP is the
+stub, and Settings is still reached from the cog rather than a tab. Gear and League are gone from the bar
 until they are real — an empty tab is a worse promise than no tab. Targets ≥44px,
 `env(safe-area-inset-*)` respected.
 
@@ -742,10 +747,28 @@ One real bug, three attempts: with a sheet open the tab bar was unreachable. Rai
 own stacking context, and the fix in the end was geometric rather than layered — both
 `#sheet` and `#scrim` now end at `calc(var(--safe-b) + 56px)`, the top of the tab bar.
 
+**And then the sheet stopped being a sheet.** The bottom-drawer treatment — a grab
+handle at the top of each panel, a dimming scrim behind it, a slide up from the bottom
+— told the player that BAND was a temporary thing pulled over the game. It is not; it
+is one of four places the game lives. So `#sheet` became a screen: full height above
+the tab bar, cross-faded in place, with `.grab` and `#scrim` deleted outright and the
+`.full` modifier gone — every screen is now what `.full` used to mean. The one leftover
+of the modal era, the ✕, is kept only for Settings, which has no tab to leave by.
+
+Two pre-flip leftovers went with it, both found by `audit`: the **PWA manifest and the
+app icons** were still `#100b1e` / `#ff2e83` / `#00e6c3` from before the palette
+flipped, so an installed Chart Breaker had a magenta icon on a purple splash. The
+manifest is built in JS, so it now reads `PAL` like everything else; the `<link
+rel=icon>` is static markup and carries the Concert Neon hex directly, the same
+attribute exception the `theme-color` meta already had. `CONFETTI` said in its own
+comment that it moved with the palette and did not — it does now.
+
 Suites: `gu` was rewritten for the split (Band asserts chips and no MAKE HOME; Music →
-TRENDS asserts the pane, the home move, rank unlocks and reload), `f1` now asserts the
-full-page Band sheet stops exactly at the tab bar with the bar still on screen, and
-`t1`/`t2`/`dark` follow the renamed tab. Ten suites pass, no console errors.
+TRENDS asserts the pane, the home move, rank unlocks and reload), `f1` asserts the Band
+screen stops exactly at the tab bar with the bar still on screen, `nav` asserts the
+screen geometry, the absent grab/scrim/✕ and the Settings exception, and five suites
+now leave a screen by pressing HOME rather than the ✕. Twelve suites pass, no console
+errors.
 
 **Removed along the way:** the tap-to-fill-tracks loop, Hook Moments, the Hype stat
 (Quality shifts chart odds instead), and weekly-seeded genre trends (replaced by the
