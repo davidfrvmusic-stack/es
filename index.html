@@ -42,6 +42,12 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .rate.money .rv{color:var(--accent-dk)}
 .rate.money .rs{color:var(--gold-dk)}
 .sub{display:flex;align-items:center;gap:7px;margin-top:9px}
+#savedTag{margin-left:auto;display:flex;align-items:center;gap:5px;font-size:9.5px;font-weight:800;
+  letter-spacing:.12em;color:var(--accent2-dk);opacity:0;transition:opacity .3s ease;flex:0 0 auto}
+#savedTag.on{opacity:1}
+#savedTag i{width:6px;height:6px;border-radius:50%;background:var(--accent2);display:block;
+  animation:savedot .9s ease-out}
+@keyframes savedot{0%{transform:scale(.4)}45%{transform:scale(1.35)}100%{transform:scale(1)}}
 #bandChip{font-weight:800;max-width:44%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   background:var(--ink);color:var(--cream);border-color:var(--ink)}
 .chip{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:800;
@@ -413,6 +419,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
       <div class="chip" id="bandChip">—</div>
       <div class="chip pk"><span id="pickIco"></span><span id="picks" class="num">0</span></div>
       <div class="chip" id="studioChip">Garage</div>
+      <div id="savedTag"><i></i>SAVED</div>
     </div>
   </header>
 
@@ -831,6 +838,7 @@ const ICON = {
   pass:'<rect x="2.5" y="6" width="19" height="12" rx="2.5"/><path d="M8 6v12"/><circle cx="15" cy="12" r="2"/>',
   cog:'<circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M21.5 12h-3M5.5 12h-3M18.7 5.3l-2.1 2.1M7.4 16.6l-2.1 2.1M18.7 18.7l-2.1-2.1M7.4 7.4L5.3 5.3"/>',
   cloud:'<path d="M7 18.5A4.5 4.5 0 0 1 7.6 9.6a5.5 5.5 0 0 1 10.6 1.6A3.8 3.8 0 0 1 17.5 18.5z"/>',
+  save:'<path d="M4.5 4.5h11l4 4v11h-15z"/><path d="M8 4.5v5h6v-5"/><rect x="7.5" y="13" width="9" height="6.5"/>',
   bell:'<path d="M6.5 9a5.5 5.5 0 0 1 11 0c0 5 2 6 2 6h-15s2-1 2-6z"/><path d="M10 19a2.2 2.2 0 0 0 4 0"/>',
   trash:'<path d="M4 6.5h16M9.5 6.5V4h5v2.5M6.5 6.5 7.5 20h9l1-13.5"/><path d="M10.5 10v6M13.5 10v6"/>',
   play:'<path d="M8 5.5 18.5 12 8 18.5z"/>',
@@ -1173,8 +1181,17 @@ function newState(){
     lastSeen:Date.now(), created:Date.now()
   };
 }
+let savedT = 0;
+function flashSaved(){
+  const n = $('#savedTag');
+  if (!n) return;
+  n.classList.remove('on'); void n.offsetWidth; n.classList.add('on');
+  clearTimeout(savedT);
+  savedT = setTimeout(() => n.classList.remove('on'), 1000);
+}
 function save(){
   S.lastSeen = Date.now();
+  flashSaved();
   if (S.cloud && S.cloud.on) S.cloud.at = S.lastSeen;      // mock cloud sync stamp
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch(e){}
   if (sheetTab === 'settings') renderSheet('settings');
@@ -1900,6 +1917,12 @@ function htmlSettings(){
     ${perm === 'granted' ? '<span class="synced">ON</span>'
       : `<button class="sbtn ${perm === 'denied' ? 'ghosty' : ''}" data-set="notify">ENABLE</button>`}</div>`;
 
+  const since = Math.max(0, Math.round((Date.now() - (S.lastSeen || Date.now())) / 1000));
+  h += '<div class="sect">Save</div>';
+  h += `<div class="srow"><div class="si" style="--c1:#E6F5F3">${ico(ICON.save, {c:'#0B7A72', s:20})}</div>
+    <div class="st"><b>Last saved ${since < 2 ? 'just now' : since + 's ago'}</b>
+      <span>Autosaves every 5s, and on every purchase, release and rename</span></div>
+    <button class="sbtn" data-set="savenow">SAVE NOW</button></div>`;
   h += '<div class="sect">Cloud save</div>';
   h += `<div class="srow"><div class="si" style="--c1:#EFE2CE">${ico(ICON.cloud, {c:'#8A6F5E', s:20})}</div>
     <div class="st"><b>${c.on ? esc(c.email) : 'Not signed in'}</b>
@@ -1913,7 +1936,7 @@ function htmlSettings(){
   h += `<div class="srow"><div class="si" style="--c1:#FBE3DE">${ico(ICON.trash, {c:'#D93A26', s:20})}</div>
     <div class="st"><b>Reset game</b><span>Deletes this save for good — band, catalogue, money</span></div>
     <button class="sbtn danger" data-set="reset">RESET</button></div>`;
-  h += `<div class="hint">Save v${S.v} · autosaves every 5s and on every purchase and release.<br>
+  h += `<div class="hint">Save v${S.v} · ${(JSON.stringify(S).length / 1024).toFixed(1)} KB in this browser.<br>
     Offline earnings cap at ${offlineCap()/3600}h${S.vip ? ' (VIP)' : ''}.</div>`;
   return h;
 }
@@ -2089,6 +2112,8 @@ function settingsAct(what){
   } else if (what === 'signout'){
     S.cloud = { on:false, email:null, at:0 };
     toast('Signed out — the save stays on this device');
+  } else if (what === 'savenow'){
+    toast('Saved');
   } else if (what === 'reset'){
     modal(`<h3>Reset the game?</h3><p>This deletes <b>${esc(S.band || 'your band')}</b>, every song
       in the catalogue and all money. It cannot be undone.</p>`, 'DELETE EVERYTHING', () => {

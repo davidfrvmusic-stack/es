@@ -241,7 +241,10 @@ injected override silently does nothing and the run measures unchanged formulas.
 ## 10. SAVES, OFFLINE AND SETTINGS
 
 **Saves.** Autosave every 5s in the tick, plus on every purchase, release, rename and
-settings change, and on `visibilitychange`/`pagehide`. `save()` writes a versioned
+settings change, and on `visibilitychange`/`pagehide`. Every write flashes a **SAVED**
+pill in the top bar for ~1s (`flashSaved()`), and Settings carries a Save section with
+"Last saved N ago", the save's size in KB, and a manual SAVE NOW — autosave is
+invisible otherwise, and a player has no way to trust it. `save()` writes a versioned
 object under `chartbreaker.v3`; `load()` migrates v1 and v2 rather than throwing, and
 fills defaults for anything a newer field added.
 
