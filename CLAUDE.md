@@ -233,13 +233,17 @@ flavour (`w` oscillator, `cut` filter), and `r` — the rank that opens it.
   > (`g` gating in `dealStep` and `genreFit`) already supports any number.
 - **Home genre, x1.5.** Your first release sets `S.home`; the Band tab can move it. Home
   applies live to every song in that genre via `homeMult`, like the trend multiplier.
-- **Where genres live in the UI.** `htmlGenres()` sits at the **bottom of the Band tab**,
-  below the members — it is management, not a headline. It lists **only the genres your
-  rank has opened**, home pinned first and the rest by heat, each showing its trend, heat,
-  multiplier and what it would be worth as home. The home card is a teal `.card.home`
-  with a `HOME · x1.5 STREAMS` tag and no MAKE HOME button. **Locked genres are never
-  listed** — one line (`#genreHint`) says how many open next and at which rank
-  ("3 more open at National — 58.0K fans away"), or that everything is open. The count
+- **Where genres live in the UI.** Two places, split by what the player is doing.
+  **Band** ends with *Your genres*: a row of `.gchip` badges, one per open genre, the
+  home one teal and tagged `· HOME`. That is identity — what this band plays — and it
+  carries no buttons. **Music → TRENDS** (`htmlGenres()`) is the management pane: only
+  the genres your rank has opened, home pinned first and the rest by heat, each showing
+  its trend, heat, multiplier and what it would be worth as home. The home card is a
+  teal `.card.home` with a `HOME · x1.5 STREAMS` tag and no MAKE HOME button, and the
+  Music tab repeats it above the segment so the current home reads without switching
+  panes. **Locked genres are never listed anywhere** — one line on each side says how
+  many open next and at which rank ("3 more open at National — 58.0K fans away"), or
+  that everything is open; the Band line (`#genreHint`) also points at Music. The count
   comes from `nextGenreDrop()`, which skips any rank that opens nothing.
 - **Trends** are the live heat cycle in §6 — COLD → RISING → HOT → FADING, with a hit in
   a RISING genre able to tip it HOT. That is already stronger than the brief's weekly
@@ -563,8 +567,10 @@ for the Band tab), then band name, Picks and studio chips. The toast rail sits b
 all of that.
 Middle: the stage — 4 SVG characters, the active one stepped forward.
 The **Band tab is a full-page screen** (`#sheet.full`), not a bottom panel: band
-identity, royalty rate, studio, every member with level and upgrade, and empty slots
-with prices. The other tabs remain bottom sheets.
+identity, rank, royalty rate, studio, every member with level and upgrade, empty slots
+with prices, and *Your genres* at the bottom. The other tabs remain bottom sheets.
+Full page means everything **above the tab bar** — `#sheet` and `#scrim` both stop at
+`calc(var(--safe-b) + 56px)`, so navigation is never covered and never trapped.
 The idle dock also carries **GIGS** (with the ticket count), which opens `#gigs`, a
 full-screen panel: tickets and next refill, the venue ladder, then the venue brief and
 setlist. The show itself reuses `#takefs` with `.gig` on it — same lanes, hype instead
@@ -575,8 +581,15 @@ RELEASE IT). The **take is not a dock state** — it is `#takefs`, a fixed panel
 the bottom 46% (min 300px) holding its header, meter, three lanes and AUTO-TAKE,
 with the stage and the song-sheet strip still visible above it. Each lane owns its
 own `pointerdown`; `jam()` returns early while a take is running, so the only input
-during a take is the lanes. Tabs: Band | Gear | Catalog | Shop | League open as bottom sheets over
-the stage. Targets ≥44px, `env(safe-area-inset-*)` respected.
+during a take is the lanes.
+**Four tabs: HOME | BAND | MUSIC | SHOP.** HOME is not a screen — it is the stage with
+nothing over it, so the tab just calls `closeSheet()` and is the selected one at rest;
+that keeps one shell instead of a router. BAND is the full-page screen above. MUSIC
+holds the home-genre card and a `.seg` of **SONGS** (the catalogue, `htmlSongs()`) and
+**TRENDS** (`htmlGenres()`), remembered in `musicTab`. SHOP is the stub, and Settings
+is still reached from the cog rather than a tab. Gear and League are gone from the bar
+until they are real — an empty tab is a worse promise than no tab. Targets ≥44px,
+`env(safe-area-inset-*)` respected.
 
 ## 14. SHOP (stub)
 Picks 100/₪12, 550/₪45, 1200/₪90, 3500/₪219. Crates: Bronze 50 (C60 R30 E8 L1.8
@@ -708,6 +721,31 @@ display, position, flex-direction, overflow, transform-origin, font-weight, font
 letter-spacing, padding and white-space for every element, with all nine panels and
 four dock states forced open and names, looks, market heat and songs pinned. Stage 2
 differs on **0 of 928 nodes**.
+
+**Phase Two, stage 3 — five tabs became four, and one of them is the way out.**
+`Band | Gear | Catalog | Shop | League` had two tabs leading to stubs and no way back to
+the stage except the ✕. Now `HOME | BAND | MUSIC | SHOP`:
+- **HOME** is not a screen. `openTab('home')` calls `closeSheet()`, and `closeSheet()`
+  selects the HOME tab — so the tab bar always shows where you are, the stage included,
+  and there is one shell rather than a router.
+- **MUSIC** merges Catalog and the genre pane: the home-genre card, then a `.seg` of
+  SONGS and TRENDS (`musicTab` remembers which). The catalogue and the market that
+  moves it are one screen because they are one decision.
+- **BAND** keeps genres as *identity* — `.gchip` badges of what you play, home tagged —
+  and points at Music for the heat and the MAKE HOME buttons.
+- **Gear and League are off the bar.** Both were stubs; an empty tab promises more than
+  no tab does. They come back with the features.
+
+One real bug, three attempts: with a sheet open the tab bar was unreachable. Raising
+`#tabs`' `z-index` did nothing (an unpositioned element ignores `z-index`), adding
+`position:relative` still failed because `#app` is `position:fixed` and therefore its
+own stacking context, and the fix in the end was geometric rather than layered — both
+`#sheet` and `#scrim` now end at `calc(var(--safe-b) + 56px)`, the top of the tab bar.
+
+Suites: `gu` was rewritten for the split (Band asserts chips and no MAKE HOME; Music →
+TRENDS asserts the pane, the home move, rank unlocks and reload), `f1` now asserts the
+full-page Band sheet stops exactly at the tab bar with the bar still on screen, and
+`t1`/`t2`/`dark` follow the renamed tab. Ten suites pass, no console errors.
 
 **Removed along the way:** the tap-to-fill-tracks loop, Hook Moments, the Hype stat
 (Quality shifts chart odds instead), and weekly-seeded genre trends (replaced by the
