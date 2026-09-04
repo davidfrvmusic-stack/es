@@ -672,6 +672,43 @@ touched beyond the token values, because a value swap alone would have broken th
   near-white).
 - The PWA `theme-color` is `#0B0D12`.
 
+**Phase Two, stage 2 — one button, one panel, one surface, one meter, one pill.**
+A pure refactor: the shared declarations moved into grouped base rules placed ahead of
+the specific ones, and each specific rule kept only what actually differs.
+
+| shared declaration | before | after |
+|---|---|---|
+| `position:fixed;inset:0` on a full-screen panel | 9 | 4 |
+| `display:none;flex-direction:column` + `.on{display:flex}` | 6 | 1 |
+| the press `transform:translateY(2px)` | 6 | 1 |
+| the meter trough `background:var(--elev);overflow:hidden` | 6 | 1 |
+| the card surface `background:var(--panel);border:2px…` | 20 | 13 |
+
+**Class names were deliberately not renamed.** The plan proposed collapsing 55 classes
+to 28 by deleting `.venue`, `.songpick`, `.card2`, `.rolebtn`, `.slot2` and friends in
+favour of one `.card`. Ten test suites bind to those exact selectors, and the later
+stages restructure Home, navigation, the HUD and the character sheet — none of which
+gets cheaper because a venue row is called `.card`. So the *rules* were consolidated
+and the *names* kept: the plan's actual goal, "edit one button, not four", is met, and
+no suite needed touching.
+
+Two real bugs the refactor exposed, both from cascade order:
+- `.locked` (dashed, `--line2`) had been silently overridden for venues by `.venue`'s
+  own `border` shorthand appearing later in the file. Moving that shorthand into the
+  group ahead of `.locked` let it through, so locked venues turned dashed and grey.
+  `.venue.locked` now states its own solid border.
+- `#tkmfill` grows by `width`, not `transform`, so it must stay out of the group's
+  `transform-origin:left`.
+
+Only two rules were genuinely dead and deleted: `.card2.chosen` and `.paused *`.
+
+**The stage sweep** (`scratchpad/.../sweep.js`) is the tool that proves a refactor: it
+dumps colour, background, both borders, box-shadow, fill, stroke, bounding box,
+display, position, flex-direction, overflow, transform-origin, font-weight, font-size,
+letter-spacing, padding and white-space for every element, with all nine panels and
+four dock states forced open and names, looks, market heat and songs pinned. Stage 2
+differs on **0 of 928 nodes**.
+
 **Removed along the way:** the tap-to-fill-tracks loop, Hook Moments, the Hype stat
 (Quality shifts chart odds instead), and weekly-seeded genre trends (replaced by the
 live heat cycle). Time-gated member unlocks are gone too —
