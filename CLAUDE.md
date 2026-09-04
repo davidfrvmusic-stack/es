@@ -70,25 +70,43 @@ You run a band. Your members write songs, you release them, they climb charts, a
 streams are your money. Grow from a garage to stadiums, then break up the band for
 permanent Legacy bonuses.
 
-## 2. PALETTE AND TYPE
+## 2. PALETTE AND TYPE — CONCERT NEON
 
-Warm, energetic, high-contrast on cream. Tokens live in `:root` — change them there,
-never in a rule:
+Dark, energetic, a music game rather than a toy. Roughly **70% ground, 20% surface,
+10% accent**. Tokens live in `:root` and JS reads them through `PAL` — change them
+there, never in a rule.
 
 | token | value | use |
 |---|---|---|
-| `--cream` / `--cream2` / `--cream3` | `#FFF3E2` `#FFE7C4` `#FFDCAE` | page, stage, stage floor |
-| `--panel` | `#FFFAF0` | cards, sheets, chips |
-| `--line` / `--line2` | `#EBD9BE` `#D9BE99` | 2px borders (this UI outlines, it does not shadow) |
-| `--ink` / `--dim` / `--dim2` | `#2C1D16` `#8A6F5E` `#A9856B` | text |
-| `--accent` / `--accent-dk` / `--accent-sh` | `#FF5A45` `#D93A26` `#C0331F` | coral: primary action, money |
-| `--gold` / `--gold-dk` | `#FFC22E` `#E39A00` | yellow: timers, rising, picks |
-| `--accent2` / `--accent2-dk` | `#12A79C` `#0B7A72` | teal: confirm, streams, NODS |
+| `--cream` / `--cream2` / `--cream3` | `#0B0D12` `#12161F` `#171B24` | app ground, stage, stage floor |
+| `--panel` / `--elev` | `#171B24` `#242B38` | cards and sheets / raised: pads, chips, pressed |
+| `--line` / `--line2` | `#2C3444` `#3A4356` | 2px borders (this UI outlines, it does not shadow) |
+| `--ink` / `--dim` / `--dim2` | `#F7F4EE` `#AAB2C0` `#8A93A3` | text — 17.7:1, 9.1:1, 6.0:1 on the ground |
+| `--onAccent` | `#0B0D12` | **the label on any bright fill** |
+| `--accent` / `--accent-dk` / `--accent-sh` | `#FF5364` `#C93B49` `#A32E3A` | coral: the primary action, money, drums |
+| `--accent2` / `--accent2-dk` | `#20D6C7` `#15998F` | teal: progress, streams, bass |
+| `--gold` / `--gold-dk` | `#FFC247` `#C68E27` | gold: rewards, PERFECT, first clear, guitar |
+| `--violet` / `--violet-dk` | `#8C6CFF` `#6247C4` | violet: premium, epic rarity, vocals |
+| `--ok` / `--bad` | `#47D982` `#FF4D4D` | success / miss and destructive |
+| `--face-ink` | `#241A14` | eyes, mouth, straps — drawn on skin, dark in any theme |
+
+**Bright fills always take a near-black label.** Cream on coral is 2.9:1 and fails;
+`--onAccent` on coral is 6.2:1. Violet is the tightest case — 3.4:1 with cream,
+5.3:1 with near-black — so there is no exception.
+
+**Reserved meanings, never mixed.** Coral is the primary action. Gold is only ever a
+reward, a first clear or a PERFECT. Violet is only ever premium or high rarity. A
+genre may tint the lighting but never repaints a navigation or action colour, and no
+screen shows more than three accents at once.
+
+**Never colour alone.** Every state carries a second channel — CLEARED is teal *and*
+the word; a miss is red *and* a lane shake *and* MISS; rank is a colour *and* its own
+badge silhouette.
 
 Buttons carry a solid `0 5px 0` shadow in their own dark tone and press *down* into
-it — no gradients, no blur. Borders are 2px. Icons in persistent chrome are inline
-SVG on a 24px grid (`ICON` + `ico()`); emoji survive only as expressive punctuation
-inside toast text.
+it — no gradients, no blur, and on a dark ground no glow. Borders are 2px. Icons in
+persistent chrome are inline SVG on a 24px grid (`ICON` + `ico()`); emoji survive only
+as expressive punctuation inside toast text.
 
 Design sources for the overhaul are in `design/` as `.dc.html` artboards — the
 canvas the screens were drawn on. They are reference, not build input.
@@ -631,6 +649,28 @@ six-cards-per-track-per-genre (128 signature cards ship, 384 do not),
 streaks, prestige, league, weekend events, real shop, LLM content,
 `sw.js` offline (and with it, true background storage-full notifications), a real
 cloud-save backend, any way to actually grant VIP.
+
+**Phase Two, stage 1 — the palette is flipped.** The game is dark. What that pass
+touched beyond the token values, because a value swap alone would have broken them:
+- **Members take the four instrument colours** the direction names — drums coral, bass
+  teal, guitar gold, vocals violet. The vocalist used to wear `--ink`, which is now
+  near-white; violet both fixes that and matches the spec.
+- **Faces needed their own ink.** Eyes, mouth and the guitar strap were drawn with
+  `--ink` because it was dark. On a dark theme they would have turned white on the
+  face, so they now use `--face-ink`, which is dark in any theme. Skin and hair tables
+  are untouched — those are content, not palette.
+- **Every meter trough moved to `--elev`.** They were `--line`/`--cream3`, which on a
+  dark ground is the same value as the card behind them, so a bar at 5% looked empty.
+- **Rooms gained an identity colour.** `VENUES[].bg` is the (dark) stage backdrop
+  during a show; the new `VENUES[].c` is the room's colour on its card, because a dark
+  backdrop on a dark card reads as a hole.
+- **The stage spotlight went from a white wash to a dim warm beam**, the crowd's
+  opacity roughly doubled so silhouettes read against the dark, and the screen flash
+  dropped from 0.5 to 0.22 — on a dark ground a half-white flash is a blast.
+- **Sixteen genre badges re-authored** so every one clears 3:1 on `#0B0D12`, none of
+  them reusing a reserved accent exactly (METAL had been `--ink`, i.e. invisible, then
+  near-white).
+- The PWA `theme-color` is `#0B0D12`.
 
 **Removed along the way:** the tap-to-fill-tracks loop, Hook Moments, the Hype stat
 (Quality shifts chart odds instead), and weekly-seeded genre trends (replaced by the

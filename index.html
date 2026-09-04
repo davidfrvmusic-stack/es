@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <title>Chart Breaker</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover,user-scalable=no">
-<meta name="theme-color" content="#100b1e">
+<meta name="theme-color" content="#0B0D12">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -13,27 +13,38 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{
-  /* ---- surfaces ---- */
-  --cream:#FFF3E2; --cream2:#FFE7C4; --cream3:#FFDCAE; --cream4:#FFCE95;
-  --panel:#FFFAF0; --line:#EBD9BE; --line2:#D9BE99;
-  --mute:#EFE2CE;              /* disabled / secondary control fill */
-  --switch-off:#E4D3B8;
-  --panel-top:#FFF9EC; --panel-bot:#FFDDB0;   /* full-screen moment gradient */
+  /* ===== CONCERT NEON =====
+     ~70% ground, ~20% surface, ~10% accent. Coral is the only primary action,
+     gold is only ever a reward, violet is only ever premium or high rarity.
+     Bright fills always carry a near-black label — cream on coral is 2.9:1. */
+  /* ---- surfaces: the 70 and the 20 ---- */
+  --cream:#0B0D12;             /* app ground */
+  --cream2:#12161F;            /* stage */
+  --cream3:#171B24;            /* stage floor */
+  --cream4:#1D2331;
+  --panel:#171B24;             /* cards, sheets, dock */
+  --elev:#242B38;              /* raised: pressed, pads, chips */
+  --line:#2C3444; --line2:#3A4356;
+  --mute:#242B38;              /* disabled / secondary control fill */
+  --switch-off:#2C3444;
+  --panel-top:#141925; --panel-bot:#0B0D12;   /* full-screen moment gradient */
   /* ---- text ---- */
-  --ink:#2C1D16; --dim:#8A6F5E; --dim2:#A9856B; --dim3:#CBB49A; --onDark:#FFF6E6;
-  --ink-sh:#150C08;            /* the dark button's press shadow */
-  /* ---- accents ---- */
-  --accent:#FF5A45; --accent-dk:#D93A26; --accent-sh:#C0331F;
-  --gold:#FFC22E; --gold-dk:#E39A00;
-  --accent2:#12A79C; --accent2-dk:#0B7A72;
+  --ink:#F7F4EE; --dim:#AAB2C0; --dim2:#8A93A3; --dim3:#626C7D;
+  --onAccent:#0B0D12;          /* the label on any bright fill */
+  --ink-sh:#05070B;
+  /* ---- accents: the 10 ---- */
+  --accent:#FF5364; --accent-dk:#C93B49; --accent-sh:#A32E3A;
+  --gold:#FFC247; --gold-dk:#C68E27;
+  --accent2:#20D6C7; --accent2-dk:#15998F;
   --violet:#8C6CFF; --violet-dk:#6247C4;
-  --blue:#3D6FA8; --onGold:#5A3F00;
-  --ok:#0B7A72; --bad:#D93A26;
-  /* ---- washes (a tinted ground, one per accent) ---- */
-  --accent-w:#FFE3DC; --accent2-w:#DDF1EF; --gold-w:#FFF0C9;
-  --bad-w:#FBE3DE; --sel-w:#E6F5F3; --now-w:#FFF1CE;
+  --blue:#5B8FD9; --onGold:#0B0D12;
+  --ok:#47D982; --bad:#FF4D4D;
+  /* ---- washes: on dark, a wash is a tinted dark, not a pastel ---- */
+  --accent-w:#2A1620; --accent2-w:#0F2A2C; --gold-w:#2A2417;
+  --bad-w:#2E1517; --sel-w:#0F2A2C; --now-w:#2A2417;
   /* ---- scene ---- */
-  --crowd-c:#C98F5B; --cover-sh:#E9C89B;
+  --crowd-c:#3A4356; --cover-sh:#05070B;
+  --face-ink:#241A14;          /* eyes, mouth, straps — drawn on skin, always dark */
   /* ---- scales: spacing, radius, type, weight, motion ---- */
   --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px;
   --r1:8px; --r2:12px; --r3:18px; --r4:26px;
@@ -73,7 +84,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 #rankbar .rn b{font-size:12.5px;font-weight:800;letter-spacing:.02em}
 #rankbar .rn span{flex:1;min-width:0;text-align:right;font-size:9.5px;font-weight:800;color:var(--dim2);
   letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#rankbar .rp{display:block;height:6px;border-radius:99px;background:var(--cream3);overflow:hidden;margin-top:4px}
+#rankbar .rp{display:block;height:6px;border-radius:99px;background:var(--elev);overflow:hidden;margin-top:4px}
 #rankbar .rp i{display:block;height:100%;width:0;border-radius:99px;background:var(--rc,var(--accent2));
   transition:width .4s ease}
 .sub{display:flex;align-items:center;gap:7px;margin-top:9px}
@@ -84,8 +95,8 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   animation:savedot .9s ease-out}
 @keyframes savedot{0%{transform:scale(.4)}45%{transform:scale(1.35)}100%{transform:scale(1)}}
 #bandChip{display:block;min-width:0;font-weight:800;max-width:44%;white-space:nowrap;overflow:hidden;
-  text-overflow:ellipsis;background:var(--ink);color:var(--cream);border-color:var(--ink)}
-.chip{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:800;
+  text-overflow:ellipsis;background:var(--elev);color:var(--ink);border-color:var(--line2)}
+.chip{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:800;white-space:nowrap;
   background:var(--panel);border:2px solid var(--line);border-radius:999px;padding:4px 11px;color:var(--dim)}
 .chip.pk{color:var(--gold-dk)}
 #setBtn{margin-left:auto;width:34px;height:34px;border-radius:50%;background:var(--panel);
@@ -98,20 +109,20 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 #bg{position:absolute;inset:0;z-index:0;transition:background 1.4s ease,filter .14s ease;
   background:radial-gradient(120% 78% at 50% 6%,var(--cream2) 0%,var(--cream3) 48%,var(--cream4) 100%)}
 #bg::after{content:"";position:absolute;inset:0;
-  background:radial-gradient(58% 46% at 50% 2%,rgba(255,255,255,.72),transparent 72%);
+  background:radial-gradient(58% 46% at 50% 2%,rgba(255,235,200,.16),transparent 70%);
   animation:breathe 5s ease-in-out infinite}
-@keyframes breathe{0%,100%{opacity:.55}50%{opacity:1}}
+@keyframes breathe{0%,100%{opacity:.6}50%{opacity:1}}
 .crowd{position:absolute;left:0;right:0;bottom:0;height:calc(11% + 9% * var(--crowd,.3));z-index:1;
-  opacity:calc(.22 + .5 * var(--crowd,.3));transition:height .6s ease,opacity .6s ease;
+  opacity:calc(.45 + .55 * var(--crowd,.3));transition:height .6s ease,opacity .6s ease;
   background:radial-gradient(circle at 8% 100%,var(--crowd-c) 13px,transparent 14px),
              radial-gradient(circle at 24% 100%,var(--crowd-c) 16px,transparent 17px),
              radial-gradient(circle at 40% 100%,var(--crowd-c) 12px,transparent 13px),
              radial-gradient(circle at 57% 100%,var(--crowd-c) 17px,transparent 18px),
              radial-gradient(circle at 73% 100%,var(--crowd-c) 13px,transparent 14px),
              radial-gradient(circle at 90% 100%,var(--crowd-c) 15px,transparent 16px)}
-#flash{position:absolute;inset:0;z-index:4;pointer-events:none;background:#fff;opacity:0}
+#flash{position:absolute;inset:0;z-index:4;pointer-events:none;background:var(--ink);opacity:0}
 #flash.on{animation:flash .2s ease-out}
-@keyframes flash{0%{opacity:.5}100%{opacity:0}}
+@keyframes flash{0%{opacity:.22}100%{opacity:0}}
 #stage.shake{animation:shake .5s cubic-bezier(.36,.07,.19,.97)}
 @keyframes shake{10%,90%{transform:translateX(-3px)}20%,80%{transform:translateX(5px)}
   30%,50%,70%{transform:translateX(-8px)}40%,60%{transform:translateX(8px)}}
@@ -152,7 +163,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 @keyframes wince{0%,100%{transform:rotate(0)}30%{transform:rotate(-8deg) translateX(-2px)}70%{transform:rotate(6deg)}}
 .paused *{animation-play-state:paused}
 .bubble{position:absolute;top:-4px;left:50%;transform:translate(-50%,-100%) scale(.6);opacity:0;
-  background:var(--ink);color:var(--cream);font-size:11px;font-weight:800;letter-spacing:.03em;
+  background:var(--elev);color:var(--ink);font-size:11px;font-weight:800;letter-spacing:.03em;
   padding:6px 11px;border-radius:11px;white-space:nowrap;z-index:5;pointer-events:none}
 .bubble::after{content:"";position:absolute;bottom:-5px;left:50%;margin-left:-5px;
   border:5px solid transparent;border-top-color:var(--ink)}
@@ -170,11 +181,11 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 #idlebox .writers{display:flex;flex-direction:column;gap:7px;margin-bottom:12px}
 .wrow{display:flex;align-items:center;gap:9px;font-size:10.5px;color:var(--dim);font-weight:700}
 .wrow .nm{width:62px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.wrow .wb{flex:1;height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.wrow .wb{flex:1;height:6px;border-radius:3px;background:var(--elev);overflow:hidden}
 .wrow .wf{height:100%;width:100%;transform:scaleX(0);transform-origin:left;border-radius:3px;
   background:var(--accent2)}
 .bigbtn{display:block;width:100%;padding:18px;border-radius:18px;font-size:17px;font-weight:800;
-  letter-spacing:.11em;background:var(--accent);color:var(--onDark);
+  letter-spacing:.11em;background:var(--accent);color:var(--onAccent);
   box-shadow:0 5px 0 var(--accent-sh);position:relative;overflow:hidden}
 .bigbtn:active{transform:translateY(3px);box-shadow:0 2px 0 var(--accent-sh)}
 .bigbtn.pulse{animation:rpulse 1.5s ease-in-out infinite}
@@ -183,10 +194,10 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .bigbtn::after{content:"";position:absolute;top:0;bottom:0;width:34%;
   background:linear-gradient(100deg,transparent,rgba(255,255,255,.3),transparent);animation:sweep 1.9s linear infinite}
 @keyframes sweep{0%{left:-50%}100%{left:105%}}
-.bigbtn.teal{background:var(--accent2);color:var(--onDark);box-shadow:0 5px 0 var(--accent2-dk)}
+.bigbtn.teal{background:var(--accent2);color:var(--onAccent);box-shadow:0 5px 0 var(--accent2-dk)}
 .bigbtn.teal:active{box-shadow:0 2px 0 var(--accent2-dk)}
 
-#timerbar{height:7px;border-radius:4px;background:var(--line);overflow:hidden;margin-bottom:12px}
+#timerbar{height:7px;border-radius:4px;background:var(--elev);overflow:hidden;margin-bottom:12px}
 #timerfill{height:100%;width:100%;transform-origin:left;border-radius:4px;background:var(--gold)}
 #timerbar.low #timerfill{background:var(--accent-dk)}
 .trackhead{display:flex;align-items:baseline;gap:8px;margin:14px 0 9px}
@@ -206,7 +217,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .react{flex:0 0 auto;font-size:9px;font-weight:800;letter-spacing:.08em;padding:5px 9px;border-radius:9px;
   background:var(--mute);color:var(--dim);opacity:0;transition:opacity .25s ease}
 .react.show{opacity:1}
-.react.good{background:var(--accent2);color:var(--onDark)}
+.react.good{background:var(--accent2);color:var(--onAccent)}
 .react.bad{background:var(--bad-w);color:var(--accent-dk)}
 .react.meh{background:var(--mute);color:var(--dim)}
 .card2.chosen{border-color:var(--accent2);background:var(--sel-w)}
@@ -225,9 +236,9 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   background:var(--panel);border:2px solid var(--line)}
 .gbtn:active{transform:scale(.98)}
 .gbtn .gn{flex:1;font-size:14px;font-weight:800;letter-spacing:.02em}
-.trend{font-size:9px;font-weight:800;letter-spacing:.09em;padding:4px 8px;border-radius:8px;color:var(--onDark)}
+.trend{font-size:9px;font-weight:800;letter-spacing:.09em;padding:4px 8px;border-radius:8px;color:var(--onAccent)}
 #qualbox{text-align:center}
-#qbar{height:12px;border-radius:7px;background:var(--line);overflow:hidden;margin:8px 0 6px}
+#qbar{height:12px;border-radius:7px;background:var(--elev);overflow:hidden;margin:8px 0 6px}
 #qfill{height:100%;width:100%;transform:scaleX(0);transform-origin:left;
   background:linear-gradient(90deg,var(--accent-dk),var(--gold) 55%,var(--accent2));transition:transform .9s cubic-bezier(.2,.9,.3,1)}
 #qnum{font-size:42px;font-weight:800;letter-spacing:-1.5px;line-height:1}
@@ -287,7 +298,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .rar{font-size:8.5px;font-weight:800;letter-spacing:.09em;padding:3px 7px;border-radius:6px;
   background:var(--mute);color:var(--dim)}
 .buy{flex:0 0 auto;min-width:80px;padding:9px 11px;border-radius:12px;text-align:center;
-  font-size:11.5px;font-weight:800;background:var(--accent2);color:var(--onDark);box-shadow:0 3px 0 var(--accent2-dk)}
+  font-size:11.5px;font-weight:800;background:var(--accent2);color:var(--onAccent);box-shadow:0 3px 0 var(--accent2-dk)}
 .buy.no{background:var(--mute);color:var(--dim2);box-shadow:none}
 .buy.alt{background:var(--mute);color:var(--dim);min-width:0;padding:9px 12px;box-shadow:none}
 .buy small{display:block;font-size:10px;font-weight:700;opacity:.9}
@@ -310,7 +321,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .song .t{font-size:13.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .song .d{font-size:10.5px;color:var(--dim);margin-top:1px;font-weight:600}
 .tierbadge{font-size:8.5px;font-weight:800;letter-spacing:.08em;padding:4px 8px;border-radius:7px;
-  flex:0 0 auto;color:var(--onDark)}
+  flex:0 0 auto;color:var(--onAccent)}
 
 /* ===== REVEAL ===== */
 #reveal{position:fixed;inset:0;z-index:30;display:none;flex-direction:column;align-items:center;
@@ -348,7 +359,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 #rvQuote{font-size:12px;color:var(--dim);font-style:italic;text-align:center;max-width:300px;opacity:0;
   line-height:1.5;text-wrap:pretty}
 #rvGo{margin-top:4px;padding:16px 44px;border-radius:18px;font-size:16px;font-weight:800;
-  letter-spacing:.1em;background:var(--ink);color:var(--cream);opacity:0;box-shadow:0 5px 0 var(--ink-sh)}
+  letter-spacing:.1em;background:var(--gold);color:var(--onAccent);opacity:0;box-shadow:0 5px 0 var(--gold-dk)}
 #rvSkip{position:absolute;top:calc(var(--safe-t) + 18px);right:18px;font-size:11px;color:var(--dim);
   letter-spacing:.1em;padding:8px 14px;border-radius:999px;background:var(--panel);border:2px solid var(--line);
   opacity:0;font-weight:800}
@@ -386,13 +397,13 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   background:radial-gradient(circle at 12% 100%,var(--ink) 6px,transparent 7px),
              radial-gradient(circle at 34% 100%,var(--ink) 8px,transparent 9px),
              radial-gradient(circle at 58% 100%,var(--ink) 7px,transparent 8px),
-             radial-gradient(circle at 82% 100%,var(--ink) 9px,transparent 10px);opacity:.4}
+             radial-gradient(circle at 82% 100%,var(--ink) 9px,transparent 10px);opacity:.32}
 .venue .vi{flex:1;min-width:0}
 .venue .vn{font-size:14.5px;font-weight:800;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .venue .vd{font-size:10.5px;font-weight:700;color:var(--dim);margin-top:3px;line-height:1.45}
 .venue .vgo{flex:0 0 auto;font-size:10px;font-weight:800;letter-spacing:.08em;padding:9px 11px;
-  border-radius:11px;background:var(--accent);color:var(--onDark);box-shadow:0 3px 0 var(--accent-sh)}
-.venue.locked .vgo{background:var(--cream3);color:var(--dim2);box-shadow:none}
+  border-radius:11px;background:var(--accent);color:var(--onAccent);box-shadow:0 3px 0 var(--accent-sh)}
+.venue.locked .vgo{background:var(--elev);color:var(--dim2);box-shadow:none}
 .stars{font-size:10px;font-weight:800;letter-spacing:.1em;color:var(--gold-dk)}
 .tag{font-size:9px;font-weight:800;letter-spacing:.1em;padding:2px 7px;border-radius:99px;
   background:var(--cream2);color:var(--dim);border:2px solid var(--line)}
@@ -458,7 +469,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 #grBars{width:100%;max-width:320px;display:flex;flex-direction:column;gap:6px;margin:4px 0 2px}
 #grBars .b{display:flex;align-items:center;gap:9px;font-size:10.5px;font-weight:800;color:var(--dim)}
 #grBars .b span{width:88px;flex:0 0 auto;letter-spacing:.06em}
-#grBars .b i{flex:1;height:8px;border-radius:99px;background:var(--cream3);overflow:hidden;display:block}
+#grBars .b i{flex:1;height:8px;border-radius:99px;background:var(--elev);overflow:hidden;display:block}
 #grBars .b i u{display:block;height:100%;background:var(--accent2);border-radius:99px}
 #grBars .b b{width:34px;text-align:right;flex:0 0 auto;color:var(--ink);font-variant-numeric:tabular-nums}
 #grNote{font-size:11.5px;font-weight:700;color:var(--dim);text-align:center;max-width:320px;line-height:1.5}
@@ -470,7 +481,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 #grRew .m b{color:var(--accent-dk)}
 #grRew .f b{color:var(--accent2-dk)}
 #grGo{margin-top:6px;padding:16px 46px;border-radius:18px;font-size:15px;font-weight:800;
-  letter-spacing:.1em;background:var(--ink);color:var(--cream);box-shadow:0 5px 0 var(--ink-sh)}
+  letter-spacing:.1em;background:var(--gold);color:var(--onAccent);box-shadow:0 5px 0 var(--gold-dk)}
 
 /* ===== RANK UP ===== */
 #rankup{position:fixed;inset:0;z-index:38;display:none;flex-direction:column;align-items:center;
@@ -490,7 +501,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 #ruList div b{font-weight:800}
 #ruList div i{flex:0 0 auto;width:8px;height:8px;border-radius:50%;background:var(--rc,var(--accent2))}
 #ruGo{margin-top:8px;padding:16px 46px;border-radius:18px;font-size:15px;font-weight:800;
-  letter-spacing:.1em;background:var(--ink);color:var(--cream);box-shadow:0 5px 0 var(--ink-sh)}
+  letter-spacing:.1em;background:var(--gold);color:var(--onAccent);box-shadow:0 5px 0 var(--gold-dk)}
 
 /* ===== SETUP / NAME ===== */
 #setup{position:fixed;inset:0;z-index:45;display:none;flex-direction:column;
@@ -512,8 +523,9 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .rolebtn .rd{font-size:10px;color:var(--dim);font-weight:700;margin-top:2px}
 #setPrev{height:140px;display:grid;place-items:center;margin:6px 0}
 #setPrev svg{width:108px;height:140px;overflow:visible}
-.ghost{width:100%;padding:11px;border-radius:14px;background:var(--panel);
-  border:2px solid var(--line);font-size:12px;font-weight:800;letter-spacing:.08em;color:var(--dim)}
+.ghost{width:100%;padding:11px;border-radius:14px;background:var(--elev);
+  border:2px solid var(--line2);font-size:12px;font-weight:800;letter-spacing:.08em;color:var(--ink)}
+.ghost:active{transform:translateY(2px)}
 
 /* ===== RECORDING TAKE (three lanes, thumb-sized, bottom of the screen) ===== */
 #takefs{position:fixed;left:0;right:0;bottom:0;height:46vh;min-height:300px;z-index:22;display:none;
@@ -536,7 +548,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 #takeauto{padding:10px 13px;border-radius:12px;font-size:10px;font-weight:800;letter-spacing:.09em;
   background:var(--panel);border:2px solid var(--line);color:var(--dim)}
 #takeauto:active{transform:translateY(2px)}
-#tkmeter{height:7px;border-radius:99px;background:var(--cream3);overflow:hidden;margin-bottom:7px;flex:0 0 auto}
+#tkmeter{height:7px;border-radius:99px;background:var(--elev);overflow:hidden;margin-bottom:7px;flex:0 0 auto}
 #tkmfill{height:100%;background:var(--accent2);border-radius:99px;transition:width .12s linear}
 #tkmeter.low #tkmfill{background:var(--accent)}
 #hwy{position:relative;flex:1 1 auto;min-height:0;display:flex;gap:6px}
@@ -548,9 +560,9 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .lane .pad{position:absolute;left:8px;right:8px;bottom:12px;height:52px;border-radius:16px;
   border:3px solid var(--lc);background:var(--panel);box-shadow:0 5px 0 var(--lcd);box-sizing:border-box;
   display:grid;place-items:center;transition:transform .05s ease,box-shadow .05s ease,background .05s ease}
-.lane .lbl{position:relative;font-size:10px;font-weight:800;letter-spacing:.14em;color:var(--lcd)}
+.lane .lbl{position:relative;font-size:10px;font-weight:800;letter-spacing:.14em;color:var(--lc)}
 .lane:active .pad,.lane.on .pad{transform:translateY(5px);box-shadow:0 0 0 var(--lcd);background:var(--lc)}
-.lane:active .lbl,.lane.on .lbl{color:var(--ink)}
+.lane:active .lbl,.lane.on .lbl{color:var(--onAccent)}
 .lane .flame{position:absolute;left:50%;bottom:16px;width:66px;height:66px;margin-left:-33px;border-radius:50%;
   border:4px solid var(--lc);opacity:0;pointer-events:none}
 .lane.fire .flame{animation:flame .3s ease-out}
@@ -621,10 +633,10 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .sw.on{background:var(--accent2)}
 .sw.on::after{transform:translateX(21px)}
 .sbtn{flex:0 0 auto;padding:10px 14px;border-radius:12px;font-size:11.5px;font-weight:800;
-  background:var(--accent2);color:var(--onDark);box-shadow:0 3px 0 var(--accent2-dk)}
+  background:var(--accent2);color:var(--onAccent);box-shadow:0 3px 0 var(--accent2-dk)}
 .sbtn:active{transform:translateY(2px);box-shadow:none}
 .sbtn.ghosty{background:var(--mute);color:var(--dim);box-shadow:none}
-.sbtn.danger{background:var(--accent);color:var(--onDark);box-shadow:0 3px 0 var(--accent-sh)}
+.sbtn.danger{background:var(--accent);color:var(--onAccent);box-shadow:0 3px 0 var(--accent-sh)}
 .synced{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:800;color:var(--accent2-dk)}
 
 /* ===== MODAL / TOAST ===== */
@@ -637,10 +649,10 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .mbox p{font-size:12.5px;color:var(--dim);line-height:1.55;font-weight:600}
 .mbox .big{font-size:36px;font-weight:800;color:var(--accent-dk);margin:14px 0 4px;letter-spacing:-1px}
 .mbox button{margin-top:16px;width:100%;padding:16px;border-radius:16px;font-weight:800;font-size:15px;
-  letter-spacing:.1em;background:var(--accent2);color:var(--onDark);box-shadow:0 4px 0 var(--accent2-dk)}
+  letter-spacing:.1em;background:var(--accent2);color:var(--onAccent);box-shadow:0 4px 0 var(--accent2-dk)}
 #toasts{position:fixed;left:0;right:0;top:calc(var(--safe-t) + 170px);z-index:25;
   display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none}
-.toast{background:var(--ink);color:var(--cream);border-radius:14px;
+.toast{background:var(--elev);color:var(--ink);border:2px solid var(--line2);border-radius:14px;
   padding:10px 16px;font-size:12px;font-weight:700;box-shadow:0 8px 22px rgba(80,45,20,.3);
   animation:tin .3s ease-out,tout .3s ease-in 2.6s forwards;max-width:88%;text-align:center}
 @keyframes tin{from{opacity:0;transform:translateY(-14px)}}
@@ -901,12 +913,13 @@ const PAL = (() => {
     cream:t('cream'), cream2:t('cream2'), cream3:t('cream3'), cream4:t('cream4'),
     panel:t('panel'), line:t('line'), line2:t('line2'), mute:t('mute'),
     ink:t('ink'), dim:t('dim'), dim2:t('dim2'), dim3:t('dim3'),
-    onDark:t('onDark'), onGold:t('onGold'), inkSh:t('ink-sh'),
+    onAccent:t('onAccent'), onGold:t('onGold'), inkSh:t('ink-sh'), elev:t('elev'),
     accent:t('accent'), accentDk:t('accent-dk'), accentSh:t('accent-sh'),
     gold:t('gold'), goldDk:t('gold-dk'),
     accent2:t('accent2'), accent2Dk:t('accent2-dk'),
     violet:t('violet'), violetDk:t('violet-dk'),
     blue:t('blue'), ok:t('ok'), bad:t('bad'),
+    faceInk:t('face-ink'),
     accentW:t('accent-w'), accent2W:t('accent2-w'), goldW:t('gold-w'),
     badW:t('bad-w'), selW:t('sel-w'), nowW:t('now-w')
   };
@@ -979,32 +992,32 @@ const BAL = {
    the role you take free at setup should be a flavour choice (which cards you
    start with), not an economic one. */
 const MEMBERS = [
-  { id:'drums',  role:'Drummer',   track:'DRUMS',  sps:0.90, lvlCost:14, c1:PAL.accent2, c2:PAL.accent2Dk },
-  { id:'bass',   role:'Bassist',   track:'BASS',   sps:1.00, lvlCost:22, c1:PAL.accent, c2:PAL.accentDk },
-  { id:'guitar', role:'Guitarist', track:'GUITAR', sps:1.10, lvlCost:34, c1:PAL.gold, c2:PAL.goldDk },
-  { id:'vocals', role:'Vocalist',  track:'VOCALS', sps:1.20, lvlCost:50, c1:PAL.ink, c2:'#554034' }
+  { id:'drums',  role:'Drummer',   track:'DRUMS',  sps:0.90, lvlCost:14, c1:PAL.accent,  c2:PAL.accentDk },
+  { id:'bass',   role:'Bassist',   track:'BASS',   sps:1.00, lvlCost:22, c1:PAL.accent2, c2:PAL.accent2Dk },
+  { id:'guitar', role:'Guitarist', track:'GUITAR', sps:1.10, lvlCost:34, c1:PAL.gold,    c2:PAL.goldDk },
+  { id:'vocals', role:'Vocalist',  track:'VOCALS', sps:1.20, lvlCost:50, c1:PAL.violet,  c2:PAL.violetDk }
 ];
 const RARITY = [
   { n:'COMMON', m:1,   c:PAL.dim }, { n:'RARE', m:1.6, c:PAL.blue },
-  { n:'EPIC',   m:2.6, c:PAL.accent2Dk }, { n:'LEGENDARY', m:4.5, c:PAL.goldDk },
-  { n:'MYTHIC', m:8,   c:PAL.accentDk }
+  { n:'EPIC',   m:2.6, c:PAL.violet }, { n:'LEGENDARY', m:4.5, c:PAL.gold },
+  { n:'MYTHIC', m:8,   c:PAL.accent }
 ];
 const STUDIOS = [
-  { n:'Garage',          cost:0,      bg:[PAL.cream2,PAL.cream4] },
-  { n:'Bedroom Studio',  cost:8e3,    bg:['#E8F1DE','#C9DDBE'] },
-  { n:'Rehearsal Space', cost:3e5,    bg:['#FFE0D6','#FFC0AC'] },
-  { n:'Pro Studio',      cost:1.2e7,  bg:['#DCF0EE','#B4DFDA'] },
-  { n:'Label HQ',        cost:6e8,    bg:['#FDE6F0','#F6C2D8'] },
-  { n:'Tour Bus',        cost:4e10,   bg:[PAL.goldW,'#FFD98A'] },
-  { n:'Stadium',         cost:3e12,   bg:['#E4EAF7','#BFCDEB'] },
-  { n:'Space',           cost:2.5e14, bg:['#EDE4F7','#CFBCEA'] }
+  { n:'Garage',          cost:0,      bg:['#1A1712','#0E0C09'] },
+  { n:'Bedroom Studio',  cost:8e3,    bg:['#161D18','#0A100C'] },
+  { n:'Rehearsal Space', cost:3e5,    bg:['#1F1614','#110B0A'] },
+  { n:'Pro Studio',      cost:1.2e7,  bg:['#121D1E','#080F10'] },
+  { n:'Label HQ',        cost:6e8,    bg:['#1E1420','#100A12'] },
+  { n:'Tour Bus',        cost:4e10,   bg:['#1F1A10','#110E08'] },
+  { n:'Stadium',         cost:3e12,   bg:['#141824','#080B12'] },
+  { n:'Space',           cost:2.5e14, bg:['#181428','#0B0817'] }
 ];
 const TIERS = [
   { id:'flop',  n:'FLOP',  mult:0.35, c:PAL.dim2, lo:200, hi:960 },
   { id:'solid', n:'SOLID', mult:1,    c:PAL.blue, lo:41,  hi:199 },
-  { id:'hit',   n:'HIT',   mult:3,    c:PAL.accent2Dk, lo:11,  hi:40  },
-  { id:'viral', n:'VIRAL', mult:8,    c:PAL.goldDk, lo:2,   hi:10  },
-  { id:'one',   n:'#1',    mult:20,   c:PAL.accentDk, lo:1,   hi:1   }
+  { id:'hit',   n:'HIT',   mult:3,    c:PAL.accent2, lo:11,  hi:40  },
+  { id:'viral', n:'VIRAL', mult:8,    c:PAL.gold, lo:2,   hi:10  },
+  { id:'one',   n:'#1',    mult:20,   c:PAL.accent, lo:1,   hi:1   }
 ];
 /* Quality -> chart odds. At Q90 hit+viral+#1 = 40%, as specified. */
 const ODDS = [
@@ -1028,47 +1041,48 @@ function oddsFor(q){
    lines up; the six new ones are appended. `r` is the rank that opens the genre,
    `w`/`cut` are the take and loop flavour, `c` is its badge colour. */
 const GENRES = [
-  { n:'INDIE ROCK',  v:[ .30, .40, .30], r:0, w:'triangle', cut:1700, c:PAL.accentDk },
-  { n:'HYPERPOP',    v:[ .95,-.30, .90], r:2, w:'square',   cut:3600, c:'#E85CA0' },
-  { n:'TRAP',        v:[ .50, .50, .70], r:0, w:'square',   cut:2400, c:'#6B4CC4' },
-  { n:'SYNTHWAVE',   v:[ .20,-.40, .80], r:1, w:'sawtooth', cut:2000, c:PAL.blue },
-  { n:'GARAGE PUNK', v:[ .90, .95,-.60], r:1, w:'sawtooth', cut:1400, c:PAL.accentSh },
-  { n:'DREAM POP',   v:[-.50,-.50, .50], r:0, w:'sine',     cut:1200, c:'#8E7CC8' },
-  { n:'DRILL',       v:[ .60, .80, .40], r:2, w:'square',   cut:2100, c:'#4A5A6B' },
-  { n:'DISCO',       v:[ .70,-.20, .70], r:3, w:'sawtooth', cut:2800, c:PAL.goldDk },
-  { n:'SHOEGAZE',    v:[ .10, .60,-.20], r:3, w:'sawtooth', cut: 900, c:'#7C8FA8' },
-  { n:'AFROBEATS',   v:[ .60,-.10, .60], r:4, w:'triangle', cut:2600, c:PAL.accent2 },
-  { n:'METAL',       v:[ .95,1.00,-.30], r:4, w:'sawtooth', cut:1100, c:PAL.ink },
-  { n:'LO-FI',       v:[-.60, .30,-.40], r:2, w:'sine',     cut: 800, c:PAL.dim2 },
-  { n:'HOUSE',       v:[ .65,-.35, .75], r:3, w:'sawtooth', cut:3000, c:PAL.accent2Dk },
-  { n:'REGGAETON',   v:[ .70, .20, .55], r:5, w:'square',   cut:2300, c:'#E0682B' },
-  { n:'FOLK',        v:[-.45, .25,-.20], r:5, w:'triangle', cut:1500, c:'#7A8C4F' },
-  { n:'K-POP',       v:[ .80,-.50,1.00], r:4, w:'square',   cut:3800, c:PAL.accent }
+  { n:'INDIE ROCK',  v:[ .30, .40, .30], r:0, w:'triangle', cut:1700, c:'#FF7A5C' },
+  { n:'HYPERPOP',    v:[ .95,-.30, .90], r:2, w:'square',   cut:3600, c:'#FF6FD0' },
+  { n:'TRAP',        v:[ .50, .50, .70], r:0, w:'square',   cut:2400, c:'#6E7BFF' },
+  { n:'SYNTHWAVE',   v:[ .20,-.40, .80], r:1, w:'sawtooth', cut:2000, c:'#5B8FD9' },
+  { n:'GARAGE PUNK', v:[ .90, .95,-.60], r:1, w:'sawtooth', cut:1400, c:'#F2634F' },
+  { n:'DREAM POP',   v:[-.50,-.50, .50], r:0, w:'sine',     cut:1200, c:'#B79CFF' },
+  { n:'DRILL',       v:[ .60, .80, .40], r:2, w:'square',   cut:2100, c:'#7C8FA8' },
+  { n:'DISCO',       v:[ .70,-.20, .70], r:3, w:'sawtooth', cut:2800, c:'#FFB03B' },
+  { n:'SHOEGAZE',    v:[ .10, .60,-.20], r:3, w:'sawtooth', cut: 900, c:'#8FA6C4' },
+  { n:'AFROBEATS',   v:[ .60,-.10, .60], r:4, w:'triangle', cut:2600, c:'#35D6A0' },
+  { n:'METAL',       v:[ .95,1.00,-.30], r:4, w:'sawtooth', cut:1100, c:'#C9CEDA' },
+  { n:'LO-FI',       v:[-.60, .30,-.40], r:2, w:'sine',     cut: 800, c:'#C0A88B' },
+  { n:'HOUSE',       v:[ .65,-.35, .75], r:3, w:'sawtooth', cut:3000, c:'#3ED9B4' },
+  { n:'REGGAETON',   v:[ .70, .20, .55], r:5, w:'square',   cut:2300, c:'#FF8A3D' },
+  { n:'FOLK',        v:[-.45, .25,-.20], r:5, w:'triangle', cut:1500, c:'#A8BE6E' },
+  { n:'K-POP',       v:[ .80,-.50,1.00], r:4, w:'square',   cut:3800, c:'#FF88B0' }
 ];
 /* VENUES — the gig ladder. `pay` and `fans` are the normal reward; the first clear
    pays BAL.gigFirstMult times that, once. `g` is the room's taste (an index into
    GENRES, matched by vector so a near-miss still scores), `pw` the band multiplier
    the room expects, `bg` its backdrop. */
 const VENUES = [
-  { n:'Open Mic',      d:1, pw:1.4,  g:0,  pay:1.0, fans:10,    bg:[PAL.cream2,'#F3CE9E'] },
-  { n:'Tiny Bar',      d:2, pw:2.2,  g:4,  pay:1.4, fans:30,    bg:['#FFDCC4','#E8B393'] },
-  { n:'Local Club',    d:3, pw:3.5,  g:2,  pay:1.9, fans:90,    bg:['#E4DCF3','#BFB2DE'] },
-  { n:'Packed Club',   d:4, pw:5.5,  g:5,  pay:2.4, fans:260,   bg:['#DDE9F5','#B2C8E0'] },
-  { n:'Small Theater', d:5, pw:8.5,  g:8,  pay:2.9, fans:750,   bg:['#F5DEE6','#DCB0C1'] },
-  { n:'Festival Stage',d:6, pw:13,   g:9,  pay:3.4, fans:2000,  bg:['#DFEFD8','#B0D3A4'] },
-  { n:'Arena',         d:7, pw:20,   g:15, pay:3.9, fans:5500,  bg:['#FFE9C0','#F0C071'] },
-  { n:'Stadium',       d:8, pw:30,   g:10, pay:4.5, fans:15000, bg:['#E2E2EC','#B4B4C8'] }
+  /* bg lights the stage during the show; c is the room's identity on its card */
+  { n:'Open Mic',      d:1, pw:1.4,  g:0,  pay:1.0, fans:10,    bg:['#1A1712','#0E0C09'], c:['#7A5A3A','#3A2A1B'] },
+  { n:'Tiny Bar',      d:2, pw:2.2,  g:4,  pay:1.4, fans:30,    bg:['#1E1611','#100B08'], c:['#9A5A38','#43261A'] },
+  { n:'Local Club',    d:3, pw:3.5,  g:2,  pay:1.9, fans:90,    bg:['#1A1526','#0C0914'], c:['#5B4A9A','#291F46'] },
+  { n:'Packed Club',   d:4, pw:5.5,  g:5,  pay:2.4, fans:260,   bg:['#131A26','#080D14'], c:['#3C5F94','#1B2B44'] },
+  { n:'Small Theater', d:5, pw:8.5,  g:8,  pay:2.9, fans:750,   bg:['#211420','#110A11'], c:['#8E4270','#3F1E33'] },
+  { n:'Festival Stage',d:6, pw:13,   g:9,  pay:3.4, fans:2000,  bg:['#141F16','#0A100B'], c:['#3E7C46','#1B3720'] },
+  { n:'Arena',         d:7, pw:20,   g:15, pay:3.9, fans:5500,  bg:['#231B0F','#120E07'], c:['#B08427','#4E3A11'] },
+  { n:'Stadium',       d:8, pw:30,   g:10, pay:4.5, fans:15000, bg:['#181B26','#0C0E15'], c:['#5E6786','#282D3C'] }
 ];
 /* FANS AND RANKS — fans never fall, and the rank they buy is the long goal in the
    header. Each rank opens genres, makes the gigs bigger (money and the crowd on the
    stage), and lifts the ceiling on the royalty rate. */
 const RANKS = [
   { n:'Garage Band', at:0,   gig:1,   payCap:0.09, crate:0, crowd:0.30, c:PAL.dim2, i:'house' },
-  { n:'Local Act',   at:1e3, gig:1.6, payCap:0.14, crate:1, crowd:0.46, c:PAL.accent2Dk, i:'pin' },
+  { n:'Local Act',   at:1e3, gig:1.6, payCap:0.14, crate:1, crowd:0.46, c:PAL.accent2, i:'pin' },
   { n:'Regional',    at:1e4, gig:2.4, payCap:0.20, crate:2, crowd:0.62, c:PAL.blue, i:'map' },
-  { n:'National',    at:1e5, gig:3.5, payCap:0.30, crate:3, crowd:0.78, c:PAL.goldDk, i:'flag' },
-  { n:'Global',      at:1e6, gig:5,   payCap:0.45, crate:4, crowd:0.92, c:PAL.accentDk, i:'globe' },
-  { n:'Legend',      at:1e7, gig:8,   payCap:1.00, crate:5, crowd:1.00, c:PAL.accentSh, i:'crown' }
+  { n:'National',    at:1e5, gig:3.5, payCap:0.30, crate:3, crowd:0.78, c:PAL.gold, i:'flag' },
+  { n:'Global',      at:1e6, gig:5,   payCap:0.45, crate:4, crowd:0.92, c:PAL.accent, i:'globe' },
+  { n:'Legend',      at:1e7, gig:8,   payCap:1.00, crate:5, crowd:1.00, c:PAL.violet, i:'crown' }
 ];
 /* A take's rhythm comes from the card, so the decision and the playing connect.
    16 steps = 2 bars of eighths at the song's BPM. */
@@ -1445,8 +1459,8 @@ GCARDS.forEach((tracks, gi) => tracks.forEach((cards, tr) =>
 const TRENDS = [
   { n:'COLD',   m:0.60, c:PAL.blue },
   { n:'FADING', m:0.90, c:PAL.dim },
-  { n:'RISING', m:1.35, c:PAL.goldDk },
-  { n:'HOT',    m:2.20, c:PAL.accentDk }
+  { n:'RISING', m:1.35, c:PAL.gold },
+  { n:'HOT',    m:2.20, c:PAL.accent }
 ];
 function trendOf(gi){
   const h = S.heat[gi], v = S.heatVel[gi];
@@ -1587,7 +1601,7 @@ const SKIN = ['#F6C99E','#E0A276','#C98A55','#9B6033','#7E4A2B'];
 const HAIRC = ['#2A1C14','#6B3A1F','#C97A2C','#EBD9A8','#1B1310','#8A4E18','#D9534F'];
 /* rarity is a treatment on top of the member's own colour, not a recolour:
    plain -> jacket panels -> shoulder studs -> trim + glow -> aura */
-const RARITY_TRIM = [PAL.line,PAL.blue,PAL.accent2Dk,PAL.gold,PAL.accent];
+const RARITY_TRIM = [PAL.line2,PAL.blue,PAL.violet,PAL.gold,PAL.accent];
 
 function hairSVG(style, col){
   switch(style){
@@ -1632,14 +1646,14 @@ function charSVG(role, look, rarity, locked){
   const glow = rarity >= 3 ? ` filter="drop-shadow(0 0 5px ${trim})"` : '';
   const aura = rarity >= 4 ? `<circle cx="50" cy="70" r="46" fill="none" stroke="${trim}" stroke-width="2" opacity=".4"></circle>` : '';
   const panels = rarity >= 1 ? `<path d="M33 58 l-2 40 h7 l1 -40z" fill="${trim}"></path><path d="M67 58 l2 40 h-7 l-1 -40z" fill="${trim}"></path>` : '';
-  const studs = rarity >= 2 ? `<circle cx="38" cy="60" r="1.8" fill="${PAL.onDark}"></circle><circle cx="62" cy="60" r="1.8" fill="${PAL.onDark}"></circle>` : '';
+  const studs = rarity >= 2 ? `<circle cx="38" cy="60" r="1.8" fill="${PAL.onAccent}"></circle><circle cx="62" cy="60" r="1.8" fill="${PAL.onAccent}"></circle>` : '';
   const stripe = rarity >= 3 ? `<rect x="47" y="56" width="6" height="42" rx="2" fill="${trim}" opacity=".9"></rect>` : '';
 
   const mouth = role === 3
     ? `<ellipse class="ch-sing" cx="50" cy="46" rx="3.6" ry="3.4" fill="#5A2018"></ellipse>`
-    : `<path d="M45 46q5 4 10 0" stroke="${PAL.ink}" stroke-width="2" fill="none" stroke-linecap="round"></path>`;
+    : `<path d="M45 46q5 4 10 0" stroke="${PAL.faceInk}" stroke-width="2" fill="none" stroke-linecap="round"></path>`;
   const head = `<g class="ch-head"><circle cx="50" cy="38" r="17" fill="${sk}"></circle>
-      <circle cx="44" cy="38" r="2.1" fill="${PAL.ink}"></circle><circle cx="56" cy="38" r="2.1" fill="${PAL.ink}"></circle>
+      <circle cx="44" cy="38" r="2.1" fill="${PAL.faceInk}"></circle><circle cx="56" cy="38" r="2.1" fill="${PAL.faceInk}"></circle>
       <circle cx="44.7" cy="37.3" r=".8" fill="#FFF3E2"></circle><circle cx="56.7" cy="37.3" r=".8" fill="#FFF3E2"></circle>
       ${mouth}${hairSVG(look.hs, hc)}${accSVG(look.ac, trim)}</g>`;
   const legs = `<path d="M39 92 h22 l4 32 h-11 l-3 -20 l-3 20 h-11z" fill="#3A2A20"></path>
@@ -1658,13 +1672,13 @@ function charSVG(role, look, rarity, locked){
       <ellipse cx="90" cy="60" rx="12" ry="2.6" fill="${PAL.gold}"></ellipse>
       <ellipse cx="90" cy="59.6" rx="6" ry="1.4" fill="none" stroke="#E0A72E" stroke-width=".8"></ellipse>
       <g class="ch-bob">${legs}${torso}${head}</g>
-      <ellipse cx="33" cy="78" rx="12" ry="7.5" fill="${PAL.onDark}" stroke="${c2}" stroke-width="2.4"></ellipse>
+      <ellipse cx="33" cy="78" rx="12" ry="7.5" fill="${PAL.onAccent}" stroke="${c2}" stroke-width="2.4"></ellipse>
       <path d="M21 78 v7 a12 7.5 0 0 0 24 0 v-7" fill="${c2}"></path>
-      <ellipse cx="67" cy="76" rx="11" ry="7" fill="${PAL.onDark}" stroke="${c2}" stroke-width="2.4"></ellipse>
+      <ellipse cx="67" cy="76" rx="11" ry="7" fill="${PAL.onAccent}" stroke="${c2}" stroke-width="2.4"></ellipse>
       <path d="M56 76 v6 a11 7 0 0 0 22 0 v-6" fill="${c2}"></path>
-      <ellipse cx="18" cy="92" rx="12" ry="7" fill="${PAL.onDark}" stroke="#B9AFA0" stroke-width="2.2"></ellipse>
+      <ellipse cx="18" cy="92" rx="12" ry="7" fill="${PAL.onAccent}" stroke="#B9AFA0" stroke-width="2.2"></ellipse>
       <path d="M6 92 v7 a12 7 0 0 0 24 0 v-7" fill="#D9CFC0"></path>
-      <ellipse cx="50" cy="102" rx="29" ry="24" fill="${PAL.onDark}"></ellipse>
+      <ellipse cx="50" cy="102" rx="29" ry="24" fill="${PAL.onAccent}"></ellipse>
       <ellipse cx="50" cy="102" rx="29" ry="24" fill="none" stroke="${c2}" stroke-width="3.6"></ellipse>
       <ellipse cx="50" cy="102" rx="24" ry="19.5" fill="none" stroke="#F0DCBC" stroke-width="1"></ellipse>
       <circle cx="50" cy="78" r="2" fill="${c2}"></circle><circle cx="50" cy="126" r="2" fill="${c2}"></circle>
@@ -1708,7 +1722,7 @@ function charSVG(role, look, rarity, locked){
        <circle cx="59.5" cy="8" r="1.5" fill="#D8CBB2"></circle><circle cx="64" cy="8" r="1.5" fill="#D8CBB2"></circle>`;
   return `<svg viewBox="0 0 100 130" aria-hidden="true"${glow}>${aura}${shadow}
     <g class="ch-bob">${legs}${torso}${head}
-      <path d="M36 58 L64 90" stroke="${PAL.ink}" stroke-width="3.4" stroke-linecap="round" opacity=".85"></path>
+      <path d="M36 58 L64 90" stroke="${PAL.faceInk}" stroke-width="3.4" stroke-linecap="round" opacity=".85"></path>
       <g transform="translate(64 94) rotate(-133)">
         <ellipse cx="-5" cy="0" rx="15" ry="12" fill="${bodyC}"></ellipse>
         <ellipse cx="8" cy="0" rx="11" ry="9" fill="${bodyC}"></ellipse>
@@ -2183,7 +2197,7 @@ function renderTop(){
 function renderRank(){
   const r = rank(), nx = nextRank();
   el.rankbar.style.setProperty('--rc', r.c);
-  el.rankBadge.innerHTML = ico(ICON[r.i], { s:17, c:PAL.onDark, w:2.1 });
+  el.rankBadge.innerHTML = ico(ICON[r.i], { s:17, c:PAL.onAccent, w:2.1 });
   el.rankName.textContent = r.n;
   el.rankNext.textContent = nx ? fmt(Math.max(0, nx.at - S.fans)) + ' to ' + nx.n : 'the top of the game';
   el.rankFill.style.width = (rankProgress() * 100).toFixed(1) + '%';
@@ -2209,7 +2223,7 @@ function rankUp(r){
   rows.push('<b>Royalty ceiling</b> — the rate can now reach ' + (R.payCap * 100).toFixed(0) + '%');
   if (R.crate > prev.crate) rows.push('<b>Better crate odds</b> — banked until crates land with Gear');
   $('#rankup').style.setProperty('--rc', R.c);
-  $('#ruBadge').innerHTML = ico(ICON[R.i], { s:56, c:PAL.onDark, w:1.9 });
+  $('#ruBadge').innerHTML = ico(ICON[R.i], { s:56, c:PAL.onAccent, w:1.9 });
   $('#ruName').textContent = R.n;
   $('#ruFans').textContent = fmt(R.at) + ' fans';
   $('#ruList').innerHTML = rows.map(t => '<div><i></i><span>' + t + '</span></div>').join('');
@@ -2550,7 +2564,8 @@ const LANE_NAMES = [
   ['SNARE','KICK','HAT'], ['SLIDE','ROOT','WALK'],
   ['CHUG','CHORD','LEAD'], ['LOW','HOOK','HIGH']
 ];
-const JUDGE = { perfect:PAL.accent2Dk, good:PAL.goldDk, miss:PAL.dim2, pocket:PAL.accentDk };
+/* gold is the reward colour, so PERFECT is gold; GOOD is teal progress. */
+const JUDGE = { perfect:PAL.gold, good:PAL.accent2, miss:PAL.dim2, pocket:PAL.accent };
 /* Downbeat in the middle, backbeat on the left, everything between on the right:
    for the drummer that is literally kick / snare / hi-hat, and it still reads as
    a part for the other three. */
@@ -2805,7 +2820,7 @@ function closeGigs(){
 }
 function renderTix(){
   const g = S.gig, left = BAL.gigAdMax - g.ads;
-  $('#tixIco').innerHTML = ico(ICON.pass, { c:PAL.onDark, s:20 });
+  $('#tixIco').innerHTML = ico(ICON.pass, { c:PAL.onAccent, s:20 });
   $('#tixN').textContent = g.tickets + (g.tickets === 1 ? ' ticket' : ' tickets');
   $('#tixSub').textContent = g.tickets >= BAL.gigFree
     ? 'Full for today · ' + BAL.gigFree + ' free every day'
@@ -2847,7 +2862,7 @@ function renderVenues(){
     const open = venueOpen(i), done = i < S.gig.cleared, r = gigReward(i);
     const pw = bandMult() >= V.pw;
     return `<button class="venue ${open ? '' : 'locked'} ${done ? 'done' : ''}" data-v="${i}"
-        style="--v1:${V.bg[0]};--v2:${V.bg[1]}">
+        style="--v1:${V.c[0]};--v2:${V.c[1]}">
       <div class="vart"><i></i></div>
       <div class="vi">
         <div class="vn">${V.n}
@@ -2855,9 +2870,9 @@ function renderVenues(){
           ${done ? '<span class="tag ok">CLEARED</span>' : ''}
           ${open && r.first ? '<span class="tag first">FIRST CLEAR x' + BAL.gigFirstMult + '</span>' : ''}</div>
         <div class="vd">${open
-          ? 'Wants ' + GENRES[V.g].n + ' · power x' + fmt(V.pw) +
-            ' <span class="tag' + (pw ? ' ok' : '') + '">' + (pw ? 'you are ready' : 'band is light') + '</span><br>' +
-            'Pays ' + fmt(r.m) + ' money · ' + fmt(r.f) + ' fans'
+          ? 'Wants ' + GENRES[V.g].n + ' · power x' + fmt(V.pw) + '<br>' +
+            'Pays ' + fmt(r.m) + ' money · ' + fmt(r.f) + ' fans<br>' +
+            '<span class="tag' + (pw ? ' ok' : '') + '">' + (pw ? 'YOU ARE READY' : 'BAND IS LIGHT') + '</span>'
           : 'Clear <b>' + VENUES[i-1].n + '</b> to open this room'}</div>
       </div>
       <span class="vgo">${open ? 'PLAY' : 'LOCKED'}</span>
@@ -2894,7 +2909,7 @@ function toggleSong(i){
 function renderBrief(){
   const V = VENUES[gsel.v], r = gigReward(gsel.v), pw = bandMult() >= V.pw;
   const n = gsel.songs.length;
-  let h = `<div class="vhead" style="--v1:${V.bg[0]};--v2:${V.bg[1]}">
+  let h = `<div class="vhead" style="--v1:${V.c[0]};--v2:${V.c[1]}">
     <h3>${V.n}</h3>
     <div class="row"><span class="stars">${'★'.repeat(V.d)}</span>
       <span class="tag">WANTS ${GENRES[V.g].n}</span>
@@ -3283,14 +3298,14 @@ function renderSheet(t, soft){
 function htmlBand(){
   const nx = STUDIOS[S.studio + 1];
   let h = `<div class="sect">Your band</div>
-    <div class="card"><div class="av" style="--c1:${PAL.accent}">${ico(ICON.mic, {c:PAL.onDark, s:24})}</div>
+    <div class="card"><div class="av" style="--c1:${PAL.accent}">${ico(ICON.mic, {c:PAL.onAccent, s:24})}</div>
       <div class="info"><div class="t">${esc(S.band || 'Your Band')}</div>
       <div class="d">${ownedCount()} of 4 slots filled · band multiplier x${fmt(bandMult())}
         · ${fmt(catalogSPS())}/s from ${S.songs.length} songs · ${fmt(gigMoney())} money/s from gigs</div></div>
       <button class="buy alt" data-act="rename" data-i="-1">RENAME</button></div>`;
   const R = rank(), NX = nextRank();
   h += `<div class="sect">Rank</div>
-    <div class="card"><div class="av" style="--c1:${R.c}">${ico(ICON[R.i], {c:PAL.onDark, s:24})}</div>
+    <div class="card"><div class="av" style="--c1:${R.c}">${ico(ICON[R.i], {c:PAL.onAccent, s:24})}</div>
       <div class="info"><div class="t">${R.n}</div>
       <div class="d">${fmt(S.fans)} fans · gigs x${R.gig} · royalty ceiling ${(R.payCap*100).toFixed(0)}%<br>
         ${NX ? fmt(Math.max(0, NX.at - S.fans)) + ' more fans for <b>' + NX.n + '</b>'
@@ -3304,7 +3319,7 @@ function htmlBand(){
       <button class="buy ${S.money >= payoutUpCost() && !payoutCapped() ? '' : 'no'}" data-act="payout" data-i="-1">
         BETTER DEAL<small>${fmt(payoutUpCost())}</small></button></div>`;
   h += '<div class="sect">Studio</div>';
-  h += `<div class="card"><div class="av" style="--c1:${PAL.accent2}">${ico(ICON.house, {c:PAL.onDark, s:24})}</div>
+  h += `<div class="card"><div class="av" style="--c1:${PAL.accent2}">${ico(ICON.house, {c:PAL.onAccent, s:24})}</div>
     <div class="info"><div class="t">${STUDIOS[S.studio].n}</div>
     <div class="d">All song streams x${fmt(studioMult())}${nx ? ' · next: ' + nx.n + ' (x4)' : ' · maxed'}</div></div>
     ${nx ? `<button class="buy ${S.money >= nx.cost ? '' : 'no'}" data-act="studio">MOVE IN<small>${fmt(nx.cost)}</small></button>`
@@ -3356,7 +3371,7 @@ function htmlGenres(){
   open.sort((a, b) => (b === S.home) - (a === S.home) || S.heat[b] - S.heat[a]).forEach(gi => {
     const g = GENRES[gi], tr = trendOf(gi), home = S.home === gi;
     h += `<div class="card${home ? ' home' : ''}">
-      <div class="av" style="--c1:${g.c}">${ico(ICON.catalog, {c:PAL.onDark, s:20})}</div>
+      <div class="av" style="--c1:${g.c}">${ico(ICON.catalog, {c:PAL.onAccent, s:20})}</div>
       <div class="info"><div class="t">${g.n}
         ${home ? '<span class="tag ok">HOME · x' + BAL.homeMult + ' STREAMS</span>' : ''}</div>
       <div class="d"><b style="color:${tr.c}">${tr.n}</b> ${Math.round(S.heat[gi])} · x${tr.m} streams${
@@ -3411,14 +3426,14 @@ function htmlShop(){
     <div class="info"><div class="t">${p[0]} ${p[2] ? '<span class="rar" style="color:${PAL.gold}">' + p[2] + '</span>' : ''}</div>
     <div class="d">Premium currency</div></div><button class="buy no">${p[1]}</button></div>`);
   h += '<div class="sect">Crates</div>';
-  crates.forEach(c => h += `<div class="card locked"><div class="av" style="--c1:${PAL.accent2Dk}">${ico(ICON.crate, {c:PAL.onDark, s:22})}</div>
+  crates.forEach(c => h += `<div class="card locked"><div class="av" style="--c1:${PAL.accent2Dk}">${ico(ICON.crate, {c:PAL.onAccent, s:22})}</div>
     <div class="info"><div class="t">${c[0]}</div><div class="d">${c[2]}</div></div>
     <button class="buy no">${c[1]}</button></div>`);
   h += `<div class="sect">Subscriptions</div>
-    <div class="card locked"><div class="av" style="--c1:${PAL.accent2}">${ico(ICON.pass, {c:PAL.onDark, s:22})}</div>
+    <div class="card locked"><div class="av" style="--c1:${PAL.accent2}">${ico(ICON.pass, {c:PAL.onAccent, s:22})}</div>
       <div class="info"><div class="t">Backstage Pass (VIP)</div><div class="d">x2 income · 24h offline · no ads · daily Gold Crate</div></div>
       <button class="buy no">₪19/mo</button></div>
-    <div class="card locked"><div class="av" style="--c1:${PAL.accent}">${ico(ICON.globe, {c:PAL.onDark, s:22})}</div>
+    <div class="card locked"><div class="av" style="--c1:${PAL.accent}">${ico(ICON.globe, {c:PAL.onAccent, s:22})}</div>
       <div class="info"><div class="t">World Tour Battle Pass</div><div class="d">Seasonal reward track</div></div>
       <button class="buy no">₪35/mo</button></div>`;
   return h;
@@ -3427,7 +3442,7 @@ function htmlSettings(){
   const c = S.cloud || {}, perm = (window.Notification && Notification.permission) || 'default';
   const ago = c.at ? dur((Date.now() - c.at) / 1000) + ' ago' : 'never';
   let h = '<div class="sect">Game</div>';
-  h += `<div class="srow"><div class="si" style="--c1:${PAL.accent2}">${ico(ICON.sound, {c:PAL.onDark, s:20})}</div>
+  h += `<div class="srow"><div class="si" style="--c1:${PAL.accent2}">${ico(ICON.sound, {c:PAL.onAccent, s:20})}</div>
     <div class="st"><b>Sound</b><span>Taps, layers and the release chord</span></div>
     <button class="sw ${S.mute ? '' : 'on'}" data-set="sound"></button></div>`;
   h += `<div class="srow"><div class="si" style="--c1:${PAL.gold}">${ico(ICON.bell, {c:PAL.onGold, s:20})}</div>
@@ -3659,7 +3674,7 @@ function settingsAct(what){
 
 function modal(html, btn, onOk, danger){
   const m = $('#modal');
-  $('#mbox').innerHTML = html + `<button id="mok"${danger ? ' style="background:${PAL.accent};color:${PAL.onDark};box-shadow:0 4px 0 ${PAL.accentSh}"' : ''}>${btn}</button>` +
+  $('#mbox').innerHTML = html + `<button id="mok"${danger ? ' style="background:${PAL.accent};color:${PAL.onAccent};box-shadow:0 4px 0 ${PAL.accentSh}"' : ''}>${btn}</button>` +
     (danger ? '<button id="mno" style="margin-top:8px;background:${PAL.mute};color:${PAL.dim};box-shadow:none">CANCEL</button>' : '');
   m.classList.add('on');
   $('#mok').onclick = () => { m.classList.remove('on'); if (onOk) onOk(); };
