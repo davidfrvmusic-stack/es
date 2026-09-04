@@ -1114,7 +1114,7 @@ const BAL = {
   hypeDrift: 0.4,         // hype/sec bled off, so you have to keep playing
   hypeSong: 0.9, hypeFit: 0.6, hypeBase: 0.25,   // hype/sec from the song, the fit, the room
   gigWeights: { perf:0.40, song:0.25, fit:0.15, power:0.15, variety:0.05 },
-  fanTier: [4, 25, 200, 1200, 6000],   // fans per release, flop -> #1
+  fanTier: [1, 3, 20, 120, 600],       // fans per release, flop -> #1
   fanQBoost: 1,           // ...times (1 + Quality/100), so a good song is worth more
   fanGig: 0.02,           // fans/sec from playing live, times the rank's venue size
   homeMult: 1.5,          // your home genre streams harder
@@ -1125,7 +1125,14 @@ const BAL = {
   advanceMult: 8,         // ...and the money advance is that many streams x the royalty
                           // rate x this. Small, but enough that COLLECT means something.
   songScale: 1.0,
-  studioStep: 4,          // every studio multiplies all song streams by this (see PACING)
+  // CRAFT — what every upgrade actually buys. See PACING: upgrades raise the Quality this
+  // band can reach, and never touch what a song already released earns.
+  catalogCap: 200,        // songs kept; at the cap the weakest earner loses its slot
+  craftFloor: 40,         // a brand-new band's Quality ceiling
+  craftMember: 2,         // just having someone on the track
+  craftLvl: 1.1, craftExp: 0.5,   // their level, with diminishing returns
+  craftStudio: 3.5,       // each studio step
+  qNudge: 0.5,            // Quality's SMALL direct effect on streams: x0.75 at Q0, x1.25 at Q100
   gigBase: 1.0,           // money/sec from playing live, before any release exists
   gigPerMember: 0.5,      // each extra member makes the gigs pay better
   payoutBase: 0.04,       // money/sec = gig money + streams/sec x this
@@ -1157,13 +1164,13 @@ const RARITY = [
 ];
 const STUDIOS = [
   { n:'Garage',          cost:0,      bg:['#1A1712','#0E0C09'] },
-  { n:'Bedroom Studio',  cost:8e3,    bg:['#161D18','#0A100C'] },
-  { n:'Rehearsal Space', cost:3e5,    bg:['#1F1614','#110B0A'] },
-  { n:'Pro Studio',      cost:1.2e7,  bg:['#121D1E','#080F10'] },
-  { n:'Label HQ',        cost:6e8,    bg:['#1E1420','#100A12'] },
-  { n:'Tour Bus',        cost:4e10,   bg:['#1F1A10','#110E08'] },
-  { n:'Stadium',         cost:3e12,   bg:['#141824','#080B12'] },
-  { n:'Space',           cost:2.5e14, bg:['#181428','#0B0817'] }
+  { n:'Bedroom Studio',  cost:6e3,    bg:['#161D18','#0A100C'] },
+  { n:'Rehearsal Space', cost:9e4,    bg:['#1F1614','#110B0A'] },
+  { n:'Pro Studio',      cost:1.4e6,  bg:['#121D1E','#080F10'] },
+  { n:'Label HQ',        cost:2.2e7,  bg:['#1E1420','#100A12'] },
+  { n:'Tour Bus',        cost:3.5e8,  bg:['#1F1A10','#110E08'] },
+  { n:'Stadium',         cost:6e9,    bg:['#141824','#080B12'] },
+  { n:'Space',           cost:1e11,   bg:['#181428','#0B0817'] }
 ];
 const TIERS = [
   { id:'flop',  n:'FLOP',  mult:0.35, c:PAL.dim2, lo:200, hi:960 },
@@ -1231,11 +1238,11 @@ const VENUES = [
    stage), and lifts the ceiling on the royalty rate. */
 const RANKS = [
   { n:'Garage Band', at:0,   gig:1,   payCap:0.09, crate:0, crowd:0.30, c:PAL.dim2, i:'house' },
-  { n:'Local Act',   at:1e3, gig:1.6, payCap:0.14, crate:1, crowd:0.46, c:PAL.accent2, i:'pin' },
-  { n:'Regional',    at:1e4, gig:2.4, payCap:0.20, crate:2, crowd:0.62, c:PAL.blue, i:'map' },
-  { n:'National',    at:1e5, gig:3.5, payCap:0.30, crate:3, crowd:0.78, c:PAL.gold, i:'flag' },
-  { n:'Global',      at:1e6, gig:5,   payCap:0.45, crate:4, crowd:0.92, c:PAL.accent, i:'globe' },
-  { n:'Legend',      at:1e7, gig:8,   payCap:1.00, crate:5, crowd:1.00, c:PAL.violet, i:'crown' }
+  { n:'Local Act',   at:1e4, gig:1.6, payCap:0.14, crate:1, crowd:0.46, c:PAL.accent2, i:'pin' },
+  { n:'Regional',    at:1e5, gig:2.4, payCap:0.20, crate:2, crowd:0.62, c:PAL.blue, i:'map' },
+  { n:'National',    at:1e6, gig:3.5, payCap:0.30, crate:3, crowd:0.78, c:PAL.gold, i:'flag' },
+  { n:'Global',      at:1e7, gig:5,   payCap:0.45, crate:4, crowd:0.92, c:PAL.accent, i:'globe' },
+  { n:'Legend',      at:1e8, gig:8,   payCap:1.00, crate:5, crowd:1.00, c:PAL.violet, i:'crown' }
 ];
 /* A take's rhythm comes from the card, so the decision and the playing connect.
    16 steps = 2 bars of eighths at the song's BPM. */
@@ -2181,6 +2188,23 @@ function load(){
 /* level^0.55, not level: the multiplier applies to every song at once, so a linear
    gain here beats an exponential cost curve and the game finishes in an hour. */
 const memberSPS = i => MEMBERS[i].sps * Math.pow(S.members[i].lvl, BAL.lvlExp) * RARITY[S.members[i].rarity].m;
+/* ===== CRAFT — the one thing upgrades buy =====
+   Levels, the studio, and later gear and skills all feed ONE number: how good a song this
+   band is capable of making. Craft never touches what a released song earns; it raises the
+   ceiling on the next one. That is the whole progression — you do not get richer per song,
+   you get *better*, and better songs chart higher. */
+const memberCraft = i => BAL.craftMember +
+  BAL.craftLvl * Math.pow(S.members[i].lvl, BAL.craftExp) * RARITY[S.members[i].rarity].m;
+function craft(){
+  let c = 0;
+  for (let i = 0; i < 4; i++) if (S.members[i].owned) c += memberCraft(i);
+  c += BAL.craftStudio * S.studio;
+  return c;                        // gear (build step 2) and skills (step 6) add here
+}
+/* the best song this band could make if you played the session perfectly */
+const craftCap = () => clamp(BAL.craftFloor + craft(), BAL.craftFloor, 100);
+/* an unattended demo is graded by the same ceiling — the band cannot exceed itself */
+const soloQ = () => clamp(Math.round(rndi(BAL.soloQ[0], BAL.soloQ[1]) * craftCap() / 100), 1, 100);
 const upCost = i => Math.floor(MEMBERS[i].lvlCost * Math.pow(BAL.costGrow, S.members[i].lvl - 1));
 const studioMult = () => Math.pow(BAL.studioStep, S.studio);
 const ownedCount = () => S.members.filter(m => m.owned).length;
@@ -2242,7 +2266,10 @@ function decayOf(s){
   return Math.max(BAL.decayFloor, Math.pow(0.5, days / BAL.decayHalfDays));
 }
 const homeMult = g => (S.home != null && g === S.home ? BAL.homeMult : 1);
-const songSPS = s => (s.base != null ? s.base : s.raw) * bandMult() * studioMult()
+/* A released song is finished. Its base was fixed the day it charted, and nothing you buy
+   afterwards changes it — only the market does: the genre's heat, its own decay, and
+   whether it sits in your home genre. */
+const songSPS = s => (s.base != null ? s.base : s.raw)
                      * trendOf(s.g).m * decayOf(s) * homeMult(s.g);
 function catalogSPS(){ let t = 0; for (const s of S.songs) t += songSPS(s); return t; }
 /* the two headline rates. Streams come only from released songs — no songs, no streams.
@@ -2252,8 +2279,11 @@ function totalSPS(){ return catalogSPS(); }
 const gigMoney = () => BAL.gigBase * (1 + BAL.gigPerMember * Math.max(0, ownedCount() - 1)) * rank().gig;
 const fanRate = () => BAL.fanGig * gigMoney();
 const moneyRate = () => gigMoney() + totalSPS() * payoutRate();
-const qFactor = q => 0.25 + 1.75 * Math.pow(clamp(q,0,100) / 100, 1.6);
-const baseFor = (q, ti) => BAL.songScale * qFactor(q) * TIERS[ti].mult;   // band/studio applied live
+/* The chart tier is what pays. Quality only nudges it — x0.75 at Q0, x1.25 at Q100 — so a
+   well-written Solid beats a lucky one without ever out-earning a Hit. What Quality really
+   buys is the ODDS of landing that Hit in the first place (see ODDS). */
+const qNudge = q => 1 + BAL.qNudge * (clamp(q, 0, 100) / 100 - 0.5);
+const baseFor = (q, ti) => BAL.songScale * TIERS[ti].mult * qNudge(q);
 /* the band as a whole finishes one demo per soloBandSecs, so adding members splits
    the same output rather than multiplying it */
 const soloRate = i => (1 + 0.06 * (S.members[i].lvl - 1)) / (BAL.soloBandSecs * Math.max(1, ownedCount()));
@@ -2271,13 +2301,17 @@ function addSong(o){
   const s = { title:o.title, g:o.g, q:o.q, t:o.t, chart:o.chart, cover:o.cover,
               base:baseFor(o.q, o.t), at:o.at || Date.now(), by:o.by || null };
   S.songs.unshift(s);
-  if (S.songs.length > 200){
-    // trim the oldest SOLO demos first — at offline volumes a plain tail-trim would
-    // delete the player's own early releases, which are the ones that never decay
-    for (let i = S.songs.length - 1; i >= 0 && S.songs.length > 200; i--){
-      if (S.songs[i].by) S.songs.splice(i, 1);
+  // The catalogue is the income now, so what it holds matters more than when it arrived:
+  // at the cap it keeps your 200 best-earning songs and drops the weakest. A Q20 demo
+  // loses its slot to a Hit you wrote, and releasing more, better songs is how the
+  // catalogue actually improves rather than just getting longer.
+  while (S.songs.length > BAL.catalogCap){
+    let worst = 0, wv = Infinity;
+    for (let i = 0; i < S.songs.length; i++){
+      const v = songSPS(S.songs[i]);
+      if (v < wv){ wv = v; worst = i; }
     }
-    if (S.songs.length > 200) S.songs.length = 200;
+    S.songs.splice(worst, 1);
   }
   return s;
 }
@@ -2456,7 +2490,7 @@ const GOALS = [
   /* the biggest multiplier you can simply buy */
   () => STUDIOS[S.studio + 1] && S.money >= STUDIOS[S.studio + 1].cost &&
         { t:'Move into ' + STUDIOS[S.studio + 1].n,
-          h:'x' + BAL.studioStep + ' on every song you have ever released', p:1 },
+          h:'+' + BAL.craftStudio + ' craft — a higher ceiling on every song from here', p:1 },
   /* and under all of it, the number that never goes down */
   () => nextRank() && { t:fmt(Math.max(0, nextRank().at - S.fans)) + ' fans to ' + nextRank().n,
         h:rankOpens(S.rank + 1), p:rankProgress() },
@@ -2560,7 +2594,7 @@ function tick(){
     S.members[i].solo += soloRate(i) * dt;
     if (S.members[i].solo >= 1){
       S.members[i].solo -= 1;
-      const q = rndi(BAL.soloQ[0], BAL.soloQ[1]), g = pick(openGenres()), ti = rollTier(q);
+      const q = soloQ(), g = pick(openGenres()), ti = rollTier(q);
       const s = addSong({ title:genTitle(), g, q, t:ti, chart:chartFor(ti), cover:newCover(), by:S.members[i].name });
       addFans(fansFor(q, ti));
       toast('🎧 ' + S.members[i].name.split(' ')[0] + ' finished "' + s.title + '" (Q' + q + ')');
@@ -2801,7 +2835,10 @@ function finishWriting(){
   const norm = s.picks.length ? (pts / (25 * s.picks.length)) * 100 : 0;
   const jam = s.jam.reduce((a,b) => a + b, 0);
   const takes = Math.min(BAL.takeMax, s.takePts || 0);
-  const q = clamp(Math.round(norm + jam + takes), 0, 100);
+  // how well you played, then what this band is actually capable of: a garage band playing
+  // a perfect session still makes a garage-band record
+  const raw = clamp(norm + jam + takes, 0, 100);
+  const q = clamp(Math.round(raw * craftCap() / 100), 0, 100);
   S.pending = { title:s.title, g:s.g, cover:s.cover, q, power:bandPower(),
                 takes, cards:s.picks.map(p => CARDS[p.track][p.ci].n) };
   S.session = null;
@@ -3707,9 +3744,9 @@ function htmlMember(i){
   const nCards = CARDS[i].filter(x => x.lvl <= st.lvl).length;
   const nextCard = CARDS[i].filter(x => x.lvl > st.lvl).sort((a,b) => a.lvl - b.lvl)[0];
   // what the next level actually buys, measured with the real formulas
-  const was = memberSPS(i), lvlWas = st.lvl;
+  const was = memberCraft(i), capWas = craftCap(), lvlWas = st.lvl;
   st.lvl++;
-  const now = memberSPS(i), cardsNext = CARDS[i].filter(x => x.lvl <= st.lvl).length;
+  const now = memberCraft(i), capNow = craftCap(), cardsNext = CARDS[i].filter(x => x.lvl <= st.lvl).length;
   st.lvl = lvlWas;
   let h = `<div class="chead">
     <div class="por" id="cPor">${charSVG(i, st.look, st.rarity, false)}</div>
@@ -3724,9 +3761,9 @@ function htmlMember(i){
 
   h += `<div class="sect">What they bring</div>
     <div class="card"><div class="av" style="--c1:${PAL.accent2}">${ico(ICON.music, {c:PAL.onAccent, s:22})}</div>
-      <div class="info"><div class="t">+${fmt(was)} band multiplier</div>
-      <div class="d">Lifts every song in the catalogue, not just their own — ${fmt(catalogSPS())}/s
-        across ${S.songs.length} ${S.songs.length === 1 ? 'song' : 'songs'} right now</div></div></div>
+      <div class="info"><div class="t">+${fmt(was)} craft</div>
+      <div class="d">Craft is the ceiling on the next song, not a multiplier on the last one.
+        This band tops out at <b>Q${Math.round(craftCap())}</b> however well you play it.</div></div></div>
     <div class="card"><div class="av" style="--c1:${PAL.gold}">${ico(ICON.band, {c:PAL.onGold, s:22})}</div>
       <div class="info"><div class="t">${nCards} writing cards · hints ${hintPct(st.lvl)}% clear</div>
       <div class="d">${nextCard ? 'Lv ' + nextCard.lvl + ' unlocks &ldquo;' + esc(nextCard.n) + '&rdquo;'
@@ -3745,8 +3782,11 @@ function htmlMember(i){
       writing cards the way levels do.</div>`;
 
   h += `<div class="sect">Level ${st.lvl} → ${st.lvl + 1}</div>
-    <div class="ba"><span class="bl">Band multiplier</span>
+    <div class="ba"><span class="bl">Craft</span>
       <span class="bn">+${fmt(was)}</span><span class="ar">→</span><span class="bv">+${fmt(now)}</span></div>
+    <div class="ba"><span class="bl">Best song</span>
+      <span class="bn">Q${Math.round(capWas)}</span><span class="ar">→</span>
+      <span class="bv">Q${Math.round(capNow)}</span></div>
     <div class="ba"><span class="bl">Hint accuracy</span>
       <span class="bn">${hintPct(st.lvl)}%</span><span class="ar">→</span>
       <span class="bv">${hintPct(st.lvl + 1)}%</span></div>
@@ -3755,9 +3795,8 @@ function htmlMember(i){
     <button class="bigbtn ${ok ? 'teal' : 'no'}" data-act="lvl" data-i="${i}" id="cLvl"
       ${ok ? '' : 'disabled'}>LEVEL UP · ${fmt(c)}</button>
     <button class="ghost" data-act="rename" data-i="${i}" style="margin-top:9px;min-height:44px">RENAME</button>
-    <div class="hint">${ok ? '' : fmt(c - S.money) + ' more to go.'} Levels are the one upgrade
-      that pays twice: more multiplier on everything released, and a better card pool next
-      time they write.</div>`;
+    <div class="hint">${ok ? '' : fmt(c - S.money) + ' more to go.'} A level does not pay you
+      anything directly. It raises what this band can write — and better songs chart higher.</div>`;
   return h;
 }
 function htmlBand(){
@@ -3765,7 +3804,7 @@ function htmlBand(){
   let h = `<div class="sect">Your band</div>
     <div class="card"><div class="av" style="--c1:${PAL.accent}">${ico(ICON.mic, {c:PAL.onAccent, s:24})}</div>
       <div class="info"><div class="t">${esc(S.band || 'Your Band')}</div>
-      <div class="d">${ownedCount()} of 4 slots filled · band multiplier x${fmt(bandMult())}
+      <div class="d">${ownedCount()} of 4 slots filled · craft ${fmt(craft())} — best song <b>Q${Math.round(craftCap())}</b>
         · ${fmt(catalogSPS())}/s from ${S.songs.length} songs · ${fmt(gigMoney())} money/s from gigs</div></div>
       <button class="buy alt" data-act="rename" data-i="-1">RENAME</button></div>`;
   const R = rank(), NX = nextRank();
@@ -3788,7 +3827,7 @@ function htmlBand(){
   h += '<div class="sect">Studio</div>';
   h += `<div class="card"><div class="av" style="--c1:${PAL.accent2}">${ico(ICON.house, {c:PAL.onAccent, s:24})}</div>
     <div class="info"><div class="t">${STUDIOS[S.studio].n}</div>
-    <div class="d">All song streams x${fmt(studioMult())}${nx ? ' · next: ' + nx.n + ' (x' + BAL.studioStep + ')' : ' · maxed'}</div></div>
+    <div class="d">+${fmt(BAL.craftStudio * S.studio)} craft${nx ? ' · next: ' + nx.n + ' (+' + BAL.craftStudio + ')' : ' · maxed'}</div></div>
     ${nx ? `<button class="buy ${S.money >= nx.cost ? '' : 'no'}" data-act="studio">MOVE IN<small>${fmt(nx.cost)}</small></button>`
          : '<div class="rar">MAX</div>'}</div>`;
   h += '<div class="sect">Band</div>';
@@ -3798,7 +3837,7 @@ function htmlBand(){
       const price = nextMemberPrice(), can = S.money >= price;
       h += `<div class="card ${can ? '' : 'locked'}"><div class="por">${charSVG(i, {sk:0,hs:0,hc:0,ac:0}, 0, true)}</div>
         <div class="info"><div class="t">${m.role}</div>
-        <div class="d">Empty slot · +${fmt(MEMBERS[i].sps)} band multiplier per level ·
+        <div class="d">Empty slot · raises the band's craft ceiling ·
           unlocks the ${m.track.toLowerCase()} decision</div></div>
         <button class="buy ${can ? '' : 'no'}" data-act="hire" data-i="${i}">HIRE<small>${fmt(price)}</small></button></div>`;
       return;
@@ -3809,7 +3848,7 @@ function htmlBand(){
     h += `<div class="card" data-act="member" data-i="${i}"><div class="por">${charSVG(i, st.look, st.rarity, false)}</div>
       <div class="info">
         <div class="t">${esc(st.name)} <span class="rar" style="color:${RARITY[st.rarity].c}">${RARITY[st.rarity].n}</span></div>
-        <div class="d">${m.role}${i === S.you ? ' · you' : ''} · Lv ${st.lvl} · +${fmt(memberSPS(i))} multiplier
+        <div class="d">${m.role}${i === S.you ? ' · you' : ''} · Lv ${st.lvl} · +${fmt(memberCraft(i))} craft
           · ${nCards} cards · hints ${Math.round(clamp(0.5+0.035*st.lvl,0.5,0.97)*100)}% clear</div>
         <div class="d" style="opacity:.75">${nextCard ? 'Lv ' + nextCard.lvl + ' unlocks "' + esc(nextCard.n) + '"' : esc(st.bio)}</div>
       </div>
@@ -3827,9 +3866,10 @@ function htmlBand(){
     ? '<b>' + drop.n + ' more</b> open at <b>' + drop.rank.n + '</b> — ' +
       fmt(Math.max(0, drop.rank.at - S.fans)) + ' fans away. Heat and home genre live in <b>Music</b>.'
     : 'Every genre in the game is open to you. Heat and home genre live in <b>Music</b>.'}</div>`;
-  h += `<div class="hint">Streams come only from released songs. Members multiply the whole
-    catalogue, so every level lifts every song you have ever put out — and the band earns
-    money from gigs whether or not anything is streaming.<br>
+  h += `<div class="hint">Streams come only from released songs, and a released song is
+    finished — nothing you buy afterwards changes what it earns. Everything you buy raises
+    <b>craft</b> instead: the ceiling on the next song. Better songs chart higher, and the
+    chart is what pays.<br>
     Rarity, crates and merging arrive in a later build.</div>`;
   return h;
 }
@@ -3997,12 +4037,12 @@ function buy(act, i){
   } else if (act === 'lvl'){
     const c = upCost(i);
     if (S.money < c) return;
-    const sps0 = totalSPS();
+    const cap0 = craftCap();
     S.money -= c; S.members[i].lvl++;
     buildBand();
-    // layer two for an upgrade is the rate, not a total: every song already out earns more
-    const up = totalSPS() - sps0;
-    if (up > 0) statPop('streams', '+' + fmt(up) + '/s', PAL.accent2);
+    // layer two for an upgrade is the ceiling it raised — nothing already released moved
+    const up = craftCap() - cap0;
+    if (up >= 0.5) statPop('streams', 'BEST SONG Q' + Math.round(craftCap()), PAL.accent2);
     AU.chord('small'); buzz([12, 30, 12]); bandNod();
     toast(S.members[i].name.split(' ')[0] + ' → Lv ' + S.members[i].lvl);
     memberReact = sheetTab === 'member' ? i : -1;   // the sheet answers the purchase
@@ -4011,7 +4051,7 @@ function buy(act, i){
     if (!nx || S.money < nx.cost) return;
     S.money -= nx.cost; S.studio++;
     applyStudio(); AU.chord('big'); buzz([20,40,20]);
-    toast('🏗️ Moved into ' + nx.n + ' — all streams x4');
+    toast('🏗️ Moved into ' + nx.n + ' — the band can write better songs here');
   }
   renderSheet(sheetTab); renderTop(); save();
   if (memberReact >= 0){
@@ -4027,7 +4067,7 @@ function renderSetupRoles(){
   $('#setRoles').innerHTML = MEMBERS.map((m,i) =>
     `<button class="rolebtn ${i === setupRole ? 'sel' : ''}" data-r="${i}">
       <div class="rn">${m.role}</div>
-      <div class="rd">+${m.sps} band multiplier / level<br>${CARDS[i].filter(c => c.lvl <= 1).slice(0,2).map(c => c.n).join(', ')}…</div>
+      <div class="rd">${m.track} decisions are yours<br>${CARDS[i].filter(c => c.lvl <= 1).slice(0,2).map(c => c.n).join(', ')}…</div>
     </button>`).join('');
   $('#setPrev').innerHTML = charSVG(setupRole, setupLook, 0, false);
 }
@@ -4197,7 +4237,7 @@ function boot(){
       const n = Math.floor(prog);
       S.members[i].solo = prog - n;
       for (let k = 0; k < n; k++){
-        const q = rndi(BAL.soloQ[0], BAL.soloQ[1]), g = pick(openGenres()), ti = rollTier(q);
+        const q = soloQ(), g = pick(openGenres()), ti = rollTier(q);
         addSong({ title:genTitle(), g, q, t:ti, chart:chartFor(ti), cover:newCover(),
                   by:S.members[i].name, at:Date.now() - Math.random() * capped * 1000 });
         wroteFans += fansFor(q, ti);

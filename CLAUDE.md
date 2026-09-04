@@ -33,7 +33,8 @@ take where notes fall to the song's BPM in a pattern the chosen card decides.
 Two things earn Quality, and neither is tapping fast. The **decision** is worth up to
 ~80 of the 100 and is still the ceiling on a song. The **take** is worth up to
 `BAL.takeMax` (20) — real timing against a real beat, and the reason a good decision
-badly played still disappoints. Idle jam-tapping survives only as a garnish
+badly played still disappoints. Both are then scaled by **craft** (§6b): how well you
+played, times what this band is capable of. Idle jam-tapping survives only as a garnish
 (`+0.22`, capped at `+4` per track). If a change would make undifferentiated tapping
 the main source of progress, it is wrong; skill at a rhythm you had to choose first
 is not that.
@@ -216,7 +217,10 @@ the screen, played with one thumb. The band stays visible above it.
 - Your own instrument plays real pentatonic notes on a hit; the other three get a
   muted click, so you can hear which part is yours.
 - Quality is normalised over however many tracks are unlocked, so an early one-track
-  song can still score well.
+  song can still score well — and then **scaled by the band's craft ceiling** (§6b). A
+  garage band playing a perfect session still makes a garage-band record: `q = round(raw
+  × craftCap / 100)`. Playing well always gets you the best song *this* band can make,
+  and buying upgrades is what raises that.
 - Members also **auto-write solo demos** in the background and while you are away,
   at random Quality 20–50, auto-released. The **band** finishes one per
   `BAL.soloBandSecs` (600s), split across whoever is in it, so hiring shares the
@@ -272,14 +276,15 @@ flavour (`w` oscillator, `cut` filter), and `r` — the rank that opens it.
 value in the game that cannot fall, which is why it carries the long goal.
 
 - Earned from **every release**, banked with the rest of the payout on COLLECT:
-  `fansFor(q, tier)` = `BAL.fanTier[tier] × (1 + Quality/100)`, `fanTier` = 4 / 25 / 200
-  / 1200 / 6000 for flop → #1. Solo demos earn it too, immediately, awake or offline.
+  `fansFor(q, tier)` = `BAL.fanTier[tier] × (1 + Quality/100)`, `fanTier` = 1 / 3 / 20
+  / 120 / 600 for flop → #1. Solo demos earn it too, immediately, awake or offline.
 - Earned from **playing live**: `fanRate() = BAL.fanGig × gigMoney()`, so bigger rooms
   bring more people as well as more money. (The brief's "every gig win" is this until
   the Daily Gig event lands in BUILD ORDER step 4 — there is no gig *event* yet.)
 
-**RANKS** are pure fan thresholds: Garage Band 0 → Local Act 1K → Regional 10K →
-National 100K → Global 1M → Legend 10M. Each one buys four things, all live:
+**RANKS** are pure fan thresholds: Garage Band 0 → Local Act 10K → Regional 100K →
+National 1M → Global 10M → Legend 100M. A rank is *rare* — a week of steady play reaches
+Regional, the third of six (§9). Each one buys four things, all live:
 
 | rank | genres open | gigs | royalty ceiling | crowd |
 |---|---|---|---|---|
@@ -405,21 +410,31 @@ not what a person does.
 without it the two requirements contradict each other. It also gives hiring an
 immediate payoff before you have any catalogue.
 
-- **Members multiply the catalogue** — `bandMult = 1 + Σ (sps × level^0.55 × rarity)` —
-  rather than emitting streams themselves. A level-up therefore lifts *every song you
-  have ever released*, retroactively, and shows in the top bar at once.
-- The `level^0.55` is load-bearing, not decoration. See PACING below.
-- A song's `base` is fixed at release from Quality and chart tier; band multiplier,
-  studio, trend and decay are all applied **live**.
+- **Nothing you buy changes a song you have already released.** No member level, no
+  studio, no gear ever touches a track that has charted. A song's `base` is fixed the day
+  it releases, from its **chart tier** and a small Quality nudge; only the *market* moves
+  it afterwards — the genre's heat, its own decay, and whether it sits in your home genre.
+  This is the single most important rule in the economy and the reason the curve is not
+  exponential: there is no retroactive multiplier anywhere.
+- **What upgrades buy instead is craft** — see §6b.
 - **payoutRate** starts at 0.04 and rises `+0.008` per Royalty Rate upgrade
   (cost `250 × 2.1^n`), **capped by the rank's `payCap`** (§4c). It multiplies
   *everything*, so it stays worth buying up to the ceiling your fans have earned.
 - **No passive money from tapping.** Every released song earns its own streams/sec:
 
-    base  = 1.0 × qFactor(Quality) × tierMultiplier          (fixed at release)
-    live  = base × bandMult × studioMultiplier × genreTrend(now) × decay(now) × homeMult
+    base  = 1.0 × tierMultiplier × qNudge(Quality)          (fixed at release, forever)
+    live  = base × genreTrend(now) × decay(now) × homeMult
 
-- `qFactor` = `0.25 + 1.75 × (Q/100)^1.6`.
+- **The tier pays; Quality only nudges.** `qNudge` = `1 + 0.5 × (Q/100 − 0.5)`, so Q0 is
+  x0.75 and Q100 is x1.25 — a 1.67x swing across the entire Quality range, against a 3x
+  step from Solid to Hit. **A Q100 Solid can never out-earn a Q0 Hit.** What Quality
+  really buys is the *odds* of landing that Hit: `ODDS` takes Hit-or-better from 17% at
+  Q30 to 40% at Q90. Craft buys chances at hits, not a multiplier on streams.
+- **The catalogue keeps its best 200, not its newest.** At `BAL.catalogCap` the weakest
+  earner loses its slot — so a Hit you wrote pushes out a Q20 demo, and releasing more,
+  *better* songs is how the catalogue improves rather than just getting longer. (This is
+  also what makes playing more actually pay: in the 168h simulation the steady player ends
+  at 4.17K streams/sec against the casual player's 1.37K, from the same 200 slots.)
 - **Decay:** songs below Hit halve every 3 days down to a 15% floor. Hit / Viral /
   #1 never decay — that is the reward for a big release.
 - **Genre trends are a living cycle**, not a weekly shuffle. Every genre carries
@@ -441,6 +456,36 @@ immediate payoff before you have any catalogue.
   Simulated at 168h it moves the milestones by a few percent (casual full band 1.7h →
   69m) and still lands a week of steady play at Label HQ.
 
+## 6b. CRAFT — the one thing every upgrade buys
+
+Member levels, the studio, and later gear and skills all feed **one number**: how good a
+song this band is capable of making.
+
+    craft     = Σ owned members (craftMember + craftLvl × level^craftExp × rarity)
+              + craftStudio × studio        (+ gear, + skills, when they land)
+    craftCap  = clamp(craftFloor + craft, craftFloor, 100)
+
+`craftCap` is the **highest Quality this band can reach**, and `finishWriting()` scales
+the played score into it. Measured with the shipped tunables (`craftFloor` 40,
+`craftMember` 2, `craftLvl` 1.1, `craftExp` 0.5, `craftStudio` 3.5):
+
+| band | ceiling |
+|---|---|
+| you alone, level 1, Garage | **Q43** |
+| full band, level 1, Garage | Q52 |
+| full band, level 20, Garage | Q68 |
+| full band, level 20, Pro Studio | Q78 |
+| deep investment | Q100 (hard cap) |
+
+Two consequences worth stating plainly:
+- **A level pays you nothing directly.** It raises what you can write. The character
+  sheet says so — the before → after rows are craft and *best song*, not streams.
+- **Solo demos are graded by the same ceiling** (`soloQ()`), so an unattended band cannot
+  exceed itself either.
+
+The `level^0.5` is deliberate: craft has diminishing returns per level against a cost
+curve that grows at 1.25, so no amount of levelling runs away with the ceiling.
+
 ## 7. YOUR CHARACTER, AND HIRING THE REST
 On first run a **setup screen** asks for a band name, your name, the instrument you
 play, and shuffles your character's look. That slot is yours and **free**, owned at
@@ -455,75 +500,84 @@ together (0.9 → 1.2) for the same reason: choosing your instrument should be a
 which writing cards you start with, not which is strongest.
 
 ## 8. UPGRADES (all bought with money)
-- **Member levels** — cost `lvlCost × 1.15^n`. Raises that member's streams/sec,
-  scales every song, unlocks better cards, sharpens hints, speeds up solo demos.
-- **Royalty rate** — the payout multiplier, see §6.
-- **Rarity** — Common→Rare→Epic→Legendary→Mythic, from crates; merge 3 → one up.
-- **Gear** — 2 slots per member; visible on the character; unlocks writing cards.
+
+**Every upgrade in this list raises craft (§6b). None of them raises what a released song
+earns.** The only thing that multiplies income is the royalty rate, and fans cap that.
+
+- **Member levels** — cost `lvlCost × 1.25^n`. Raises that member's craft, unlocks better
+  cards, sharpens hints, speeds up solo demos.
+- **Royalty rate** — the one true multiplier, and the one fans gate. See §6.
+- **Rarity** — Common→Rare→Epic→Legendary→Mythic, from crates; multiplies craft.
+- **Gear** — 2 slots per member; visible on the character; craft + writing cards.
 - **Studios** — Garage → Bedroom → Rehearsal → Pro Studio → Label HQ → Tour Bus →
-  Stadium → Space. Each multiplies all song streams by `BAL.studioStep` (4) and
-  repaints the stage.
+  Stadium → Space. Each adds `BAL.craftStudio` (3.5) craft and repaints the stage.
 
 ## 9. PACING — why the curve is shaped the way it is
 
-The first cut of this economy finished itself in **under an hour**: 1M money at 12
-minutes, 1B at 45, every member at level 145, the whole studio ladder spent. The
-cause was structural, not pricing. A member's level multiplied the *entire
-catalogue*, and the catalogue itself grows with every release — so income compounded
-on two axes at once while level costs grew at only 1.15. Cheap linear levels
-outran an exponential price curve, and no amount of re-pricing fixes that shape.
+**The first cut of this economy finished itself in under an hour.** A member's level
+multiplied the *entire catalogue*, and the catalogue grew with every release, so income
+compounded on two axes at once against a cost curve growing at only 1.15. That was patched
+(`level^0.55`, `costGrow` 1.25, studios x4) and the patched version still reached Tour Bus
+and rank Global in a week.
 
-Three changes fixed it, and they must be kept together:
-1. `level^0.55` instead of `level` in `memberSPS` — diminishing returns per level, so
-   a multiplier that touches every song cannot outrun its own cost curve.
-2. `costGrow` 1.15 → **1.25**.
-3. Studios x5 → **x4**, with costs rescaled to `8e3 … 2.5e14`.
+**The rework removed the shape rather than re-pricing it.** Three rules, and they must be
+kept together:
 
-Plus supporting cuts: `songScale` 1.5→1.0, `payoutBase` 0.10→0.04, `payoutSecs`
-90→40, member prices `[30, 300, 2200]`, level costs `[14, 22, 34, 50]`.
+1. **No retroactive multiplier exists.** `songSPS` no longer touches `bandMult` or
+   `studioMult`. A released song is finished. Income grows because you release *more* and
+   *better* songs, not because a purchase re-values the back catalogue.
+2. **Upgrades buy craft, and craft has a hard ceiling of 100** (§6b). The thing you spend
+   money on saturates by design.
+3. **The tier pays and Quality nudges** (§6). Quality's whole range is worth 1.67x; a tier
+   step is worth 3x. Better songs earn more by *charting* higher, which is a probability,
+   not a multiplier.
 
-**Measured** (greedy buyer, headless, real game code, 168 simulated hours):
+Supporting numbers: `fanTier` /10 and every rank threshold x10 (a rank is meant to be
+rare); studio costs rescaled `6e3 … 1e11`; `catalogCap` 200 now trims the **weakest**
+song rather than the oldest demo.
+
+**Measured** (greedy buyer, headless, real game code, 168 simulated hours; the player's
+Quality is their play skill scaled by `craftCap`, raw 88 steady / 72 casual):
 
 | milestone | steady (a song every 2 min) | casual (every 10 min) |
 |---|---|---|
 | 2nd member | 2m | 2m |
-| Local Act | 6m | 1.5h |
-| full band | 22m | 88m |
-| Bedroom Studio | 35m | 2.4h |
-| Regional | 38m | 2.8h |
-| Rehearsal Space | 82m | 5.2h |
-| Pro Studio | 3.9h | 12.5h |
-| National | 6.7h | 32.3h |
-| Label HQ | 12.9h | 34.1h |
-| Global | 3.5d | not in a week |
-| Tour Bus | 6.3d | not in a week |
-| Stadium / Space | not in a week | not in a week |
+| craft ceiling Q60 | 54m | 1.5h |
+| full band | 86m | 2.9h |
+| Bedroom Studio | 3.0h | 6.6h |
+| craft ceiling Q75 | 4.1h | 8.9h |
+| Local Act | 6.4h | 20.8h |
+| Rehearsal Space | 11.3h | 24.9h |
+| Pro Studio | 2.0d | 4.2d |
+| Regional | 2.2d | 5.3d |
+| craft ceiling Q90 | 2.5d | 5.1d |
+| National / Label HQ / Q100 | not in a week | not in a week |
 
-A week of steady play now ends at **Tour Bus, rank Global, 2.16M fans**; a casual week
-ends at **Label HQ, rank National**. Stadium and Space stay past a week, which is where
-prestige is meant to sit.
+A week of steady play ends at **Pro Studio, rank Regional, craft ceiling Q93, 672 money/s**
+— from 1.0 money/s and a Q43 ceiling at minute zero. A casual week ends at the same two
+landmarks about twice as slowly, at **203 money/s**. Label HQ, National and a Q100 ceiling
+are all past a week, which is where the mid-game is meant to sit; Stadium, Space and Legend
+are prestige territory.
 
-**This is about twice as fast to Label HQ as the pre-fans build (12.9h against 23.6h),
-and the cause is worth knowing before anyone retunes.** It is not the home-genre x1.5
-(that touches maybe an eighth of the catalogue) and not the gig multiplier (gig money
-is rounding error once songs are streaming). It is the **royalty ceiling**: when the
-rate is capped, the money that would have bought the next Royalty Rate upgrade goes
-into **member levels** instead, and levels multiply the entire catalogue. A cap meant
-to slow the player down redirects them to a *better* purchase. A real player faces the
-same choice, so this is genuine rather than a simulation artefact.
+**Playing more has to pay, and it does.** Both runs end holding 200 songs, but the steady
+player's 200 are better: **4.17K streams/sec against 1.37K**, and a 36% hit rate against
+29%. That gap is entirely the catalogue-trim rule plus the Quality→odds curve — there is no
+multiplier doing it.
 
-The pacing was left as measured rather than re-tuned, because the shape §9 protects is
-intact — nothing runs away, and the top of the ladder is still out of reach in a week.
-If it should be pulled back to the old curve, the one knob is `costGrow` 1.25 → **1.26**
-(about 2.2x on a level-100 cost, about 8% at level 10, so it bites late and not early).
-Re-run the simulation after changing it.
+**If you retune, re-run the simulation** (`scratchpad/.../sim8.js`: a greedy buyer driven
+through the real `moneyRate` / `upCost` / `craftCap` / `addSong` / `songSPS` functions for
+168 simulated hours, with the band's own demos included). Reading the tables is not enough
+— the original runaway was invisible until it was simulated. One trap: the game's top-level
+`const` helpers (`craftCap`, `songSPS`, `studioMult`, …) are **not** `window` properties, so
+`window.craftCap = …` in an injected override silently does nothing and the run measures
+unchanged formulas.
 
-**If you retune, re-run the simulation** (`scratchpad/.../verify.js` pattern: drive a
-greedy buyer through the real `moneyRate`/`upCost`/`addSong` functions for 168
-simulated hours). Reading the tables is not enough — the runaway was invisible until
-it was simulated. One trap: the game's top-level `const` helpers (`memberSPS`,
-`studioMult`, …) are **not** `window` properties, so `window.memberSPS = …` in an
-injected override silently does nothing and the run measures unchanged formulas.
+**Old saves.** `newState()` is unchanged and a `chartbreaker.v3` save still loads, but a
+save written before the rework will show a **sharp income drop** on first load: its songs'
+stored `base` values were computed under `qFactor` and were being multiplied live by
+`bandMult × studioMult`, and neither multiplier exists any more. That is the intended
+consequence of the rebalance, not a migration bug — the same band now earns what the new
+model says it earns.
 
 ## 10. SAVES, OFFLINE AND SETTINGS
 
@@ -806,9 +860,16 @@ does not move either.
   redrawn with real instruments (animation and pivots unchanged), UI emoji replaced
   with an inline SVG icon set, procedural cover hues constrained to the warm/teal
   family.
-- Economy verified: a fresh band sits at **0 streams/sec and 1.0 money/sec**; hiring
-  raises gig money (1.0→1.5) with no songs out; the first release starts streams;
-  hire ladder 30/300/2200; first level 14; royalty 4% at 250. Pacing per §8.
+- Economy verified: a fresh band sits at **0 streams/sec, 1.0 money/sec and a Q43
+  ceiling**; hiring raises gig money (1.0→1.5) with no songs out; the first release starts
+  streams; hire ladder 30/300/2200; first level 14; royalty 4% at 250. Pacing per §9.
+- **The craft rework is verified by its own suite (`ec`)**: the ceiling ladder
+  (43 solo → 52 full band → 68 at Lv20 → 78 with Pro Studio → hard 100), a perfect session
+  scoring exactly the ceiling, `baseFor` showing a 1.67x Quality swing against a 3x tier
+  step, a Q100 Solid never out-earning a Q0 Hit, Hit-or-better odds moving 17%→40% from Q30
+  to Q90, a released song's `songSPS` **unchanged** by taking the band from level 1/Garage
+  to level 60/Tour Bus while the same song still moves when its genre goes hot, and the
+  catalogue at cap keeping an incoming Hit while rejecting an incoming flop.
 
 **Known gaps (deliberate, deferred):** gear, crates as real drops (and with them the
 rank's `crate` bonus, which is stored but unread), rarity/merge,
@@ -1063,6 +1124,19 @@ frame time median 16.7ms / p95 17.2ms, and a `chartbreaker.v3` save written befo
 Two still loads — no `newState()` field was added or removed across the whole phase, and
 no balance number moved.
 
+**The craft rework (post-Phase-Two).** The direction changed after Phase Two shipped:
+*every upgrade — gear, studio, member, skills — enhances the Quality of the song, and
+Quality makes better songs rather than better streams.* That inverted the economy, and
+§6 / §6b / §8 / §9 are the rewrite. In short: `bandMult` and `studioMult` left `songSPS`
+entirely, `qFactor` became `qNudge` (±25% instead of 0.25x–2x), everything you buy feeds
+`craftCap`, and the catalogue trims its weakest song instead of its oldest demo. Fans were
+cut 10x and every rank threshold raised 10x so a rank stays rare. Measured: a steady week
+now ends at Pro Studio / Regional instead of Tour Bus / Global.
+
+Three decisions were the user's, taken before any of it was built: the tier pays and
+Quality nudges (rather than tier-only); nothing retroactive, so only new songs benefit; and
+a week of steady play should land mid-ladder.
+
 **Removed along the way:** the tap-to-fill-tracks loop, Hook Moments, the Hype stat
 (Quality shifts chart odds instead), and weekly-seeded genre trends (replaced by the
 live heat cycle). Time-gated member unlocks are gone too —
@@ -1094,7 +1168,9 @@ base payout rate, levels, ownership, songs, time away) rather than discarded.
   (`/* ===== AUDIO ===== */` etc.) and add new systems as new banners.
 - Tunables live in the tables near the top of the script — `BAL`, `MEMBERS`,
   `RARITY`, `STUDIOS`, `TIERS`, `ODDS`, `GENRES`, `GCARDS`, `RANKS`, `CARDS`, `PATTERNS`. Never inline a balance
-  number in logic. `GOALS`, `RAIL` and `HYPE_TIERS` are the same idea for content rather
+  number in logic. The craft knobs (`craftFloor`, `craftMember`, `craftLvl`, `craftExp`,
+  `craftStudio`) and `qNudge` are the two levers that shape the whole curve — moving either
+  means re-running the simulation (§9). `GOALS`, `RAIL` and `HYPE_TIERS` are the same idea for content rather
   than balance: an ordered table you extend by adding an entry, never by adding a branch. Studio costs are on the *money* scale, which accrues roughly 10x
   slower than streams — rescale them if `payoutBase` ever changes.
 - Card vectors are the game's difficulty knob. `DSCALE` (2.2) is the distance at
