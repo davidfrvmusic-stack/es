@@ -298,7 +298,15 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 @keyframes nearmiss{50%{transform:scale(1.12)}}
 #rvTier{font-size:30px;font-weight:800;letter-spacing:.1em;opacity:0;padding:6px 22px;border-radius:14px;
   background:var(--panel);border:3px solid currentColor}
-#rvPay{font-size:16px;font-weight:800;color:var(--accent2-dk);opacity:0}
+#rvPay{opacity:0;background:var(--panel);border:2px solid var(--line);border-radius:16px;
+  padding:10px 16px 8px;min-width:212px}
+#rvPay .pr{display:flex;align-items:baseline;justify-content:space-between;gap:20px}
+#rvPay .pl{font-size:10px;letter-spacing:.16em;font-weight:800;color:var(--dim)}
+#rvPay .pv{font-size:19px;font-weight:800}
+#rvPay .streams .pv{color:var(--accent2-dk)}
+#rvPay .money .pv{color:var(--accent-dk)}
+#rvPay .pf{margin-top:6px;padding-top:6px;border-top:2px solid var(--line);text-align:center;
+  font-size:10px;font-weight:800;letter-spacing:.08em;color:var(--dim2)}
 #rvQuote{font-size:12px;color:var(--dim);font-style:italic;text-align:center;max-width:300px;opacity:0;
   line-height:1.5;text-wrap:pretty}
 #rvGo{margin-top:4px;padding:16px 44px;border-radius:18px;font-size:16px;font-weight:800;
@@ -331,6 +339,37 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 #setPrev svg{width:108px;height:140px;overflow:visible}
 .ghost{width:100%;padding:11px;border-radius:14px;background:var(--panel);
   border:2px solid var(--line);font-size:12px;font-weight:800;letter-spacing:.08em;color:var(--dim)}
+
+/* ===== RECORDING TAKE ===== */
+#takebox{text-align:center}
+#takelane{position:relative;height:168px;border-radius:18px;overflow:hidden;margin:8px 0 10px;
+  background:var(--panel);border:2px solid var(--line)}
+#takelane.pocket{border-color:var(--gold);background:#FFF7E4}
+#tkrail{position:absolute;left:50%;top:0;bottom:0;width:2px;margin-left:-1px;background:var(--line)}
+#hitline{position:absolute;left:0;right:0;top:138px;height:3px;background:var(--line2)}
+#hitring{position:absolute;left:50%;top:117px;width:44px;height:44px;margin-left:-22px;border-radius:50%;
+  border:3px dashed var(--line2);box-sizing:border-box;z-index:1}
+#takelane.pocket #hitring{border-color:var(--gold);border-style:solid;box-shadow:0 0 0 6px #FFF0C4}
+.tnote{position:absolute;left:50%;top:0;width:34px;height:34px;margin-left:-17px;border-radius:50%;z-index:2;
+  background:var(--accent);box-shadow:0 3px 0 var(--accent-sh);
+  animation-name:fall;animation-timing-function:linear;animation-fill-mode:forwards}
+.tnote.hit{animation:none;transform:translateY(122px) scale(1.6);opacity:0;transition:transform .18s ease,opacity .18s ease}
+.tnote.gone{background:var(--dim2);box-shadow:none;opacity:0;transition:opacity .45s ease .12s}
+@keyframes fall{from{transform:translateY(-40px)}to{transform:translateY(122px)}}
+#takejudge{position:absolute;left:0;right:0;top:52px;text-align:center;font-size:19px;font-weight:800;
+  letter-spacing:.12em;opacity:0;z-index:3;text-shadow:0 0 9px var(--panel),0 0 4px var(--panel)}
+#takejudge.on{animation:jpop .5s ease-out}
+@keyframes jpop{0%{opacity:0;transform:scale(.7)}30%{opacity:1;transform:scale(1.08)}100%{opacity:0;transform:scale(1)}}
+#takecombo{position:absolute;left:0;right:0;top:11px;text-align:center;font-size:11px;font-weight:800;
+  letter-spacing:.14em;color:var(--dim2);z-index:3;text-shadow:0 0 8px var(--panel)}
+#takehead{display:flex;align-items:baseline;gap:8px;margin-bottom:2px}
+#takehead .tk{font-size:15px;font-weight:800;letter-spacing:.13em}
+#takehead .who{flex:1;font-size:10.5px;font-weight:700;color:var(--dim);text-align:left;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#taketime{font-size:10px;font-weight:800;color:var(--gold-dk)}
+#takeauto{width:100%;padding:12px;border-radius:14px;font-size:12px;font-weight:800;letter-spacing:.08em;
+  background:var(--panel);border:2px solid var(--line);color:var(--dim)}
+#takeauto:active{transform:translateY(2px)}
 
 /* ===== WHILE YOU WERE GONE ===== */
 #gone{position:fixed;inset:0;z-index:42;display:none;flex-direction:column;align-items:center;
@@ -457,6 +496,23 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
         <div id="cards"></div>
       </div>
 
+      <!-- RECORDING TAKE -->
+      <div id="takebox" hidden>
+        <div id="takehead">
+          <div class="tk" id="tkTrack">DRUMS</div>
+          <div class="who" id="tkWho">—</div>
+          <div id="taketime">10.0s</div>
+        </div>
+        <div id="takelane">
+          <div id="tkrail"></div>
+          <div id="hitline"></div>
+          <div id="hitring"></div>
+          <div id="takecombo"></div>
+          <div id="takejudge"></div>
+        </div>
+        <button id="takeauto">AUTO-TAKE</button>
+      </div>
+
       <!-- QUALITY -->
       <div id="qualbox" hidden>
         <div class="dtitle">demo finished</div>
@@ -492,9 +548,13 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   <div id="rvCover"><span></span></div>
   <div id="rvChart" class="num">#—</div>
   <div id="rvTier">—</div>
-  <div id="rvPay" class="num">—</div>
+  <div id="rvPay">
+    <div class="pr streams"><span class="pl">STREAMS</span><span class="pv num" id="rvPayS">0</span></div>
+    <div class="pr money"><span class="pl">MONEY</span><span class="pv num" id="rvPayM">0</span></div>
+    <div class="pf" id="rvPayF">—</div>
+  </div>
   <div id="rvQuote">—</div>
-  <button id="rvGo">CONTINUE</button>
+  <button id="rvGo">COLLECT</button>
 </div>
 
 <div id="setup">
@@ -572,10 +632,20 @@ const BAL = {
   jamPerTap: 0.22,        // Quality per tap...
   jamCap: 4,              // ...capped per track, so tapping is a garnish
   wGenre: 0.45, wCoher: 0.35, wBase: 0.20,   // Quality weights, 25 pts per decision
+  takeSecs: 10,           // one recording take per decided track
+  takeMax: 20,            // ...and no more than this from takes across a whole song
+  takeAuto: 5,            // auto-taking every track is worth this in total
+  takePerfect: 5, takeGood: 2,
+  perfectMs: 62, goodMs: 135,   // hit windows either side of the beat
+  pocketStreak: 8,        // perfect hits in a row before you are "in the pocket"
+  pocketHeat: 2,          // ...which nudges the genre, since Hype no longer exists
+  approachBase: 1.9, approachPerLvl: 0.03, approachMax: 2.7,
   soloBandSecs: 600,      // the BAND finishes one solo demo this often, split across
   soloQ: [20, 50],        // whoever is in it. Offline output is bounded by the time cap
                           // alone (8h -> 48 songs, 24h VIP -> 144).
   payoutSecs: 40,         // release payout = this many seconds of the song's streams
+  advanceMult: 8,         // ...and the money advance is that many streams x the royalty
+                          // rate x this. Small, but enough that COLLECT means something.
   songScale: 1.0,
   gigBase: 1.0,           // money/sec from playing live, before any release exists
   gigPerMember: 0.5,      // each extra member makes the gigs pay better
@@ -648,51 +718,63 @@ const GENRES = [
   { n:'DRILL',       v:[ .60, .80, .40] }, { n:'DISCO',       v:[ .70,-.20, .70] },
   { n:'SHOEGAZE',    v:[ .10, .60,-.20] }, { n:'AFROBEATS',   v:[ .60,-.10, .60] }
 ];
+/* A take's rhythm comes from the card, so the decision and the playing connect.
+   16 steps = 2 bars of eighths at the song's BPM. */
+const PATTERNS = {
+  four:    'x...x...x...x...',
+  eighth:  'x.x.x.x.x.x.x.x.',
+  doubles: 'xx..xx..xx..xx..',
+  sparse:  'x.......x.......',
+  drive:   'xxxxxxxxxxxxxxxx',
+  swing:   'x..x..x.x..x..x.',
+  back:    '..x...x...x...x.',
+  synco:   'x..x.x..x..x.x..'
+};
 const CARDS = [
   [ // DRUMS
-    { n:'Punk Beat',        d:'fast, loose, loud',      v:[ .95, .90,-.50], b:.55, lvl:1 },
-    { n:'Slow Groove',      d:'lets the room breathe',  v:[-.40,-.20, .30], b:.50, lvl:1 },
-    { n:'Trap Hi-Hats',     d:'rolls and triplets',     v:[ .50, .30, .80], b:.60, lvl:1 },
-    { n:'Boom Bap',         d:'dusty, behind the beat', v:[ .30, .50, .20], b:.55, lvl:1 },
-    { n:'Four On The Floor',d:'built for a dancefloor', v:[ .70,-.20, .70], b:.60, lvl:3 },
-    { n:'Live Room Kit',    d:'one mic, real wood',     v:[ .20, .60,-.30], b:.55, lvl:3 },
-    { n:'Programmed 808s',  d:'grid-tight, sub-heavy',  v:[ .60, .10, .90], b:.70, lvl:6 },
-    { n:'Motorik Pulse',    d:'hypnotic, never stops',  v:[ .40,-.10, .50], b:.70, lvl:6 },
-    { n:'Blast Beat',       d:'a war crime, tastefully',v:[1.00,1.00,-.70], b:.80, lvl:11 },
-    { n:'Broken Breakbeat', d:'chopped, off-grid',      v:[ .80, .40, .30], b:.85, lvl:11 }
+    { n:'Punk Beat',        d:'fast, loose, loud',      v:[ .95, .90,-.50], b:.55, lvl:1 , p:'drive' },
+    { n:'Slow Groove',      d:'lets the room breathe',  v:[-.40,-.20, .30], b:.50, lvl:1 , p:'sparse' },
+    { n:'Trap Hi-Hats',     d:'rolls and triplets',     v:[ .50, .30, .80], b:.60, lvl:1 , p:'doubles' },
+    { n:'Boom Bap',         d:'dusty, behind the beat', v:[ .30, .50, .20], b:.55, lvl:1 , p:'back' },
+    { n:'Four On The Floor',d:'built for a dancefloor', v:[ .70,-.20, .70], b:.60, lvl:3 , p:'four' },
+    { n:'Live Room Kit',    d:'one mic, real wood',     v:[ .20, .60,-.30], b:.55, lvl:3 , p:'eighth' },
+    { n:'Programmed 808s',  d:'grid-tight, sub-heavy',  v:[ .60, .10, .90], b:.70, lvl:6 , p:'synco' },
+    { n:'Motorik Pulse',    d:'hypnotic, never stops',  v:[ .40,-.10, .50], b:.70, lvl:6 , p:'eighth' },
+    { n:'Blast Beat',       d:'a war crime, tastefully',v:[1.00,1.00,-.70], b:.80, lvl:11 , p:'drive' },
+    { n:'Broken Breakbeat', d:'chopped, off-grid',      v:[ .80, .40, .30], b:.85, lvl:11 , p:'synco' }
   ],
   [ // BASS
-    { n:'Fuzz Sub',         d:'dirty low end',          v:[ .60, .90,-.30], b:.55, lvl:1 },
-    { n:'Walking Line',     d:'moves under everything', v:[ .20,-.10, .40], b:.50, lvl:1 },
-    { n:'Synth Bass',       d:'square wave, no mercy',  v:[ .50,-.30, .90], b:.60, lvl:1 },
-    { n:'Dub Weight',       d:'space and pressure',     v:[-.20, .20, .30], b:.55, lvl:1 },
-    { n:'Slap Funk',        d:'shows off, earns it',    v:[ .80,-.10, .60], b:.60, lvl:3 },
-    { n:'Drone Root',       d:'one note, all song',     v:[-.30, .50,-.20], b:.55, lvl:3 },
-    { n:'808 Slide',        d:'glides between notes',   v:[ .50, .20, .80], b:.70, lvl:6 },
-    { n:'Chugging Eighths', d:'relentless forward push',v:[ .90, .80,-.40], b:.70, lvl:6 },
-    { n:'Melodic Counter',  d:'a second hook, hidden',  v:[ .30,-.20, .60], b:.85, lvl:11 }
+    { n:'Fuzz Sub',         d:'dirty low end',          v:[ .60, .90,-.30], b:.55, lvl:1 , p:'four' },
+    { n:'Walking Line',     d:'moves under everything', v:[ .20,-.10, .40], b:.50, lvl:1 , p:'eighth' },
+    { n:'Synth Bass',       d:'square wave, no mercy',  v:[ .50,-.30, .90], b:.60, lvl:1 , p:'eighth' },
+    { n:'Dub Weight',       d:'space and pressure',     v:[-.20, .20, .30], b:.55, lvl:1 , p:'sparse' },
+    { n:'Slap Funk',        d:'shows off, earns it',    v:[ .80,-.10, .60], b:.60, lvl:3 , p:'synco' },
+    { n:'Drone Root',       d:'one note, all song',     v:[-.30, .50,-.20], b:.55, lvl:3 , p:'sparse' },
+    { n:'808 Slide',        d:'glides between notes',   v:[ .50, .20, .80], b:.70, lvl:6 , p:'sparse' },
+    { n:'Chugging Eighths', d:'relentless forward push',v:[ .90, .80,-.40], b:.70, lvl:6 , p:'eighth' },
+    { n:'Melodic Counter',  d:'a second hook, hidden',  v:[ .30,-.20, .60], b:.85, lvl:11 , p:'swing' }
   ],
   [ // GUITAR
-    { n:'Jangle Arps',      d:'bright, ringing chords', v:[ .30,-.20, .40], b:.55, lvl:1 },
-    { n:'Wall Of Fuzz',     d:'everything at once',     v:[ .70, .90,-.50], b:.55, lvl:1 },
-    { n:'Clean Chorus',     d:'wide and glassy',        v:[-.20,-.50, .70], b:.50, lvl:1 },
-    { n:'Palm-Muted Riff',  d:'tight, mean, simple',    v:[ .80, .60, .10], b:.60, lvl:1 },
-    { n:'Shoegaze Swell',   d:'a slow tide of reverb',  v:[ .00, .60,-.10], b:.60, lvl:3 },
-    { n:'Funk Chank',       d:'sixteenth-note scratch', v:[ .70,-.10, .60], b:.60, lvl:3 },
-    { n:'Reverse Reverb',   d:'sucks the air backwards',v:[-.10,-.30, .80], b:.70, lvl:6 },
-    { n:'Tapped Lead',      d:'showy and unrepentant',  v:[ .90, .30, .50], b:.70, lvl:6 },
-    { n:'Pitched Stabs',    d:'chopped, formant-shifted',v:[.60, .00, .90], b:.85, lvl:11 }
+    { n:'Jangle Arps',      d:'bright, ringing chords', v:[ .30,-.20, .40], b:.55, lvl:1 , p:'eighth' },
+    { n:'Wall Of Fuzz',     d:'everything at once',     v:[ .70, .90,-.50], b:.55, lvl:1 , p:'drive' },
+    { n:'Clean Chorus',     d:'wide and glassy',        v:[-.20,-.50, .70], b:.50, lvl:1 , p:'four' },
+    { n:'Palm-Muted Riff',  d:'tight, mean, simple',    v:[ .80, .60, .10], b:.60, lvl:1 , p:'doubles' },
+    { n:'Shoegaze Swell',   d:'a slow tide of reverb',  v:[ .00, .60,-.10], b:.60, lvl:3 , p:'sparse' },
+    { n:'Funk Chank',       d:'sixteenth-note scratch', v:[ .70,-.10, .60], b:.60, lvl:3 , p:'synco' },
+    { n:'Reverse Reverb',   d:'sucks the air backwards',v:[-.10,-.30, .80], b:.70, lvl:6 , p:'sparse' },
+    { n:'Tapped Lead',      d:'showy and unrepentant',  v:[ .90, .30, .50], b:.70, lvl:6 , p:'drive' },
+    { n:'Pitched Stabs',    d:'chopped, formant-shifted',v:[.60, .00, .90], b:.85, lvl:11 , p:'back' }
   ],
   [ // VOCALS
-    { n:'Shout Chorus',     d:'a whole room yelling',   v:[ .90, .80,-.30], b:.55, lvl:1 },
-    { n:'Whisper Verse',    d:'close-mic, intimate',    v:[-.60,-.30, .50], b:.50, lvl:1 },
-    { n:'Autotune Melody',  d:'pitched to the grid',    v:[ .50,-.40, .95], b:.60, lvl:1 },
-    { n:'Rapid Flow',       d:'syllables everywhere',   v:[ .70, .40, .60], b:.60, lvl:1 },
-    { n:'Double-Tracked',   d:'two takes, one voice',   v:[ .20,-.20, .70], b:.55, lvl:3 },
-    { n:'Spoken Word',      d:'talks, does not sing',   v:[-.30, .40,-.10], b:.55, lvl:3 },
-    { n:'Choir Stack',      d:'twelve of you',          v:[ .30,-.30, .80], b:.70, lvl:6 },
-    { n:'Screamed Bridge',  d:'the throat-destroyer',   v:[1.00,1.00,-.60], b:.70, lvl:6 },
-    { n:'Falsetto Hook',    d:'the bit people remember',v:[ .60,-.30, .80], b:.85, lvl:11 }
+    { n:'Shout Chorus',     d:'a whole room yelling',   v:[ .90, .80,-.30], b:.55, lvl:1 , p:'four' },
+    { n:'Whisper Verse',    d:'close-mic, intimate',    v:[-.60,-.30, .50], b:.50, lvl:1 , p:'sparse' },
+    { n:'Autotune Melody',  d:'pitched to the grid',    v:[ .50,-.40, .95], b:.60, lvl:1 , p:'eighth' },
+    { n:'Rapid Flow',       d:'syllables everywhere',   v:[ .70, .40, .60], b:.60, lvl:1 , p:'doubles' },
+    { n:'Double-Tracked',   d:'two takes, one voice',   v:[ .20,-.20, .70], b:.55, lvl:3 , p:'four' },
+    { n:'Spoken Word',      d:'talks, does not sing',   v:[-.30, .40,-.10], b:.55, lvl:3 , p:'back' },
+    { n:'Choir Stack',      d:'twelve of you',          v:[ .30,-.30, .80], b:.70, lvl:6 , p:'sparse' },
+    { n:'Screamed Bridge',  d:'the throat-destroyer',   v:[1.00,1.00,-.60], b:.70, lvl:6 , p:'drive' },
+    { n:'Falsetto Hook',    d:'the bit people remember',v:[ .60,-.30, .80], b:.85, lvl:11 , p:'swing' }
   ]
 ];
 const DSCALE = 2.2;   // distance at which a card contributes nothing — tuned to real card spacing
@@ -1084,6 +1166,19 @@ const AU = {
     const t = this.ctx.currentTime;
     this.tone(t, this.freq(this.scaleNote(this.root + 24, 4 + i)), 'triangle', 0.01, 0.5, 0.26, true, 0);
   },
+  /* your own instrument plays real notes; the rest of the band is a muted click */
+  takeHit(yours, energy, good){
+    this.init(); this.resume();
+    if (!this.ready) return;
+    const t = this.ctx.currentTime;
+    if (yours){
+      const f = this.freq(this.scaleNote(this.root + 24, this.deg));
+      this.deg = (this.deg + (Math.random() < 0.3 ? 2 : 1)) % 15;
+      this.tone(t, f, energy > 0.55 ? 'square' : 'triangle', 0.004, good ? 0.26 : 0.14, good ? 0.26 : 0.13, true, 0);
+    } else {
+      this.noiseHit(t, good ? 5200 : 3000, 0.035, good ? 0.16 : 0.09);
+    }
+  },
   chord(kind){
     this.init(); if (!this.ready) return;
     const t = this.ctx.currentTime + 0.02;
@@ -1177,7 +1272,7 @@ function newState(){
       });
     })(),
     studio:0, playtime:0, mute:false, seenReveal:false,
-    session:null, pending:null, flags:{ gear:false },
+    session:null, pending:null, payout:null, flags:{ gear:false },
     lastSeen:Date.now(), created:Date.now()
   };
 }
@@ -1312,6 +1407,8 @@ const el = {
   picks:$('#picks'), studioChip:$('#studioChip'), bandChip:$('#bandChip'),
   band:$('#band'), stage:$('#stage'), bg:$('#bg'), dock:$('#dock'),
   idlebox:$('#idlebox'), genrebox:$('#genrebox'), writebox:$('#writebox'), qualbox:$('#qualbox'),
+  takebox:$('#takebox'), takelane:$('#takelane'), takejudge:$('#takejudge'), takecombo:$('#takecombo'),
+  taketime:$('#taketime'), tkTrack:$('#tkTrack'), tkWho:$('#tkWho'),
   idleSong:$('#idleSong'), idleTitle:$('#idleTitle'), writers:$('#writers'), gpick:$('#gpick'),
   timerbar:$('#timerbar'), timerfill:$('#timerfill'), strip:$('#sheetstrip'),
   whTrack:$('#whTrack'), whWho:$('#whWho'), whJam:$('#whJam'), cards:$('#cards'),
@@ -1378,8 +1475,9 @@ function showDock(which){
   el.idlebox.hidden = which !== 'idle';
   el.genrebox.hidden = which !== 'genre';
   el.writebox.hidden = which !== 'write';
+  el.takebox.hidden = which !== 'take';
   el.qualbox.hidden = which !== 'qual';
-  el.band.classList.toggle('focus', which === 'write');
+  el.band.classList.toggle('focus', which === 'write' || which === 'take');
 }
 function renderIdle(){
   const n = S.songs.length;
@@ -1423,8 +1521,9 @@ function tick(){
   S.money += moneyRate() * dt;
 
   // writing session clock
+  if (take) tickTake();
   const ss = S.session;
-  if (ss && ss.phase === 'cards'){
+  if (ss && ss.phase === 'cards' && !take){          // the decision clock pauses while you play
     ss.timeLeft -= dt;
     el.timerfill.style.transform = 'scaleX(' + clamp(ss.timeLeft / BAL.sessionSecs, 0, 1) + ')';
     el.timerbar.classList.toggle('low', ss.timeLeft < 6);
@@ -1464,6 +1563,7 @@ function checkUnlocks(){
 let rippleCount = 0, flyCount = 0, tapKick = 0;
 function jam(x, y){
   if (revealing) return;
+  if (take){ tapTake(); ripple(x, y); return; }
   AU.init(); AU.resume(); AU.tap(false); buzz(8);
   $('#flash').classList.remove('on'); void $('#flash').offsetWidth; $('#flash').classList.add('on');
   ripple(x, y);
@@ -1531,7 +1631,7 @@ function startWriting(){
 function chooseGenre(gi){
   const order = activeTracks();
   S.session = { phase:'cards', g:gi, step:0, order, picks:[], jam:[0,0,0,0],
-                timeLeft:BAL.sessionSecs, title:genTitle(), cover:newCover(), offers:[], reacts:[] };
+                timeLeft:BAL.sessionSecs, title:genTitle(), cover:newCover(), offers:[], reacts:[], takePts:0 };
   AU.root = 40 + rndi(0, 11);
   AU.setBPM(Math.round(88 + (GENRES[gi].v[0] + 1) * 22));
   AU.reset();
@@ -1607,20 +1707,17 @@ function renderStrip(){
 }
 function chooseCard(k){
   const s = S.session;
-  if (!s || s.phase !== 'cards' || k == null || s.offers[k] == null) return;
+  if (!s || s.phase !== 'cards' || k == null || s.offers[k] == null || take) return;
   clearInterval(readTimer);
   const track = s.order[s.step], card = CARDS[track][s.offers[k]];
   s.picks.push({ track, ci:s.offers[k] });
-  AU.layerOn(track, (card.v[0] + 1) / 2);
   buzz(14);
-  s.step++;
   renderStrip();
-  if (s.step >= s.order.length) finishWriting();
-  else dealStep();
+  startTake(track, card);          // the decision is made; now play it
 }
 function autoPickRest(){
   const s = S.session;
-  if (!s || s.phase !== 'cards') return;
+  if (!s || s.phase !== 'cards' || take) return;
   clearInterval(readTimer);
   toast('⏱ Out of time — the band finished it themselves');
   let guard = 0;
@@ -1629,6 +1726,7 @@ function autoPickRest(){
     let k = cur.reacts.indexOf('good');
     if (k < 0) k = rndi(0, cur.offers.length - 1);
     chooseCard(k);
+    autoTake();                    // no take UI when the band is finishing for you
   }
 }
 function finishWriting(){
@@ -1638,16 +1736,18 @@ function finishWriting(){
   s.picks.forEach(p => { const c = CARDS[p.track][p.ci]; pts += cardPoints(c, genre, prev); prev.push(c); });
   const norm = s.picks.length ? (pts / (25 * s.picks.length)) * 100 : 0;
   const jam = s.jam.reduce((a,b) => a + b, 0);
-  const q = clamp(Math.round(norm + jam), 0, 100);
+  const takes = Math.min(BAL.takeMax, s.takePts || 0);
+  const q = clamp(Math.round(norm + jam + takes), 0, 100);
   S.pending = { title:s.title, g:s.g, cover:s.cover, q, power:bandPower(),
-                cards:s.picks.map(p => CARDS[p.track][p.ci].n) };
+                takes, cards:s.picks.map(p => CARDS[p.track][p.ci].n) };
   S.session = null;
   memEls.forEach(m => m.classList.remove('up'));
   showDock('qual');
   el.qnum.textContent = '0';
   el.qfill.style.transform = 'scaleX(0)';
   el.qlabel.textContent = qLabel(q);
-  el.qnote.textContent = GENRES[S.pending.g].n + ' · ' + S.pending.cards.join(' · ');
+  el.qnote.textContent = GENRES[S.pending.g].n + ' · ' + S.pending.cards.join(' · ') +
+    (takes ? ' · takes +' + Math.round(takes) : '');
   AU.chord('small');
   let shown = 0;
   const iv = setInterval(() => {
@@ -1657,6 +1757,141 @@ function finishWriting(){
   }, 34);
   requestAnimationFrame(() => { el.qfill.style.transform = 'scaleX(' + (q/100) + ')'; });
   save();
+}
+
+
+/* ===== RECORDING TAKE — the skill layer on top of the decision ===== */
+let take = null;
+const approachFor = lvl => Math.min(BAL.approachMax, BAL.approachBase + BAL.approachPerLvl * (lvl - 1));
+/* note arrival times, in seconds from the start of the take */
+function takeNotes(card, bpm, approach){
+  const pat = PATTERNS[card.p] || PATTERNS.eighth;
+  const step = 60 / bpm / 2;                       // one eighth note
+  const out = [];
+  for (let i = 0; ; i++){
+    const t = approach + i * step;
+    if (t > approach + BAL.takeSecs) break;
+    if (pat[i % pat.length] === 'x') out.push({ t, done:false, node:null });
+  }
+  return out;
+}
+function startTake(track, card){
+  const s = S.session;
+  const lvl = S.members[track].lvl;
+  const approach = approachFor(lvl);              // better members give you longer to read the lane
+  take = {
+    track, card, approach, notes: takeNotes(card, AU.bpm, approach),
+    t0: now(), pts: 0, streak: 0, best: 0, pocket: 0, ended: false, lastMiss: -9,
+    yours: track === S.you, energy: (card.v[0] + 1) / 2
+  };
+  el.tkTrack.textContent = MEMBERS[track].track;
+  el.tkWho.textContent = S.members[track].name + ' · ' + card.n;
+  el.takecombo.textContent = '';
+  el.takelane.classList.remove('pocket');
+  [...el.takelane.querySelectorAll('.tnote')].forEach(n => n.remove());
+  take.notes.forEach(n => {
+    const d = document.createElement('i');
+    d.className = 'tnote';
+    d.style.animationDuration = approach + 's';
+    d.style.animationDelay = (n.t - approach) + 's';
+    el.takelane.appendChild(d);
+    n.node = d;
+  });
+  memEls.forEach((m,i) => m.classList.toggle('up', i === track));
+  showDock('take');
+  AU.layerOn(track, take.energy);
+}
+function judgeText(txt, col){
+  const j = el.takejudge;
+  j.textContent = txt; j.style.color = col;
+  j.classList.remove('on'); void j.offsetWidth; j.classList.add('on');
+}
+function tapTake(){
+  if (!take || take.ended) return;
+  const t = now() - take.t0;
+  let best = null, bestD = 1e9;
+  for (const n of take.notes){
+    if (n.done) continue;
+    const d = Math.abs(n.t - t);
+    if (d < bestD){ bestD = d; best = n; }
+  }
+  if (!best || bestD > BAL.goodMs / 1000) return;   // a tap nowhere near a note is simply ignored
+  best.done = true;
+  const perfect = bestD <= BAL.perfectMs / 1000;
+  best.node.classList.add('hit');
+  take.pts += perfect ? 2 : 1;
+  AU.takeHit(take.yours, take.energy, perfect);
+  buzz(perfect ? 12 : 8);
+  if (perfect){
+    take.streak++;
+    take.best = Math.max(take.best, take.streak);
+    judgeText('PERFECT', '#0B7A72');
+    if (take.streak === BAL.pocketStreak) pocket();
+  } else {
+    take.streak = 0;
+    judgeText('GOOD', '#E39A00');
+  }
+  el.takecombo.textContent = take.streak > 2 ? take.streak + ' IN A ROW' : '';
+}
+/* Hype was retired, so being in the pocket heats the genre instead — the live
+   system that replaced it, and still real money. */
+function pocket(){
+  take.pocket++;
+  el.takelane.classList.add('pocket');
+  judgeText('IN THE POCKET', '#D93A26');
+  $('#flash').classList.remove('on'); void $('#flash').offsetWidth; $('#flash').classList.add('on');
+  const m = memEls[take.track];
+  if (m){
+    const b = m.querySelector('.bubble');
+    if (b){ b.textContent = 'in the pocket!'; b.classList.remove('on'); void b.offsetWidth; b.classList.add('on'); }
+    m.classList.remove('nod'); void m.offsetWidth; m.classList.add('nod');
+  }
+  if (S.session) S.heat[S.session.g] = clamp(S.heat[S.session.g] + BAL.pocketHeat, 0, 100);
+  AU.fill(); buzz([14, 40, 14]);
+}
+function tickTake(){
+  if (!take || take.ended) return;
+  const t = now() - take.t0;
+  const late = BAL.goodMs / 1000;
+  for (const n of take.notes){
+    if (!n.done && t > n.t + late){
+      n.done = true; n.node.classList.add('gone'); take.streak = 0;
+      el.takecombo.textContent = '';
+      if (t - take.lastMiss > 0.45){ take.lastMiss = t; judgeText('MISS', '#A9856B'); }
+    }
+  }
+  el.taketime.textContent = Math.max(0, BAL.takeSecs + take.approach - t).toFixed(1) + 's';
+  if (t > take.approach + BAL.takeSecs + 0.4) endTake(false);
+}
+function endTake(auto){
+  if (!take || take.ended) return;
+  take.ended = true;
+  const s = S.session;
+  let got;
+  if (auto){
+    got = BAL.takeAuto / Math.max(1, s.order.length);      // auto every track = takeAuto total
+  } else {
+    const max = take.notes.length * 2;
+    const ratio = max ? take.pts / max : 0;
+    got = ratio >= 0.80 ? BAL.takePerfect : ratio >= 0.45 ? BAL.takeGood : 0;
+    toast(got === BAL.takePerfect ? '🎙️ Perfect take — +' + got + ' Quality'
+        : got ? '🎙️ Good take — +' + got + ' Quality'
+        : '🎙️ That take did not make it');
+  }
+  s.takePts = (s.takePts || 0) + got;
+  [...el.takelane.querySelectorAll('.tnote')].forEach(n => n.remove());
+  take = null;
+  advanceSession();
+}
+function autoTake(){ if (take) endTake(true); }
+/* one place that moves the session on, whether a take was played or skipped */
+function advanceSession(){
+  const s = S.session;
+  if (!s) return;
+  s.step++;
+  renderStrip();
+  if (s.step >= s.order.length) finishWriting();
+  else { showDock('write'); dealStep(); }
 }
 
 /* ===== RELEASE: the slot machine ===== */
@@ -1710,14 +1945,19 @@ async function release(){
 
   await wait(180);
   const song = addSong({ title:p.title, g:p.g, q:p.q, t:ti, chart, cover:p.cover, power:p.power });
-  const pay = songSPS(song) * BAL.payoutSecs;
-  S.streams += pay; S.lifetime += pay; S.released++;
+  // The reveal shows what the song made; nothing lands until the player presses COLLECT.
+  const payS = songSPS(song) * BAL.payoutSecs;
+  const payM = payS * payoutRate() * BAL.advanceMult;
+  S.payout = { s:payS, m:payM };
+  S.released++;
   S.pending = null;
 
   const heat = pushHeat(p.g, p.q, ti);
   const tv = $('#rvTier');
   tv.textContent = T.n; tv.style.color = T.c; tv.classList.add('pop');
-  $('#rvPay').textContent = '+' + fmt(pay) + ' · ' + fmt(songSPS(song)) + '/s forever';
+  $('#rvPayS').textContent = '+' + fmt(payS);
+  $('#rvPayM').textContent = '+' + fmt(payM);
+  $('#rvPayF').textContent = fmt(songSPS(song)) + '/s FOREVER';
   $('#rvPay').classList.add('fadein');
   if (ti >= 2){ confetti(ti); buzz(ti >= 3 ? [20,50,20,50,40] : 40);
     $('#rvQuote').textContent = genQuote(); $('#rvQuote').classList.add('fadein'); }
@@ -1733,8 +1973,19 @@ async function release(){
   S.seenReveal = true;
   save();
 }
+/* the money only moves here — on COLLECT, or on the next boot if they closed the tab */
+function bankPayout(){
+  const p = S.payout;
+  if (!p) return;
+  S.streams += p.s; S.lifetime += p.s;
+  S.money += p.m;
+  S.payout = null;
+  toast('💰 +' + fmt(p.m) + ' in the account');
+  buzz(18);
+}
 function endReveal(){
   if (!revealing) return;
+  bankPayout();
   $('#reveal').classList.remove('on');
   revealing = false;
   AU.reset();
@@ -2143,6 +2394,7 @@ function boot(){
   AU.setBPM(104);
 
   // what happened while you were gone: the band kept writing, the catalogue kept streaming
+  if (S.payout) bankPayout();          // they closed the tab on the reveal
   const away = (Date.now() - (S.lastSeen || Date.now())) / 1000;
   if (S.setup && away > 60){
     const cap = offlineCap(), capped = Math.min(away, cap);
@@ -2189,6 +2441,8 @@ function boot(){
   $('#setNameDice').addEventListener('click', () => { $('#setName').value = genName(); });
   $('#setGo').addEventListener('click', finishSetup);
   $('#releaseBtn').addEventListener('click', e => { e.stopPropagation(); release(); });
+  $('#takeauto').addEventListener('click', e => { e.stopPropagation(); autoTake(); });
+  el.takelane.addEventListener('pointerdown', e => { e.preventDefault(); jam(e.clientX, e.clientY); });
   el.gpick.addEventListener('click', e => {
     const b = e.target.closest('[data-g]');
     if (b) chooseGenre(+b.dataset.g);

@@ -24,11 +24,19 @@ releasing them, and climbing the charts.
 
 ## THE ONE THING THAT MAKES THIS GAME
 
-**Songwriting is decisions, not tapping.** Anyone can build a tap-to-progress idle
-game. Here the player makes four judgement calls under a 20-second clock, and the
-band tells them — through body language, not numbers — whether each call is good.
-Tapping still exists, but only as a garnish worth a few Quality points. If a change
-would make tapping the main source of progress again, it is wrong.
+**Songwriting is decisions, then performance — never tapping.** Anyone can build a
+tap-to-progress idle game. Here the player makes four judgement calls under a
+20-second clock, and the band tells them — through body language, not numbers —
+whether each call is good. Then they have to *play* each call: a 10-second recording
+take where notes fall to the song's BPM in a pattern the chosen card decides.
+
+Two things earn Quality, and neither is tapping fast. The **decision** is worth up to
+~80 of the 100 and is still the ceiling on a song. The **take** is worth up to
+`BAL.takeMax` (20) — real timing against a real beat, and the reason a good decision
+badly played still disappoints. Idle jam-tapping survives only as a garnish
+(`+0.22`, capped at `+4` per track). If a change would make undifferentiated tapping
+the main source of progress, it is wrong; skill at a rhythm you had to choose first
+is not that.
 
 ---
 
@@ -38,7 +46,7 @@ would make tapping the main source of progress again, it is wrong.
 > again mid-sentence under ADDICTION LOOPS. This order is derived from the brief.
 
 1. **Core loop** — SVG characters, 20s writing session with card decisions and
-   nod/wince hints, Quality, Quality-driven release reveal, per-song decaying
+   nod/wince hints, a 10s recording take per decision, Quality, Quality-driven release reveal, per-song decaying
    streams, weekly genre trends, solo demos, studios, member levels, offline
    earnings, save/load, tab shell. **← current step**
 2. **Gear** — guitars, pedals, amps, mics. Visible on the characters, and each piece
@@ -115,7 +123,33 @@ Locked members are a dark silhouette with a lock. Flat, bold, slightly cartoonis
 - Higher member levels unlock better cards (`lvl` on each card) and clearer hints.
 - Tapping during a session adds `+0.22` Quality to the current track, capped at
   `+4`. That is its entire role.
-- Timer runs out → the band picks for you, using whatever the member liked.
+- Timer runs out → the band picks for you, using whatever the member liked (and every
+  remaining take is auto-taken — there is no take UI when the band is finishing for
+  you).
+
+**THE RECORDING TAKE.** Choosing a card does not advance the session; it starts a
+**10-second take** for that track. One lane, thumb only, notes falling to a hit line
+at the song's BPM.
+- The **pattern comes from the card** — every card carries `p`, a key into `PATTERNS`
+  (16 steps = two bars of eighths). "Trap Hi-Hats" is `doubles`, "Slow Groove" is
+  `sparse`, "Wall Of Fuzz" is `drive`. The choice and the skill are the same choice.
+- `perfectMs` 62 / `goodMs` 135 either side of the beat; a tap nowhere near a note is
+  ignored rather than punished. Perfect scores 2, Good 1, and the track's take is
+  graded on the ratio of the possible total: ≥0.80 → `takePerfect` (+5 Quality),
+  ≥0.45 → `takeGood` (+2), else 0. Across a whole song, `takeMax` (20) is the cap.
+- **AUTO-TAKE** skips it for a flat `takeAuto` (5) split across the tracks — always
+  available, always worse than playing.
+- **The 20-second decision clock stops while a take is running.** The take has its
+  own countdown; the two clocks never run together.
+- Better members give you more time to read the lane, not fewer notes:
+  `approach = 1.9s + 0.03/level`, capped at 2.7s.
+- 8 perfect hits in a row is **IN THE POCKET** — screen flash, the member cheers, the
+  lane turns gold, and the genre's heat moves by `BAL.pocketHeat`. (The brief asked
+  for a Hype bonus; Hype was retired, and genre heat is the live system that replaced
+  it — so the reward is real, it just lands on the market instead.) Only dense
+  patterns can reach 8 in a row, which is another reason the card matters.
+- Your own instrument plays real pentatonic notes on a hit; the other three get a
+  muted click, so you can hear which part is yours.
 - Quality is normalised over however many tracks are unlocked, so an early one-track
   song can still score well.
 - Members also **auto-write solo demos** in the background and while you are away,
@@ -130,6 +164,13 @@ Slot-machine chart reveal: title → procedural cover → chart-position reel �
 Flop / Solid / Hit / Viral / #1, **weighted by Quality** (`ODDS` table, interpolated:
 at Q90 exactly 40% land Hit or better). 25% of Flops and Solids show the reel land
 one tier higher before settling. Skippable after the first reveal.
+
+**Nothing is banked until the player presses COLLECT.** The reveal ends on a payout
+card — streams on one line, money on the other, and the song's `/s FOREVER` under
+them — and the numbers sit there until the button is pressed. `S.payout` holds the
+pending `{s, m}` in the save, so closing the tab mid-reveal does not lose it: `boot()`
+banks anything left over. The counters in the top bar ease up to the new totals on
+the press, and a toast says how much money landed.
 
 ## 6. TWO RATES: STREAMS/sec AND MONEY/sec
 The top bar shows both, each with its total and its rate. They are separate numbers
@@ -174,7 +215,13 @@ immediate payoff before you have any catalogue.
   RISING genre can tip it HOT — verified: a Q92 Viral took a genre from RISING 55 to
   HOT 85. Shown on the genre picker (with "a hit could tip it hot" on RISING ones)
   and on the Catalog tab. Trends apply live to the whole back catalogue.
-- Release payout = 90 seconds of that song's streams, up front.
+- **Release payout**, banked on COLLECT: `payoutSecs` (40) seconds of that song's
+  streams, plus a money advance of `streams × payoutRate × advanceMult` (8). The
+  advance is deliberately small in absolute terms and proportional in shape — a Q56
+  Solid at a fresh full band pays around 140, a Q63 Viral around 1.3K — so pressing
+  the button means something early and is noise once the catalogue carries you.
+  Simulated at 168h it moves the milestones by a few percent (casual full band 1.7h →
+  69m) and still lands a week of steady play at Label HQ.
 
 ## 7. YOUR CHARACTER, AND HIRING THE REST
 On first run a **setup screen** asks for a band name, your name, the instrument you
@@ -293,6 +340,9 @@ assembles as you make decisions, and a finished demo is a 4-layer loop. The chos
 card's energy shapes its layer (filter cutoff, hat density). BPM comes from the
 genre's energy and drives both the loop and the characters' bob. Studio upgrades add
 reverb. Release plays a chord. Mute toggle. Haptics on tap and on Hit/Viral.
+During a **take**, a hit on your own track plays a real pentatonic note whose timbre
+follows the card's energy; the other three tracks get a muted click, so you can always
+hear which part is yours. `AU.takeHit(yours, energy, good)`.
 
 ## 12. CURRENCIES
 - **Streams** — reach. Accumulates from the rate above; drives Legacy at prestige.
@@ -310,9 +360,11 @@ Middle: the stage — 4 SVG characters, the active one stepped forward.
 The **Band tab is a full-page screen** (`#sheet.full`), not a bottom panel: band
 identity, royalty rate, studio, every member with level and upgrade, and empty slots
 with prices. The other tabs remain bottom sheets.
-Bottom dock, one of four states: **idle** (solo-demo progress + WRITE A SONG),
-**genre** pick, **writing** (timer, song-sheet strip, 3 cards), **quality** (score +
-RELEASE IT). Tabs: Band | Gear | Catalog | Shop | League open as bottom sheets over
+Bottom dock, one of five states: **idle** (solo-demo progress + WRITE A SONG),
+**genre** pick, **writing** (timer, song-sheet strip, 3 cards), **take** (track name,
+countdown, the falling-note lane, AUTO-TAKE), **quality** (score + RELEASE IT). The
+lane takes its own `pointerdown` — during a take the thumb is on the dock, not the
+stage, so the stage tap handler alone would miss every note. Tabs: Band | Gear | Catalog | Shop | League open as bottom sheets over
 the stage. Targets ≥44px, `env(safe-area-inset-*)` respected.
 
 ## 14. SHOP (stub)
@@ -330,6 +382,17 @@ M0.2), Gold 150 (Epic+), Mythic 500 (Legendary). Battle Pass ₪35/mo. VIP ₪19
 - Measured Quality spread at level 1 with a full band: worst-card play median 43,
   random 55, best-card play 69–81; at level 12 best play reaches 88 (+4 from jamming
   → 90+). Levelling visibly matters.
+- Recording takes verified in headless mobile Chromium: the lane builds from the
+  chosen card's pattern, a bot tapping inside the perfect window scores 22/42 hits
+  before reaching 11 in a row (IN THE POCKET fires at 8, lane goes gold, genre heat
+  +2), the 20-second decision clock is frozen for the length of the take, AUTO-TAKE
+  banks 5/tracks, a take where every note is missed scores 0, and the Quality note
+  reports "takes +N". Only dense card patterns can reach a pocket — sparse ones deal
+  6 notes in 10s.
+- COLLECT verified: the reveal holds `S.payout` (a Q63 Viral = 3.97K streams / 1.27K
+  money), the money counter does not move until the button is pressed, and it then
+  jumps by exactly the held amount. Suite t1–t4/e1/f1/sv all pass, no console errors,
+  frame time median 16.7ms / p95 17.5ms.
 
 - Saves, offline and settings verified: settings sheet, cloud stub round trip, sound
   toggle persisting into the save, reset confirm + cancel; offline at 3h / 9h (capped
@@ -366,7 +429,7 @@ base payout rate, levels, ownership, songs, time away) rather than discarded.
 - Everything lives in `index.html`. Keep the section-comment banners
   (`/* ===== AUDIO ===== */` etc.) and add new systems as new banners.
 - Tunables live in the tables near the top of the script — `BAL`, `MEMBERS`,
-  `RARITY`, `STUDIOS`, `TIERS`, `ODDS`, `GENRES`, `CARDS`. Never inline a balance
+  `RARITY`, `STUDIOS`, `TIERS`, `ODDS`, `GENRES`, `CARDS`, `PATTERNS`. Never inline a balance
   number in logic. Studio costs are on the *money* scale, which accrues roughly 10x
   slower than streams — rescale them if `payoutBase` ever changes.
 - Card vectors are the game's difficulty knob. `DSCALE` (2.2) is the distance at
