@@ -350,51 +350,63 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 #tkbar .tk{font-size:14px;font-weight:800;letter-spacing:.13em}
 #tkbar .who{flex:1;font-size:10.5px;font-weight:700;color:var(--dim);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#tkmult{font-size:17px;font-weight:800;color:var(--dim2);font-variant-numeric:tabular-nums}
-#tkmult.hot{color:var(--accent-dk)}
+#tkmult{font-size:17px;font-weight:800;color:var(--dim2);font-variant-numeric:tabular-nums;
+  padding:3px 9px;border-radius:11px;border:2px solid transparent;line-height:1.1}
+#tkmult.m2{color:var(--gold-dk);border-color:var(--gold)}
+#tkmult.m3{color:var(--accent-dk);border-color:var(--accent)}
+#tkmult.m4{color:var(--panel);background:var(--accent);border-color:var(--accent-sh)}
+#tkmult.bump{animation:mbump .3s cubic-bezier(.2,1.5,.4,1)}
+@keyframes mbump{0%{transform:scale(1)}40%{transform:scale(1.3)}100%{transform:scale(1)}}
 #taketime{font-size:11px;font-weight:800;color:var(--gold-dk);min-width:36px;text-align:right;
   font-variant-numeric:tabular-nums}
 #takeauto{padding:10px 13px;border-radius:12px;font-size:10px;font-weight:800;letter-spacing:.09em;
   background:var(--panel);border:2px solid var(--line);color:var(--dim)}
 #takeauto:active{transform:translateY(2px)}
-#tkmeter{height:6px;border-radius:99px;background:var(--cream3);overflow:hidden;margin-bottom:7px;
-  border:0;flex:0 0 auto}
-#tkmfill{height:100%;background:var(--accent2);border-radius:99px;transition:width .16s linear}
+#tkmeter{height:7px;border-radius:99px;background:var(--cream3);overflow:hidden;margin-bottom:7px;flex:0 0 auto}
+#tkmfill{height:100%;background:var(--accent2);border-radius:99px;transition:width .12s linear}
 #tkmeter.low #tkmfill{background:var(--accent)}
 #hwy{position:relative;flex:1 1 auto;min-height:0;display:flex;gap:6px}
 #hwy i{font-style:normal}
 .lane{position:relative;flex:1;border-radius:16px;background:var(--panel);border:2px solid var(--line);
-  overflow:hidden}
-.lane .pad{position:absolute;left:8px;right:8px;bottom:8px;height:46px;border-radius:14px;
-  border:3px solid var(--lc);box-sizing:border-box}
-.lane .lbl{position:absolute;left:0;right:0;bottom:24px;text-align:center;font-size:9px;font-weight:800;
-  letter-spacing:.14em;color:var(--dim2)}
-.lane.on{background:var(--lc2)}
-.lane.on .pad{background:var(--lc)}
-.lane .flame{position:absolute;left:50%;bottom:8px;width:56px;height:56px;margin-left:-28px;border-radius:50%;
-  background:var(--lc);opacity:0;pointer-events:none}
-.lane.fire .flame{animation:flame .36s ease-out}
-@keyframes flame{0%{opacity:.8;transform:scale(.45)}100%{opacity:0;transform:scale(2.2)}}
-#hwy.pocket .lane{border-color:var(--gold);background:var(--gold-w)}
+  overflow:hidden;padding:0}
+.lane::before{content:"";position:absolute;left:0;right:0;bottom:0;height:78px;background:var(--lc2)}
+.lane::after{content:"";position:absolute;left:0;right:0;bottom:78px;height:2px;background:var(--lc)}
+.lane .pad{position:absolute;left:8px;right:8px;bottom:12px;height:52px;border-radius:16px;
+  border:3px solid var(--lc);background:var(--panel);box-shadow:0 5px 0 var(--lcd);box-sizing:border-box;
+  display:grid;place-items:center;transition:transform .05s ease,box-shadow .05s ease,background .05s ease}
+.lane .lbl{position:relative;font-size:10px;font-weight:800;letter-spacing:.14em;color:var(--lcd)}
+.lane:active .pad,.lane.on .pad{transform:translateY(5px);box-shadow:0 0 0 var(--lcd);background:var(--lc)}
+.lane:active .lbl,.lane.on .lbl{color:var(--ink)}
+.lane .flame{position:absolute;left:50%;bottom:16px;width:66px;height:66px;margin-left:-33px;border-radius:50%;
+  border:4px solid var(--lc);opacity:0;pointer-events:none}
+.lane.fire .flame{animation:flame .3s ease-out}
+@keyframes flame{0%{opacity:.95;transform:scale(.5)}100%{opacity:0;transform:scale(2.1)}}
+.lane.bad{animation:laneshake .2s ease-in-out}
+@keyframes laneshake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+#hwy.pocket .lane{border-color:var(--gold);box-shadow:inset 0 0 0 3px var(--gold-w)}
 .l0{--lc:var(--accent);--lcd:var(--accent-sh);--lc2:var(--accent-w)}
 .l1{--lc:var(--accent2);--lcd:var(--accent2-dk);--lc2:var(--accent2-w)}
 .l2{--lc:var(--gold);--lcd:var(--gold-dk);--lc2:var(--gold-w)}
-#notes{position:absolute;inset:0;display:flex;gap:6px;pointer-events:none;z-index:2}
+#notes{position:absolute;inset:0;display:flex;gap:6px;pointer-events:none;z-index:2;overflow:hidden}
 .ncol{position:relative;flex:1}
-.tnote{position:absolute;left:11%;right:11%;top:0;height:34px;border-radius:17px;
-  background:var(--lc);box-shadow:0 3px 0 var(--lcd);
+.tnote{position:absolute;left:10%;right:10%;top:0;height:36px;border-radius:18px;
+  background:var(--lc);box-shadow:0 4px 0 var(--lcd);
   animation-name:fall;animation-timing-function:linear;animation-fill-mode:forwards}
-@keyframes fall{from{transform:translateY(-42px)}to{transform:translateY(var(--fy,240px))}}
-.tnote.hit{animation:none;transform:translateY(var(--fy,240px)) scale(1.4);opacity:0;
-  transition:transform .16s ease,opacity .16s ease}
-.tnote.gone{background:var(--dim2);box-shadow:none;opacity:0;transition:opacity .4s ease .1s}
-#takejudge{position:absolute;left:0;right:0;top:34%;text-align:center;font-size:20px;font-weight:800;
-  letter-spacing:.12em;opacity:0;z-index:3;pointer-events:none;
-  text-shadow:0 0 10px var(--panel),0 0 4px var(--panel)}
-#takejudge.on{animation:jpop .5s ease-out}
-@keyframes jpop{0%{opacity:0;transform:scale(.7)}30%{opacity:1;transform:scale(1.08)}100%{opacity:0;transform:scale(1)}}
-#takecombo{position:absolute;left:0;right:0;top:12px;text-align:center;font-size:11px;font-weight:800;
+.tnote::after{content:"";position:absolute;left:16%;right:16%;top:7px;height:5px;border-radius:3px;
+  background:var(--panel);opacity:.55}
+@keyframes fall{from{transform:translateY(-46px)}to{transform:translateY(var(--fy,240px))}}
+.tnote.hit{animation:none;transform:translateY(var(--fy,240px)) scale(1.45);opacity:0;
+  transition:transform .14s ease,opacity .14s ease}
+.tnote.gone{background:var(--dim2);box-shadow:none;opacity:0;transition:opacity .3s ease .06s}
+.tnote.gone::after{opacity:0}
+#takejudge{position:absolute;left:0;right:0;top:26%;text-align:center;font-size:22px;font-weight:800;
+  letter-spacing:.1em;opacity:0;z-index:3;pointer-events:none;
+  text-shadow:0 0 12px var(--panel),0 0 5px var(--panel)}
+#takejudge.on{animation:jpop .42s ease-out}
+@keyframes jpop{0%{opacity:0;transform:scale(.6)}25%{opacity:1;transform:scale(1.12)}100%{opacity:0;transform:scale(1)}}
+#takecombo{position:absolute;left:0;right:0;top:10px;text-align:center;font-size:13px;font-weight:800;
   letter-spacing:.14em;color:var(--dim2);z-index:3;pointer-events:none;text-shadow:0 0 8px var(--panel)}
+#takecombo.hot{color:var(--accent-dk)}
 
 /* ===== WHILE YOU WERE GONE ===== */
 #gone{position:fixed;inset:0;z-index:42;display:none;flex-direction:column;align-items:center;
@@ -559,9 +571,9 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   </div>
   <div id="tkmeter"><div id="tkmfill" style="width:55%"></div></div>
   <div id="hwy">
-    <button class="lane l0" data-l="0"><i class="flame"></i><i class="pad"></i><i class="lbl">SNARE</i></button>
-    <button class="lane l1" data-l="1"><i class="flame"></i><i class="pad"></i><i class="lbl">KICK</i></button>
-    <button class="lane l2" data-l="2"><i class="flame"></i><i class="pad"></i><i class="lbl">HAT</i></button>
+    <button class="lane l0" data-l="0"><i class="flame"></i><i class="pad"><i class="lbl">SNARE</i></i></button>
+    <button class="lane l1" data-l="1"><i class="flame"></i><i class="pad"><i class="lbl">KICK</i></i></button>
+    <button class="lane l2" data-l="2"><i class="flame"></i><i class="pad"><i class="lbl">HAT</i></i></button>
     <div id="notes"><i class="ncol l0"></i><i class="ncol l1"></i><i class="ncol l2"></i></div>
     <div id="takecombo"></div>
     <div id="takejudge"></div>
@@ -655,7 +667,7 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':
 /* ===== BALANCE (tune here, never inline) ===== */
 const BAL = {
   sessionSecs: 20,        // whole writing session
-  readBeat: 0.30,         // seconds per card while the member reads them
+  readBeat: 0.22,         // seconds per card while the member reads them
   jamPerTap: 0.22,        // Quality per tap...
   jamCap: 4,              // ...capped per track, so tapping is a garnish
   wGenre: 0.45, wCoher: 0.35, wBase: 0.20,   // Quality weights, 25 pts per decision
@@ -670,7 +682,7 @@ const BAL = {
   meterStart: 65, meterHit: 3, meterMiss: 6,     // the take falls apart at 0
   pocketStreak: 8,        // perfect hits in a row before you are "in the pocket"
   pocketHeat: 2,          // ...which nudges the genre, since Hype no longer exists
-  approachBase: 1.9, approachPerLvl: 0.03, approachMax: 2.7,
+  approachBase: 1.15, approachPerLvl: 0.02, approachMax: 1.55,   // notes fly
   soloBandSecs: 600,      // the BAND finishes one solo demo this often, split across
   soloQ: [20, 50],        // whoever is in it. Offline output is bounded by the time cap
                           // alone (8h -> 48 songs, 24h VIP -> 144).
@@ -1834,9 +1846,12 @@ function multFor(streak){
 }
 function renderMult(){
   const m = multFor(take.streak);
+  const up = m > (take.mult || 1);
   take.bestMult = Math.max(take.bestMult, m);
+  take.mult = m;
   el.tkmult.textContent = 'x' + m;
-  el.tkmult.classList.toggle('hot', m > 1);
+  el.tkmult.className = m > 1 ? 'm' + m : '';
+  if (up){ void el.tkmult.offsetWidth; el.tkmult.classList.add('bump'); AU.tap(true); buzz([10, 30, 10]); }
 }
 function renderMeter(){
   el.tkmfill.style.width = clamp(take.meter, 0, 100) + '%';
@@ -1847,7 +1862,7 @@ function startTake(track, card){
   const approach = approachFor(lvl);              // better members give you longer to read
   take = {
     track, card, approach, notes: takeNotes(card, AU.bpm, approach),
-    t0: now(), pts: 0, streak: 0, best: 0, bestMult: 1, pocket: 0, ended: false, lastMiss: -9,
+    t0: now(), pts: 0, streak: 0, best: 0, mult: 1, bestMult: 1, pocket: 0, ended: false, lastMiss: -9,
     meter: BAL.meterStart, yours: track === S.you, energy: (card.v[0] + 1) / 2
   };
   el.tkTrack.textContent = MEMBERS[track].track;
@@ -1862,7 +1877,7 @@ function startTake(track, card){
   renderMult(); renderMeter();
   // the lanes are laid out now, so the fall distance is measurable
   const h = el.hwy.clientHeight || 260;
-  const fy = Math.max(90, h - 48);                // note lands centred on the pad
+  const fy = Math.max(90, h - 55);                // note lands centred on the pad
   take.notes.forEach(n => {
     const d = document.createElement('i');
     d.className = 'tnote';
@@ -1879,11 +1894,22 @@ function judgeText(txt, col){
   j.textContent = txt; j.style.color = col;
   j.classList.remove('on'); void j.offsetWidth; j.classList.add('on');
 }
-function lanePop(L){
+/* the pad answers the thumb before anything is judged — press first, score after */
+function lanePress(L){
   const n = el.lanes[L];
   if (!n) return;
-  n.classList.add('on', 'fire');
-  clearTimeout(n._t); n._t = setTimeout(() => n.classList.remove('on', 'fire'), 170);
+  n.classList.add('on');
+  clearTimeout(n._t); n._t = setTimeout(() => n.classList.remove('on'), 110);
+}
+function laneFire(L){
+  const n = el.lanes[L];
+  if (!n) return;
+  n.classList.remove('fire'); void n.offsetWidth; n.classList.add('fire');
+}
+function laneBad(L){
+  const n = el.lanes[L];
+  if (!n) return;
+  n.classList.remove('bad'); void n.offsetWidth; n.classList.add('bad');
 }
 function tapLane(L){
   if (!take || take.ended) return;
@@ -1896,13 +1922,13 @@ function tapLane(L){
     near = true;
     if (n.lane === L && d < bestD){ bestD = d; best = n; }
   }
-  lanePop(L);
   if (!best){
     // a tap in empty air costs nothing; a tap on the wrong lane while a note was
     // there is a real mistake, and the take feels it.
-    if (near) missNote(true);
+    if (near){ laneBad(L); missNote(true); }
     return;
   }
+  laneFire(L);
   best.done = true;
   const perfect = bestD <= BAL.perfectMs / 1000;
   best.node.classList.add('hit');
@@ -1916,6 +1942,7 @@ function tapLane(L){
   if (perfect && take.streak === BAL.pocketStreak) pocket();
   renderMult(); renderMeter();
   el.takecombo.textContent = take.streak > 2 ? take.streak + ' IN A ROW' : '';
+  el.takecombo.classList.toggle('hot', take.streak >= BAL.multSteps[0]);
 }
 function missNote(wrongLane){
   const t = now() - take.t0;
@@ -1950,11 +1977,11 @@ function tickTake(){
   const t = now() - take.t0;
   const late = BAL.goodMs / 1000;
   for (const n of take.notes){
-    if (!n.done && t > n.t + late){ n.done = true; n.node.classList.add('gone'); missNote(false); }
+    if (!n.done && t > n.t + late){ n.done = true; n.node.classList.add('gone'); laneBad(n.lane); missNote(false); }
     if (!take || take.ended) return;
   }
   el.taketime.textContent = Math.max(0, BAL.takeSecs + take.approach - t).toFixed(1) + 's';
-  if (t > take.approach + BAL.takeSecs + 0.4) endTake(false);
+  if (t > take.approach + BAL.takeSecs + 0.25) endTake(false);
 }
 function endTake(auto, botched){
   if (!take || take.ended) return;
@@ -2542,7 +2569,9 @@ function boot(){
   $('#setGo').addEventListener('click', finishSetup);
   $('#releaseBtn').addEventListener('click', e => { e.stopPropagation(); release(); });
   $('#takeauto').addEventListener('click', e => { e.stopPropagation(); autoTake(); });
-  el.lanes.forEach((n, i) => n.addEventListener('pointerdown', e => { e.preventDefault(); tapLane(i); }));
+  el.lanes.forEach((n, i) => n.addEventListener('pointerdown', e => {
+    e.preventDefault(); lanePress(i); tapLane(i);
+  }));
   el.gpick.addEventListener('click', e => {
     const b = e.target.closest('[data-g]');
     if (b) chooseGenre(+b.dataset.g);

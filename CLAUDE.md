@@ -150,7 +150,8 @@ the screen, played with one thumb. The band stays visible above it.
   Quality), ≥0.45 → `takeGood` (+2), else 0. Across a whole song, `takeMax` (20) is
   the cap.
 - **Note streak multiplier** at `BAL.multSteps` (6 / 14 / 24 in a row → x2 / x3 / x4),
-  shown in the take's header. It is not a score multiplier — the grade is accuracy —
+  shown as a chip in the take's header that changes colour at each step (gold →
+  coral → filled coral) and bumps, taps and buzzes when it climbs. It is not a score multiplier — the grade is accuracy —
   but finishing a take on x4 is worth `multBonus` (+1 Quality).
 - **The take meter** starts at `meterStart` (65), rises `meterHit` (3) per hit and
   falls `meterMiss` (6) per miss. At 0 the take **falls apart**: it ends there, scores
@@ -160,10 +161,17 @@ the screen, played with one thumb. The band stays visible above it.
   available, always worse than playing.
 - **The 20-second decision clock stops while a take is running.** The take has its
   own countdown; the two clocks never run together.
-- Better members give you more time to read the lane, not fewer notes:
-  `approach = 1.9s + 0.03/level`, capped at 2.7s.
+- **The notes fly.** `approach = 1.15s + 0.02/level`, capped at 1.55s — the whole
+  fall, top of the lane to the pad. Better members buy reading time, never fewer
+  notes. The deal before it snaps in at `readBeat` 0.22s a card.
+- **The pads answer the thumb before anything is judged.** `pointerdown` presses the
+  pad into its `0 5px 0` shadow and fills it (`lanePress`, plus `.lane:active` so the
+  browser paints it without waiting on JS); a hit fires a ring burst (`laneFire`), a
+  miss or a wrong lane shakes the lane (`laneBad`). Every lane carries a wash and a
+  strike line across its bottom 78px, so the target zone reads at a glance.
 - 8 perfect hits in a row is **IN THE POCKET** — screen flash, the member cheers, all
-  three lanes turn gold, and the genre's heat moves by `BAL.pocketHeat`. (The brief asked
+  three lanes take a gold border and inner ring (the wash stays, or the lanes lose the
+  colours you are aiming at), and the genre's heat moves by `BAL.pocketHeat`. (The brief asked
   for a Hype bonus; Hype was retired, and genre heat is the live system that replaced
   it — so the reward is real, it just lands on the market instead.) Only dense
   patterns deal 8 notes to hit, which is another reason the card matters.
@@ -410,7 +418,9 @@ M0.2), Gold 150 (Epic+), Mythic 500 (Legendary). Battle Pass ₪35/mo. VIP ₪19
   POCKET fires at 8, lanes go gold, genre heat +2), a wrong-lane tap reading WRONG
   LANE and costing meter, a take with no taps bottoming the meter out and scoring 0,
   the 20-second decision clock frozen for the length of the take, AUTO-TAKE banking
-  5/tracks and closing the panel, and the Quality note reporting "takes +N".
+  5/tracks and closing the panel, and the Quality note reporting "takes +N". A take
+  played clean scores 5, or 6 when the streak reaches x4. Frame time with 42 notes
+  falling: median 16.7ms, p95 17.0ms, worst 18.2ms.
 - COLLECT verified: the reveal holds `S.payout` (a Q63 Viral = 3.97K streams / 1.27K
   money), the money counter does not move until the button is pressed, and it then
   jumps by exactly the held amount. Suite t1–t4/e1/f1/sv all pass, no console errors,
