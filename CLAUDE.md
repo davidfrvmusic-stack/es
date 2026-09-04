@@ -189,7 +189,24 @@ the screen, played with one thumb. The band stays visible above it.
   pad into its `0 5px 0` shadow and fills it (`lanePress`, plus `.lane:active` so the
   browser paints it without waiting on JS); a hit fires a ring burst (`laneFire`), a
   miss or a wrong lane shakes the lane (`laneBad`). Every lane carries a wash and a
-  strike line across its bottom 78px, so the target zone reads at a glance.
+  strike line across its bottom 78px, so the target zone reads at a glance. **Notes are
+  clipped to their own lane** (`.ncol` clips at the lane's radius), so a hit burst can
+  never bleed into the lane next door.
+- **A take says it is a take.** The panel's first line is a pulsing red **REC** dot, the
+  track, `take 2 of 4`, the streak chip, the clock and AUTO-TAKE; the second is the
+  chosen card and the member playing it, with `TAKE METER` labelling the bar under it.
+  The studio panel sits on `--cream2` behind a neutral rule; the gig panel (§4d) sits on
+  `--cream3` behind a coral one, so a recording never looks like a show.
+- **One feedback slot** (`#feed`, `feed()`). PERFECT / GOOD / MISS / WRONG LANE, the
+  streak crossing a multiplier step, IN THE POCKET, the crowd milestones and the encore
+  all land in the same place, one at a time. The rule: a judgement is worthless a moment
+  later, so a newer one replaces an older one immediately — but a **moment** holds the
+  slot for its own 0.9s, because it is the thing the player will remember and a PERFECT
+  80ms later would erase it. The running `N IN A ROW` line is gone; the multiplier chip
+  is the persistent status, and only *crossing* a step is news.
+- **The economy steps back while you play.** The three counters and the rank bar drop to
+  55% for the whole decision-and-take (`#top.play`), and the band name and studio line on
+  the stage fade out entirely, because the stepped-forward member fills that space.
 - 8 perfect hits in a row is **IN THE POCKET** — screen flash, the member cheers, all
   three lanes take a gold border and inner ring (the wash stays, or the lanes lose the
   colours you are aiming at), and the genre's heat moves by `BAL.pocketHeat`. (The brief asked
@@ -320,7 +337,25 @@ the panel says so and PLAY GIG is hidden.
 song setlist — 45–75s in total), each using that song's genre for BPM, key, wave,
 filter and note pattern. It reuses the take engine wholesale: `take.mode = 'gig'`
 switches the meter to **CROWD HYPE**, routes hits and misses into `hype()` instead of
-the take meter, and never fails you out. Hype rises with hits, perfect streaks, song
+the take meter, and never fails you out.
+
+**A gig replaces the header instead of dimming it.** `#top.gig` hides the counters and
+the rank bar and shows the room: a ticket glyph, the venue's name, and `SONG 2 OF 3`
+(or `ENCORE`). Money and fans are not what you are doing on a stage. The panel drops the
+REC dot and the AUTO-TAKE button, names the song in full on its own line, and labels the
+meter `CROWD HYPE · <TIER> <n>`.
+
+**The crowd is never a bare number.** `HYPE_TIERS` is one table carrying both the label
+and the shout: WARMING UP (0), WITH YOU (40, "THE ROOM IS WITH YOU"), LOUD (70, "THEY'RE
+SINGING IT BACK"), ON FIRE (90, "THIS PLACE IS GOING OFF"). Crossing a tier fires the
+shout once, with confetti and a buzz; the label rides the meter continuously. The
+thresholds are the milestones that were already there — they now have names.
+
+> **`AUTO-PERFORM` was in the plan and is deliberately not built.** The redesign's gig
+> wireframe drew an auto button under the lanes, mirroring AUTO-TAKE. A gig you can skip
+> is a gig the catalogue plays for you, which is exactly what §4d says a gig must never
+> be — and adding one would change what a show pays for, which the brief for this stage
+> ruled out. The button stays hidden in gig mode. Hype rises with hits, perfect streaks, song
 strength and genre fit, and bleeds `BAL.hypeDrift` a second, so a show has to be
 played rather than survived. The crowd behind the band grows and bobs through four
 states, and milestones fire at 40 / 70 / 90. Finish above `BAL.gigEncoreAt` (88) and
@@ -605,7 +640,13 @@ The idle dock also carries **GIGS** (with the ticket count), which opens `#gigs`
 full-screen panel: tickets and next refill, the venue ladder, then the venue brief and
 setlist. The show itself reuses `#takefs` with `.gig` on it — same lanes, hype instead
 of the take meter, no AUTO-TAKE. `#gigres` is the result card.
-Bottom dock, one of four states: **idle** (solo-demo progress + WRITE A SONG),
+**While you play, the HUD is the subject and nothing else is.** The header dims to 55%
+for a decision or a take and is replaced outright by the room for a gig; the stage's own
+two labels fade; feedback lands in one slot rather than three overlapping positions; and
+notes are clipped to their lane. The take panel and the gig panel are told apart by
+their ground, their top rule, the REC dot and the presence of AUTO-TAKE.
+
+Bottom dock, one of four states: **idle** (Next Goal + demo line + adaptive CTA + GIGS),
 **genre** pick, **writing** (timer, song-sheet strip, 3 cards), **quality** (score +
 RELEASE IT). The **take is not a dock state** — it is `#takefs`, a fixed panel over
 the bottom 46% (min 300px) holding its header, meter, three lanes and AUTO-TAKE,
@@ -823,6 +864,38 @@ COLLECT actually banking a held payout and the label falling back afterwards), t
 line, the empty rail, the absent chip row, and WRITE A SONG still opening the genre
 pick. Thirteen suites pass, no console errors, frame time unchanged.
 
+**Phase Two, stage 5 — rhythm play that reads at speed.** The HUD was three separate
+feedback positions, a header still counting money mid-song, a take panel and a gig panel
+that looked identical, and notes that could bleed out of the lane you were aiming at.
+
+- **One slot** (`#feed`) replaces `#takejudge`, `#takecombo` and `#hypeTag`. The rule
+  that makes it work is priority, not queueing: judgements replace each other instantly
+  (a stale PERFECT is worse than none), while a *moment* holds the slot for 0.9s so a hit
+  landing 80ms later cannot erase IN THE POCKET. The persistent streak line is gone — the
+  multiplier chip already carries that state, so the feed only reports it when the streak
+  *crosses* a step.
+- **The header knows what you are doing.** `hudMode()` runs inside `renderTop()` and at
+  every take/gig transition: `#top.play` for a decision or a take, `#top.gig` for a show,
+  `#stage.playing` for both. That is one function deciding, rather than four call sites
+  each remembering to undo their own class.
+- **Studio and stage are told apart** on four channels at once: the ground (`--cream2` vs
+  `--cream3`), the top rule (neutral vs coral), the REC dot, and whether AUTO-TAKE exists.
+- **Notes clip to their lane**, at the lane's own radius.
+- **`HYPE_TIERS`** gives the crowd a name at every level and keeps the existing 40/70/90
+  milestones as the tier boundaries, so the shout and the label can never disagree.
+
+`hype()` also gained a `!gigRun` guard. It is not reachable in play — `endGigSection()`
+nulls `take` before `finishGig()` nulls `gigRun` — but the HUD suite reached it by ending
+a show under a live take, and a crash in the rhythm loop is not worth the one word saved.
+
+Suites: the new `hud` suite drives the take chrome (REC dot, `take 1 of 4`, card and
+member, TAKE METER, AUTO-TAKE present), the gig chrome (header replaced, counters hidden,
+venue and section, no REC, no AUTO-TAKE, full title, `CROWD HYPE · WARMING UP 19`), the
+stage labels stepping aside, lane clipping, the single slot with a moment holding it
+against a judgement and letting go after, every tier boundary, and a milestone shouting
+exactly once. Fifteen suites pass, no console errors, frame time median 16.7ms / p95
+17.1ms.
+
 **Removed along the way:** the tap-to-fill-tracks loop, Hook Moments, the Hype stat
 (Quality shifts chart odds instead), and weekly-seeded genre trends (replaced by the
 live heat cycle). Time-gated member unlocks are gone too —
@@ -854,8 +927,8 @@ base payout rate, levels, ownership, songs, time away) rather than discarded.
   (`/* ===== AUDIO ===== */` etc.) and add new systems as new banners.
 - Tunables live in the tables near the top of the script — `BAL`, `MEMBERS`,
   `RARITY`, `STUDIOS`, `TIERS`, `ODDS`, `GENRES`, `GCARDS`, `RANKS`, `CARDS`, `PATTERNS`. Never inline a balance
-  number in logic. `GOALS` and `RAIL` are the same idea for content rather than balance:
-  an ordered table you extend by adding an entry, never by adding a branch. Studio costs are on the *money* scale, which accrues roughly 10x
+  number in logic. `GOALS`, `RAIL` and `HYPE_TIERS` are the same idea for content rather
+  than balance: an ordered table you extend by adding an entry, never by adding a branch. Studio costs are on the *money* scale, which accrues roughly 10x
   slower than streams — rescale them if `payoutBase` ever changes.
 - Card vectors are the game's difficulty knob. `DSCALE` (2.2) is the distance at
   which a card scores zero; it is tuned to how far apart the real card vectors sit,

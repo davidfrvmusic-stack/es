@@ -63,7 +63,18 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 
 /* ===== TOP BAR ===== */
 #top{padding:calc(var(--safe-t) + 12px) 16px 10px;flex:0 0 auto;z-index:6;
-  background:var(--cream);border-bottom:2px solid var(--line)}
+  background:var(--cream);border-bottom:2px solid var(--line);
+  transition:opacity var(--m2) ease}
+/* while you are playing, the economy is not the subject. During a take it steps back;
+   during a gig it is replaced outright by the room you are standing in. */
+#top.play{opacity:.55}
+#gigTop{display:none;align-items:center;gap:10px;min-height:34px}
+#top.gig .rates,#top.gig #rankbar{display:none}
+#top.gig #gigTop{display:flex}
+#gigTop .gv{flex:1;min-width:0;font-size:15px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#gigTop .gs{flex:0 0 auto;font-size:10px;font-weight:800;letter-spacing:.14em;color:var(--dim2)}
+#gigTop .ti{flex:0 0 auto;display:grid;place-items:center}
 .rates{display:flex;align-items:flex-start;gap:9px}
 .rate{flex:1;min-width:0}
 .rate .rl{font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim2);font-weight:800}
@@ -109,6 +120,10 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #studioChip{position:relative;z-index:2;flex:0 0 auto;padding:0 14px 6px;text-align:center;
   font-size:9px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--dim3)}
+/* the stepped-forward member fills the stage top to bottom while you play, so the two
+   labels that live at those edges get out of the way rather than sit under them */
+#bandChip,#studioChip{transition:opacity var(--m2) ease}
+#stage.playing #bandChip,#stage.playing #studioChip{opacity:0}
 /* the side rail carries one icon per system with something waiting. Nothing is waiting
    today — daily, events and inbox do not exist yet — so it draws nothing at all. */
 #rail{position:absolute;top:34px;right:10px;z-index:3;display:flex;flex-direction:column;gap:8px}
@@ -214,8 +229,10 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   transition:transform .5s ease}
 /* ---- the demo the band finishes while you are doing something else ---- */
 .demo{display:flex;align-items:center;gap:9px;margin-bottom:11px;font-size:9.5px;font-weight:800;
-  letter-spacing:.1em;text-transform:uppercase;color:var(--dim2)}
-.demo .dn{max-width:34%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  letter-spacing:.1em;color:var(--dim2)}
+.demo .dl{flex:0 0 auto;text-transform:uppercase}
+.demo .dn{flex:0 0 auto;min-width:104px;text-align:right;color:var(--dim);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .demo .db{flex:1;height:4px;border-radius:99px}
 .demo .db i{width:100%;transform:scaleX(0);border-radius:99px;background:var(--accent2)}
 .demo[hidden]{display:none}
@@ -511,10 +528,6 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 #takefs.gig #tkbar .who{font-size:11px}
 #tkmeter.hype #tkmfill{background:var(--gold)}
 #tkmeter.hot #tkmfill{background:var(--accent)}
-#hypeTag{position:absolute;left:0;right:0;top:44%;text-align:center;font-size:15px;font-weight:800;
-  letter-spacing:.16em;opacity:0;z-index:3;pointer-events:none;color:var(--accent-dk);
-  text-shadow:0 0 10px var(--panel)}
-#hypeTag.on{animation:jpop .8s ease-out}
 .crowd.lvl2{filter:saturate(1.2)}
 .crowd.lvl3{animation:crowdbob var(--beat) ease-in-out infinite}
 .crowd.lvl4{animation:crowdbob calc(var(--beat) / 2) ease-in-out infinite}
@@ -604,8 +617,21 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 @keyframes mbump{0%{transform:scale(1)}40%{transform:scale(1.3)}100%{transform:scale(1)}}
 #taketime{font-size:11px;font-weight:800;color:var(--gold-dk);min-width:36px;text-align:right;
   font-variant-numeric:tabular-nums}
+/* the studio's own chrome: a recording light, so a take never looks like a show */
+#tkrec{flex:0 0 auto;width:9px;height:9px;border-radius:50%;background:var(--bad);
+  animation:reclight 1.4s ease-in-out infinite}
+@keyframes reclight{0%,100%{opacity:1}50%{opacity:.25}}
+#takefs.gig #tkrec{display:none}
+#takefs.gig #takeauto{display:none}
+/* line two: what you are playing, in full, and what the meter under it is */
+#tkinfo{display:flex;align-items:baseline;gap:9px;padding:0 3px 4px}
+#tkinfo .tt{flex:1;min-width:0;font-size:12.5px;font-weight:800;letter-spacing:.01em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#tkinfo .ms{flex:0 0 auto;font-size:9.5px;font-weight:800;letter-spacing:.14em;color:var(--dim2)}
+#takefs.gig #tkinfo .ms{color:var(--accent)}
 #takeauto{padding:10px 13px;border-radius:12px;font-size:10px;font-weight:800;letter-spacing:.09em;
   background:var(--panel);border:2px solid var(--line);color:var(--dim)}
+#takefs.gig{background:var(--cream3);border-top-color:var(--accent-sh)}
 #tkmeter{height:7px;border-radius:99px;margin-bottom:7px;flex:0 0 auto}
 #tkmfill{background:var(--accent2);border-radius:99px;transition:width var(--m1) linear}
 #tkmeter.low #tkmfill{background:var(--accent)}
@@ -632,7 +658,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .l1{--lc:var(--accent2);--lcd:var(--accent2-dk);--lc2:var(--accent2-w)}
 .l2{--lc:var(--gold);--lcd:var(--gold-dk);--lc2:var(--gold-w)}
 #notes{position:absolute;inset:0;display:flex;gap:6px;pointer-events:none;z-index:2;overflow:hidden}
-.ncol{position:relative;flex:1}
+.ncol{position:relative;flex:1;overflow:hidden;border-radius:16px}
 .tnote{position:absolute;left:10%;right:10%;top:0;height:36px;border-radius:18px;
   background:var(--lc);box-shadow:0 4px 0 var(--lcd);
   animation-name:notefall;animation-timing-function:linear;animation-fill-mode:forwards}
@@ -643,14 +669,18 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   transition:transform .14s ease,opacity .14s ease}
 .tnote.gone{background:var(--dim2);box-shadow:none;opacity:0;transition:opacity .3s ease .06s}
 .tnote.gone::after{opacity:0}
-#takejudge{position:absolute;left:0;right:0;top:26%;text-align:center;font-size:22px;font-weight:800;
-  letter-spacing:.1em;opacity:0;z-index:3;pointer-events:none;
-  text-shadow:0 0 12px var(--panel),0 0 5px var(--panel)}
-#takejudge.on{animation:jpop .42s ease-out}
+/* ---- ONE feedback slot. PERFECT, MISS, WRONG LANE, a streak crossing and the big
+   moments all land in the same place, one at a time, so the eye never hunts. ---- */
+#feed{position:absolute;left:0;right:0;top:24%;text-align:center;opacity:0;z-index:3;
+  pointer-events:none;text-shadow:0 0 12px var(--cream2),0 0 5px var(--cream2)}
+#feed b{display:block;font-size:22px;font-weight:800;letter-spacing:.1em}
+#feed .sub{display:block;font-size:11px;font-weight:800;letter-spacing:.16em;color:var(--dim2);margin-top:3px}
+#feed.on{animation:jpop .42s ease-out}
+#feed.big b{font-size:17px}
+#feed.big{animation:jbig .9s ease-out}
 @keyframes jpop{0%{opacity:0;transform:scale(.6)}25%{opacity:1;transform:scale(1.12)}100%{opacity:0;transform:scale(1)}}
-#takecombo{position:absolute;left:0;right:0;top:10px;text-align:center;font-size:13px;font-weight:800;
-  letter-spacing:.14em;color:var(--dim2);z-index:3;pointer-events:none;text-shadow:0 0 8px var(--panel)}
-#takecombo.hot{color:var(--accent-dk)}
+@keyframes jbig{0%{opacity:0;transform:scale(.7)}12%{opacity:1;transform:scale(1.1)}
+  78%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.02)}}
 
 /* ===== WHILE YOU WERE GONE ===== */
 #gone{z-index:42;align-items:center;
@@ -739,6 +769,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
       <button id="setBtn" aria-label="Settings"></button>
       <button id="muteBtn" aria-label="Sound"></button>
     </div>
+    <div id="gigTop"><span class="ti" id="gtIco"></span><span class="gv" id="gtVenue">—</span><span class="gs" id="gtSong">—</span></div>
     <button id="rankbar">
       <span id="rankBadge"></span>
       <span class="rk">
@@ -768,9 +799,9 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
           <div class="gp"><i id="goalFill"></i></div>
         </div>
         <div class="demo" id="demoRow" hidden>
-          <span class="dn" id="demoWho">—</span>
+          <span class="dl">next demo</span>
           <span class="db"><i id="demoFill"></i></span>
-          <span>demo</span>
+          <span class="dn" id="demoWho">—</span>
         </div>
         <button class="bigbtn pulse" id="writeBtn">WRITE A SONG</button>
         <button class="ghost" id="gigBtn">GIGS<span id="gigTix"></span></button>
@@ -822,21 +853,21 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 
 <div id="takefs">
   <div id="tkbar">
+    <i id="tkrec"></i>
     <div class="tk" id="tkTrack">DRUMS</div>
     <div class="who" id="tkWho">—</div>
     <div id="tkmult">x1</div>
     <div id="taketime">10.0s</div>
     <button id="takeauto">AUTO-TAKE</button>
   </div>
+  <div id="tkinfo"><span class="tt" id="tkTitle">—</span><span class="ms" id="tkmstate">TAKE METER</span></div>
   <div id="tkmeter"><div id="tkmfill" style="width:55%"></div></div>
   <div id="hwy">
     <button class="lane l0" data-l="0"><i class="flame"></i><i class="pad"><i class="lbl">SNARE</i></i></button>
     <button class="lane l1" data-l="1"><i class="flame"></i><i class="pad"><i class="lbl">KICK</i></i></button>
     <button class="lane l2" data-l="2"><i class="flame"></i><i class="pad"><i class="lbl">HAT</i></i></button>
     <div id="notes"><i class="ncol l0"></i><i class="ncol l1"></i><i class="ncol l2"></i></div>
-    <div id="takecombo"></div>
-    <div id="takejudge"></div>
-    <div id="hypeTag"></div>
+    <div id="feed"><b></b><span class="sub"></span></div>
   </div>
 </div>
 
@@ -2199,8 +2230,10 @@ const el = {
   rankName:$('#rankName'), rankNext:$('#rankNext'), rankFill:$('#rankFill'),
   band:$('#band'), stage:$('#stage'), bg:$('#bg'), dock:$('#dock'),
   idlebox:$('#idlebox'), genrebox:$('#genrebox'), writebox:$('#writebox'), qualbox:$('#qualbox'),
-  takefs:$('#takefs'), hwy:$('#hwy'), takejudge:$('#takejudge'), takecombo:$('#takecombo'),
+  takefs:$('#takefs'), hwy:$('#hwy'), feed:$('#feed'),
   taketime:$('#taketime'), tkTrack:$('#tkTrack'), tkWho:$('#tkWho'), tkmult:$('#tkmult'),
+  tkTitle:$('#tkTitle'), tkmstate:$('#tkmstate'), top:$('#top'),
+  gtVenue:$('#gtVenue'), gtSong:$('#gtSong'),
   tkmeter:$('#tkmeter'), tkmfill:$('#tkmfill'),
   lanes:[...document.querySelectorAll('#hwy .lane')], ncols:[...document.querySelectorAll('#notes .ncol')],
   goalT:$('#goalT'), goalH:$('#goalH'), goalFill:$('#goalFill'), cta:$('#writeBtn'),
@@ -2241,7 +2274,17 @@ function applyStudio(){
   el.studioChip.textContent = st.n;
   AU.setStudio(S.studio);
 }
+/* The header is the economy, and the economy is not what you are doing while you play:
+   during a take it steps back to 55%, during a gig the room replaces it outright. */
+function hudMode(){
+  const gig = !!(take && take.mode === 'gig');
+  const play = !!(take || (S.session && S.session.phase === 'cards'));
+  el.top.classList.toggle('gig', gig);
+  el.top.classList.toggle('play', play && !gig);
+  el.stage.classList.toggle('playing', play);
+}
 function renderTop(){
+  hudMode();
   el.sps.textContent = '+' + fmtRate(totalSPS()) + '/s';
   el.mps.textContent = '+' + fmtRate(moneyRate()) + '/s';
   el.fps.textContent = '+' + fmtRate(fanRate()) + '/s';
@@ -2400,16 +2443,27 @@ function renderIdle(){
   renderDemo();
   renderRail();
 }
-/* one line for the demo the band is closest to finishing, not four bars for four people:
-   they share one output, so they share one bar */
+/* One line for the band's next demo, not four bars for four people. The band shares one
+   output (§4), so what matters is which member lands theirs first — and that is the one
+   with the shortest time left, not the one furthest along: a level-6 member at 40% can
+   still beat a level-1 member at 70%. The line names them and counts down, because a bar
+   that only says "OTIS" tells a new player nothing about what it fills toward. */
+function nextDemo(){
+  let best = -1, bestEta = Infinity;
+  for (let i = 0; i < 4; i++){
+    if (!S.members[i].owned) continue;
+    const eta = (1 - clamp(S.members[i].solo, 0, 1)) / soloRate(i);
+    if (eta < bestEta){ bestEta = eta; best = i; }
+  }
+  return best < 0 ? null : { i:best, eta:bestEta, p:clamp(S.members[best].solo, 0, 1) };
+}
 function renderDemo(){
-  let best = -1;
-  for (let i = 0; i < 4; i++) if (S.members[i].owned && (best < 0 || S.members[i].solo > S.members[best].solo)) best = i;
-  el.demoRow.hidden = best < 0;
-  if (best < 0) return;
-  el.demoRow.dataset.i = best;
-  el.demoWho.textContent = S.members[best].name.split(' ')[0];
-  el.demoFill.style.transform = 'scaleX(' + clamp(S.members[best].solo, 0, 1).toFixed(3) + ')';
+  const d = nextDemo();
+  el.demoRow.hidden = !d;
+  if (!d) return;
+  el.demoRow.dataset.i = d.i;
+  el.demoWho.textContent = S.members[d.i].name.split(' ')[0] + ' · ' + dur(d.eta);
+  el.demoFill.style.transform = 'scaleX(' + d.p.toFixed(3) + ')';
 }
 
 /* ===== LOOP ===== */
@@ -2759,15 +2813,18 @@ function startTake(track, card){
     t0: now(), pts: 0, streak: 0, best: 0, mult: 1, bestMult: 1, pocket: 0, ended: false, lastMiss: -9,
     meter: BAL.meterStart, yours: track === S.you, energy: (card.v[0] + 1) / 2
   };
+  const ss = S.session;
   el.tkTrack.textContent = MEMBERS[track].track;
-  el.tkWho.textContent = S.members[track].name + ' · ' + card.n;
-  el.takecombo.textContent = '';
-  el.takejudge.textContent = '';
+  el.tkWho.textContent = ss && ss.order ? 'take ' + (ss.step + 1) + ' of ' + ss.order.length : 'take';
+  el.tkTitle.textContent = card.n + ' · ' + S.members[track].name.split(' ')[0];
+  el.tkmstate.textContent = 'TAKE METER';
+  feedClear();
   el.hwy.classList.remove('pocket');
   LANE_NAMES[track].forEach((n,i) => { const l = el.lanes[i].querySelector('.lbl'); if (l) l.textContent = n; });
   el.ncols.forEach(c => c.innerHTML = '');
   memEls.forEach((m,i) => m.classList.toggle('up', i === track));
   el.takefs.classList.add('on');
+  hudMode();
   renderMult(); renderMeter();
   // the lanes are laid out now, so the fall distance is measurable
   const h = el.hwy.clientHeight || 260;
@@ -2783,11 +2840,23 @@ function startTake(track, card){
   });
   AU.layerOn(track, take.energy);
 }
-function judgeText(txt, col){
-  const j = el.takejudge;
-  j.textContent = txt; j.style.color = col;
-  j.classList.remove('on'); void j.offsetWidth; j.classList.add('on');
+/* ONE feedback slot, and one rule for who gets it. A judgement is worth nothing a
+   moment later, so a newer one replaces an older one immediately — but a *moment*
+   (IN THE POCKET, a milestone, the encore) holds the slot for its own length, because
+   it is the thing the player will remember and a PERFECT 80ms later would erase it. */
+const FEED = { until: 0 };
+function feed(txt, col, sub, big){
+  const t = now();
+  if (!big && t < FEED.until) return;
+  FEED.until = big ? t + 0.9 : 0;
+  const f = el.feed;
+  f.querySelector('b').textContent = txt;
+  f.querySelector('.sub').textContent = sub || '';
+  f.style.color = col;
+  f.classList.remove('on', 'big'); void f.offsetWidth;
+  f.classList.add(big ? 'big' : 'on');
 }
+function feedClear(){ FEED.until = 0; el.feed.classList.remove('on', 'big'); }
 /* the pad answers the thumb before anything is judged — press first, score after */
 function lanePress(L){
   const n = el.lanes[L];
@@ -2833,21 +2902,21 @@ function tapLane(L){
   buzz(perfect ? 12 : 8);
   take.streak++;
   take.best = Math.max(take.best, take.streak);
-  judgeText(perfect ? 'PERFECT' : 'GOOD', perfect ? JUDGE.perfect : JUDGE.good);
+  // a streak crossing a multiplier step is news; every other hit is just a judgement
+  const step = BAL.multSteps.indexOf(take.streak) >= 0;
+  feed(perfect ? 'PERFECT' : 'GOOD', perfect ? JUDGE.perfect : JUDGE.good,
+       step ? take.streak + ' IN A ROW · x' + multFor(take.streak) : '');
   if (perfect && take.streak === BAL.pocketStreak) pocket();
   renderMult(); renderMeter();
-  el.takecombo.textContent = take.streak > 2 ? take.streak + ' IN A ROW' : '';
-  el.takecombo.classList.toggle('hot', take.streak >= BAL.multSteps[0]);
 }
 function missNote(wrongLane){
   const t = now() - take.t0;
   take.streak = 0;
   if (take.mode === 'gig') hype(-(wrongLane ? BAL.hypeWrong : BAL.hypeMiss));
   else take.meter -= wrongLane ? BAL.meterMiss / 2 : BAL.meterMiss;
-  el.takecombo.textContent = '';
   if (t - take.lastMiss > 0.4){
     take.lastMiss = t;
-    judgeText(wrongLane ? 'WRONG LANE' : 'MISS', JUDGE.miss);
+    feed(wrongLane ? 'WRONG LANE' : 'MISS', JUDGE.miss);
   }
   renderMult(); renderMeter();
   if (take.mode !== 'gig' && take.meter <= 0) endTake(false, true);
@@ -2857,7 +2926,7 @@ function missNote(wrongLane){
 function pocket(){
   take.pocket++;
   el.hwy.classList.add('pocket');
-  judgeText('IN THE POCKET', JUDGE.pocket);
+  feed('IN THE POCKET', JUDGE.pocket, '', true);
   $('#flash').classList.remove('on'); void $('#flash').offsetWidth; $('#flash').classList.add('on');
   const m = memEls[take.track];
   if (m){
@@ -2905,6 +2974,7 @@ function endTake(auto, botched){
   }
   s.takePts = (s.takePts || 0) + got;
   el.takefs.classList.remove('on');
+  hudMode();
   el.ncols.forEach(c => c.innerHTML = '');
   take = null;
   advanceSession();
@@ -2955,6 +3025,7 @@ function closeGigs(){
 function renderTix(){
   const g = S.gig, left = BAL.gigAdMax - g.ads;
   $('#tixIco').innerHTML = ico(ICON.pass, { c:PAL.onAccent, s:20 });
+  $('#gtIco').innerHTML = ico(ICON.pass, { c:PAL.accent, s:18 });
   $('#tixN').textContent = g.tickets + (g.tickets === 1 ? ' ticket' : ' tickets');
   $('#tixSub').textContent = g.tickets >= BAL.gigFree
     ? 'Full for today · ' + BAL.gigFree + ' free every day'
@@ -3100,6 +3171,8 @@ function startGig(){
              best: 0, milestone: 0, encore: false, peak: BAL.hypeStart };
   el.bg.style.background = `radial-gradient(125% 72% at 50% 0%, ${V.bg[0]}, ${V.bg[1]} 48%, var(--bg0) 100%)`;
   el.takefs.classList.add('gig');
+  el.gtVenue.textContent = V.n;
+  hudMode();
   toast('🎤 ' + V.n + ' — ' + songs.length + (songs.length === 1 ? ' song' : ' songs'));
   nextGigSection();
 }
@@ -3130,13 +3203,18 @@ function gigSection(song, secs, encore){
   };
   g.max += take.notes.length * 2;
   el.tkTrack.textContent = encore ? 'ENCORE' : 'SONG ' + (g.k + 1) + '/' + g.songs.length;
-  el.tkWho.textContent = song.title;
-  el.takecombo.textContent = ''; el.takejudge.textContent = '';
+  el.tkWho.textContent = GENRES[song.g].n;
+  el.tkTitle.textContent = song.title;              // the full title, never truncated to fit
+  el.gtVenue.textContent = VENUES[g.v].n;
+  el.gtSong.textContent = encore ? 'ENCORE' : 'SONG ' + (g.k + 1) + ' OF ' + g.songs.length;
+  renderHype();
+  feedClear();
   el.hwy.classList.remove('pocket');
   LANE_NAMES[track].forEach((n, i) => { const l = el.lanes[i].querySelector('.lbl'); if (l) l.textContent = n; });
   el.ncols.forEach(c => c.innerHTML = '');
   memEls.forEach((m, i) => m.classList.toggle('up', i === track));
   el.takefs.classList.add('on');
+  hudMode();
   renderMult(); renderMeter();
   const h = el.hwy.clientHeight || 260, fy = Math.max(90, h - 55);
   take.notes.forEach(n => {
@@ -3148,25 +3226,33 @@ function gigSection(song, secs, encore){
     el.ncols[n.lane].appendChild(d);
     n.node = d;
   });
-  if (encore){ hypeTag('ENCORE!'); confetti(2); AU.chord('big'); }
+  if (encore){ feed('ENCORE!', PAL.gold, '', true); confetti(2); AU.chord('big'); }
+}
+/* The crowd is never a bare number: every level has a name, and crossing into one is
+   the moment the room announces itself. One table drives the label and the shout. */
+const HYPE_TIERS = [
+  { at:0,  n:'WARMING UP', say:'' },
+  { at:40, n:'WITH YOU',   say:'THE ROOM IS WITH YOU' },
+  { at:70, n:'LOUD',       say:"THEY'RE SINGING IT BACK" },
+  { at:90, n:'ON FIRE',    say:'THIS PLACE IS GOING OFF' }
+];
+function hypeTier(h){
+  let i = 0;
+  HYPE_TIERS.forEach((t, k) => { if (h >= t.at) i = k; });
+  return i;
 }
 function hype(n){
-  if (!take || take.mode !== 'gig') return;
+  if (!take || take.mode !== 'gig' || !gigRun) return;   // the run can end under a live take
   take.hype = clamp(take.hype + n, 0, 100);
   gigRun.hype = take.hype;
   gigRun.peak = Math.max(gigRun.peak, take.hype);
-  const m = take.hype >= 90 ? 3 : take.hype >= 70 ? 2 : take.hype >= 40 ? 1 : 0;
+  const m = hypeTier(take.hype);
   if (m > gigRun.milestone){
     gigRun.milestone = m;
-    hypeTag(['', 'THE ROOM IS WITH YOU', "THEY'RE SINGING IT BACK", 'THIS PLACE IS GOING OFF'][m]);
+    feed(HYPE_TIERS[m].say, PAL.accent, '', true);
     confetti(m >= 3 ? 3 : 2); buzz(m >= 3 ? [18, 40, 18] : 14);
   }
   crowdLevel(take.hype);
-}
-function hypeTag(txt){
-  const n = $('#hypeTag');
-  n.textContent = txt;
-  n.classList.remove('on'); void n.offsetWidth; n.classList.add('on');
 }
 function crowdLevel(h){
   const c = $('.crowd');
@@ -3183,7 +3269,12 @@ function gigTick(t){
   take.lastSec = t;
   const gain = BAL.hypeBase + BAL.hypeSong * take.norm + BAL.hypeFit * take.fit;
   hype((gain - BAL.hypeDrift) * dt);
-  el.tkWho.textContent = take.song.title + ' · HYPE ' + Math.round(take.hype);
+  renderHype();
+}
+function renderHype(){
+  if (!take || take.mode !== 'gig') return;
+  el.tkmstate.textContent = 'CROWD HYPE · ' + HYPE_TIERS[hypeTier(take.hype)].n + ' ' +
+    Math.round(take.hype);
 }
 function endGigSection(){
   const g = gigRun;
@@ -3219,6 +3310,7 @@ function finishGig(){
   S.gig.active = null;
   save();
   el.takefs.classList.remove('on', 'gig');
+  hudMode();
   memEls.forEach(m => m.classList.remove('up'));
   applyStudio();
   showGigResult(pay, parts);
