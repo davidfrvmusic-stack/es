@@ -35,13 +35,29 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 /* ===== TOP BAR ===== */
 #top{padding:calc(var(--safe-t) + 12px) 16px 10px;flex:0 0 auto;z-index:6;
   background:var(--cream);border-bottom:2px solid var(--line)}
-.rates{display:flex;align-items:flex-start;gap:14px}
+.rates{display:flex;align-items:flex-start;gap:9px}
 .rate{flex:1;min-width:0}
-.rate .rl{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim2);font-weight:800}
-.rate .rv{font-size:29px;font-weight:800;letter-spacing:-1px;line-height:1.05;color:var(--ink)}
-.rate .rs{font-size:11.5px;font-weight:800;color:var(--accent2-dk);margin-top:1px}
+.rate .rl{font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim2);font-weight:800}
+.rate .rv{font-size:23px;font-weight:800;letter-spacing:-.8px;line-height:1.05;color:var(--ink)}
+.rate .rs{font-size:10.5px;font-weight:800;color:var(--accent2-dk);margin-top:1px}
 .rate.money .rv{color:var(--accent-dk)}
 .rate.money .rs{color:var(--gold-dk)}
+.rate.fans .rv{color:var(--accent2-dk)}
+.rate.fans .rs{color:var(--dim2)}
+/* the long goal, always on screen */
+#rankbar{display:flex;align-items:center;gap:9px;width:100%;margin-top:9px;padding:6px 10px 7px;
+  border-radius:14px;background:var(--panel);border:2px solid var(--line);text-align:left}
+#rankbar:active{transform:translateY(1px)}
+#rankBadge{flex:0 0 auto;width:30px;height:30px;border-radius:10px;display:grid;place-items:center;
+  background:var(--rc,var(--dim2))}
+#rankbar .rk{flex:1;min-width:0;display:block}
+#rankbar .rn{display:flex;align-items:baseline;gap:7px}
+#rankbar .rn b{font-size:12.5px;font-weight:800;letter-spacing:.02em}
+#rankbar .rn span{flex:1;min-width:0;text-align:right;font-size:9.5px;font-weight:800;color:var(--dim2);
+  letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#rankbar .rp{display:block;height:6px;border-radius:99px;background:var(--cream3);overflow:hidden;margin-top:4px}
+#rankbar .rp i{display:block;height:100%;width:0;border-radius:99px;background:var(--rc,var(--accent2));
+  transition:width .4s ease}
 .sub{display:flex;align-items:center;gap:7px;margin-top:9px}
 #savedTag{margin-left:auto;display:flex;align-items:center;gap:5px;font-size:9.5px;font-weight:800;
   letter-spacing:.12em;color:var(--accent2-dk);opacity:0;transition:opacity .3s ease;flex:0 0 auto}
@@ -49,8 +65,8 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 #savedTag i{width:6px;height:6px;border-radius:50%;background:var(--accent2);display:block;
   animation:savedot .9s ease-out}
 @keyframes savedot{0%{transform:scale(.4)}45%{transform:scale(1.35)}100%{transform:scale(1)}}
-#bandChip{font-weight:800;max-width:44%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  background:var(--ink);color:var(--cream);border-color:var(--ink)}
+#bandChip{display:block;min-width:0;font-weight:800;max-width:44%;white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis;background:var(--ink);color:var(--cream);border-color:var(--ink)}
 .chip{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:800;
   background:var(--panel);border:2px solid var(--line);border-radius:999px;padding:4px 11px;color:var(--dim)}
 .chip.pk{color:var(--gold-dk)}
@@ -67,7 +83,8 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   background:radial-gradient(58% 46% at 50% 2%,rgba(255,255,255,.72),transparent 72%);
   animation:breathe 5s ease-in-out infinite}
 @keyframes breathe{0%,100%{opacity:.55}50%{opacity:1}}
-.crowd{position:absolute;left:0;right:0;bottom:0;height:15%;z-index:1;opacity:.35;
+.crowd{position:absolute;left:0;right:0;bottom:0;height:calc(11% + 9% * var(--crowd,.3));z-index:1;
+  opacity:calc(.22 + .5 * var(--crowd,.3));transition:height .6s ease,opacity .6s ease;
   background:radial-gradient(circle at 8% 100%,#C98F5B 13px,transparent 14px),
              radial-gradient(circle at 24% 100%,#C98F5B 16px,transparent 17px),
              radial-gradient(circle at 40% 100%,#C98F5B 12px,transparent 13px),
@@ -306,6 +323,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 #rvPay .pv{font-size:19px;font-weight:800}
 #rvPay .streams .pv{color:var(--accent2-dk)}
 #rvPay .money .pv{color:var(--accent-dk)}
+#rvPay .fans .pv{color:var(--accent2-dk)}
 #rvPay .pf{margin-top:6px;padding-top:6px;border-top:2px solid var(--line);text-align:center;
   font-size:10px;font-weight:800;letter-spacing:.08em;color:var(--dim2)}
 #rvQuote{font-size:12px;color:var(--dim);font-style:italic;text-align:center;max-width:300px;opacity:0;
@@ -317,6 +335,26 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   opacity:0;font-weight:800}
 .conf{position:fixed;top:-14px;width:10px;height:15px;z-index:31;pointer-events:none;border-radius:2px}
 @keyframes fall{to{transform:translateY(108vh) rotate(720deg);opacity:.15}}
+
+/* ===== RANK UP ===== */
+#rankup{position:fixed;inset:0;z-index:38;display:none;flex-direction:column;align-items:center;
+  justify-content:center;gap:11px;padding:26px 24px;
+  background:radial-gradient(90% 60% at 50% 28%,#FFF9EC 0%,var(--cream2) 55%,#FFDDB0 100%)}
+#rankup.on{display:flex}
+#rankup .rt{font-size:10.5px;font-weight:800;letter-spacing:.24em;text-transform:uppercase;color:var(--dim2)}
+#ruBadge{width:112px;height:112px;border-radius:32px;display:grid;place-items:center;
+  background:var(--rc,var(--accent2));box-shadow:0 10px 0 rgba(120,70,30,.22);
+  animation:rupop .55s cubic-bezier(.2,1.5,.4,1)}
+@keyframes rupop{0%{opacity:0;transform:scale(.4) rotate(-12deg)}100%{opacity:1;transform:scale(1) rotate(0)}}
+#rankup h3{font-size:34px;font-weight:800;letter-spacing:-.8px;text-align:center}
+#ruFans{font-size:12px;font-weight:800;letter-spacing:.06em;color:var(--dim);margin-top:-6px}
+#ruList{width:100%;max-width:320px;display:flex;flex-direction:column;gap:7px;margin-top:6px}
+#ruList div{display:flex;align-items:center;gap:9px;padding:11px 13px;border-radius:15px;
+  background:var(--panel);border:2px solid var(--line);font-size:12px;font-weight:700;color:var(--ink)}
+#ruList div b{font-weight:800}
+#ruList div i{flex:0 0 auto;width:8px;height:8px;border-radius:50%;background:var(--rc,var(--accent2))}
+#ruGo{margin-top:8px;padding:16px 46px;border-radius:18px;font-size:15px;font-weight:800;
+  letter-spacing:.1em;background:var(--ink);color:var(--cream);box-shadow:0 5px 0 #150C08}
 
 /* ===== SETUP / NAME ===== */
 #setup{position:fixed;inset:0;z-index:45;display:none;flex-direction:column;
@@ -425,6 +463,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .grow.money .gv{color:var(--accent-dk)}
 .grow.streams .gv{color:var(--ink)}
 .grow.songs .gv{color:var(--accent2-dk)}
+.grow.fans .gv{color:var(--accent2-dk)}
 #gone .btns{width:100%;max-width:300px;margin-top:10px;display:flex;flex-direction:column;gap:9px}
 #gone .ad{padding:14px;border-radius:16px;font-size:13px;font-weight:800;letter-spacing:.06em;
   background:var(--panel);border:2px solid var(--gold);color:var(--gold-dk);
@@ -463,7 +502,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .mbox .big{font-size:36px;font-weight:800;color:var(--accent-dk);margin:14px 0 4px;letter-spacing:-1px}
 .mbox button{margin-top:16px;width:100%;padding:16px;border-radius:16px;font-weight:800;font-size:15px;
   letter-spacing:.1em;background:var(--accent2);color:var(--onDark);box-shadow:0 4px 0 var(--accent2-dk)}
-#toasts{position:fixed;left:0;right:0;top:calc(var(--safe-t) + 70px);z-index:25;
+#toasts{position:fixed;left:0;right:0;top:calc(var(--safe-t) + 170px);z-index:25;
   display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none}
 .toast{background:var(--ink);color:var(--cream);border-radius:14px;
   padding:10px 16px;font-size:12px;font-weight:700;box-shadow:0 8px 22px rgba(80,45,20,.3);
@@ -488,9 +527,21 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
         <div class="rv num" id="streams">0</div>
         <div class="rs num" id="sps">+0/s</div>
       </div>
+      <div class="rate fans">
+        <div class="rl">fans</div>
+        <div class="rv num" id="fans">0</div>
+        <div class="rs num" id="fps">+0/s</div>
+      </div>
       <button id="setBtn" aria-label="Settings"></button>
       <button id="muteBtn" aria-label="Sound"></button>
     </div>
+    <button id="rankbar">
+      <span id="rankBadge"></span>
+      <span class="rk">
+        <span class="rn"><b id="rankName">Garage Band</b><span id="rankNext">1.0K to Local Act</span></span>
+        <span class="rp"><i id="rankFill"></i></span>
+      </span>
+    </button>
     <div class="sub">
       <div class="chip" id="bandChip">—</div>
       <div class="chip pk"><span id="pickIco"></span><span id="picks" class="num">0</span></div>
@@ -580,6 +631,15 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   </div>
 </div>
 
+<div id="rankup">
+  <div class="rt">rank up</div>
+  <div id="ruBadge"></div>
+  <h3 id="ruName">Local Act</h3>
+  <div id="ruFans">1.0K fans</div>
+  <div id="ruList"></div>
+  <button id="ruGo">TAKE IT</button>
+</div>
+
 <div id="reveal">
   <button id="rvSkip">SKIP</button>
   <div id="rvGenre">—</div>
@@ -590,7 +650,8 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   <div id="rvPay">
     <div class="pr streams"><span class="pl">STREAMS</span><span class="pv num" id="rvPayS">0</span></div>
     <div class="pr money"><span class="pl">MONEY</span><span class="pv num" id="rvPayM">0</span></div>
-    <div class="pf" id="rvPayF">—</div>
+    <div class="pr fans"><span class="pl">FANS</span><span class="pv num" id="rvPayF">0</span></div>
+    <div class="pf" id="rvPayFore">—</div>
   </div>
   <div id="rvQuote">—</div>
   <button id="rvGo">COLLECT</button>
@@ -620,6 +681,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   <div class="grow songs"><div class="gl">Songs out</div><div class="gv num" id="goneSongs">0</div></div>
   <div class="grow streams"><div class="gl">Streams</div><div class="gv num" id="goneStreams">0</div></div>
   <div class="grow money"><div class="gl">Money</div><div class="gv num" id="goneMoney">0</div></div>
+  <div class="grow fans"><div class="gl">Fans</div><div class="gv num" id="goneFans">0</div></div>
   <div class="btns">
     <button class="ad" id="goneAd">WATCH AD FOR x2</button>
     <button class="bigbtn teal" id="goneGo">COLLECT</button>
@@ -683,6 +745,10 @@ const BAL = {
   pocketStreak: 8,        // perfect hits in a row before you are "in the pocket"
   pocketHeat: 2,          // ...which nudges the genre, since Hype no longer exists
   approachBase: 1.15, approachPerLvl: 0.02, approachMax: 1.55,   // notes fly
+  fanTier: [4, 25, 200, 1200, 6000],   // fans per release, flop -> #1
+  fanQBoost: 1,           // ...times (1 + Quality/100), so a good song is worth more
+  fanGig: 0.02,           // fans/sec from playing live, times the rank's venue size
+  homeMult: 1.5,          // your home genre streams harder
   soloBandSecs: 600,      // the BAND finishes one solo demo this often, split across
   soloQ: [20, 50],        // whoever is in it. Offline output is bounded by the time cap
                           // alone (8h -> 48 songs, 24h VIP -> 144).
@@ -754,12 +820,37 @@ function oddsFor(q){
 }
 
 /* ===== CARDS: each has a hidden [energy, grit, polish] vector in -1..1 ===== */
+/* 16 genres. The first ten keep their original index so a saved `heat` array still
+   lines up; the six new ones are appended. `r` is the rank that opens the genre,
+   `w`/`cut` are the take and loop flavour, `c` is its badge colour. */
 const GENRES = [
-  { n:'INDIE ROCK',  v:[ .30, .40, .30] }, { n:'HYPERPOP',    v:[ .95,-.30, .90] },
-  { n:'TRAP',        v:[ .50, .50, .70] }, { n:'SYNTHWAVE',   v:[ .20,-.40, .80] },
-  { n:'GARAGE PUNK', v:[ .90, .95,-.60] }, { n:'DREAM POP',   v:[-.50,-.50, .50] },
-  { n:'DRILL',       v:[ .60, .80, .40] }, { n:'DISCO',       v:[ .70,-.20, .70] },
-  { n:'SHOEGAZE',    v:[ .10, .60,-.20] }, { n:'AFROBEATS',   v:[ .60,-.10, .60] }
+  { n:'INDIE ROCK',  v:[ .30, .40, .30], r:0, w:'triangle', cut:1700, c:'#D93A26' },
+  { n:'HYPERPOP',    v:[ .95,-.30, .90], r:2, w:'square',   cut:3600, c:'#E85CA0' },
+  { n:'TRAP',        v:[ .50, .50, .70], r:0, w:'square',   cut:2400, c:'#6B4CC4' },
+  { n:'SYNTHWAVE',   v:[ .20,-.40, .80], r:1, w:'sawtooth', cut:2000, c:'#3D6FA8' },
+  { n:'GARAGE PUNK', v:[ .90, .95,-.60], r:1, w:'sawtooth', cut:1400, c:'#C0331F' },
+  { n:'DREAM POP',   v:[-.50,-.50, .50], r:0, w:'sine',     cut:1200, c:'#8E7CC8' },
+  { n:'DRILL',       v:[ .60, .80, .40], r:2, w:'square',   cut:2100, c:'#4A5A6B' },
+  { n:'DISCO',       v:[ .70,-.20, .70], r:3, w:'sawtooth', cut:2800, c:'#E39A00' },
+  { n:'SHOEGAZE',    v:[ .10, .60,-.20], r:3, w:'sawtooth', cut: 900, c:'#7C8FA8' },
+  { n:'AFROBEATS',   v:[ .60,-.10, .60], r:4, w:'triangle', cut:2600, c:'#12A79C' },
+  { n:'METAL',       v:[ .95,1.00,-.30], r:4, w:'sawtooth', cut:1100, c:'#2C1D16' },
+  { n:'LO-FI',       v:[-.60, .30,-.40], r:2, w:'sine',     cut: 800, c:'#A9856B' },
+  { n:'HOUSE',       v:[ .65,-.35, .75], r:3, w:'sawtooth', cut:3000, c:'#0B7A72' },
+  { n:'REGGAETON',   v:[ .70, .20, .55], r:5, w:'square',   cut:2300, c:'#E0682B' },
+  { n:'FOLK',        v:[-.45, .25,-.20], r:5, w:'triangle', cut:1500, c:'#7A8C4F' },
+  { n:'K-POP',       v:[ .80,-.50,1.00], r:4, w:'square',   cut:3800, c:'#FF5A45' }
+];
+/* FANS AND RANKS — fans never fall, and the rank they buy is the long goal in the
+   header. Each rank opens genres, makes the gigs bigger (money and the crowd on the
+   stage), and lifts the ceiling on the royalty rate. */
+const RANKS = [
+  { n:'Garage Band', at:0,   gig:1,   payCap:0.09, crate:0, crowd:0.30, c:'#A9856B', i:'house' },
+  { n:'Local Act',   at:1e3, gig:1.6, payCap:0.14, crate:1, crowd:0.46, c:'#0B7A72', i:'pin' },
+  { n:'Regional',    at:1e4, gig:2.4, payCap:0.20, crate:2, crowd:0.62, c:'#3D6FA8', i:'map' },
+  { n:'National',    at:1e5, gig:3.5, payCap:0.30, crate:3, crowd:0.78, c:'#E39A00', i:'flag' },
+  { n:'Global',      at:1e6, gig:5,   payCap:0.45, crate:4, crowd:0.92, c:'#D93A26', i:'globe' },
+  { n:'Legend',      at:1e7, gig:8,   payCap:1.00, crate:5, crowd:1.00, c:'#C0331F', i:'crown' }
 ];
 /* A take's rhythm comes from the card, so the decision and the playing connect.
    16 steps = 2 bars of eighths at the song's BPM. */
@@ -831,6 +922,304 @@ function cardPoints(card, genre, prev){
   else { let d = 0; for (const p of prev) d += cdist(card.v, p.v); ch = clamp(1 - (d/prev.length)/DSCALE, 0, 1); }
   return 25 * (BAL.wGenre * gf + BAL.wCoher * ch + BAL.wBase * card.b);
 }
+
+/* ===== GENRE SIGNATURE CARDS =====
+   Two per instrument per genre, on top of the shared pool. A card with `g` only
+   appears when you are writing in that genre, which is what makes writing METAL
+   feel different from writing LO-FI rather than just scoring differently. They are
+   merged into CARDS below so `ci` stays a single index into one per-track array. */
+const GCARDS = [
+  /* 0 INDIE ROCK */ [
+    [ // DRUMS
+      { n:'Tambourine Drive', d:'keeps the room moving', v:[.55,.35,.25], b:.62, lvl:1, p:'eighth' },
+      { n:'Floor Tom Stomp', d:'big and a little sloppy', v:[.40,.55,.05], b:.70, lvl:6, p:'four' }
+    ],
+    [ // BASS
+      { n:'Root-Five Push', d:'never leaves the guitar alone', v:[.35,.30,.25], b:.62, lvl:1, p:'eighth' },
+      { n:'Melodic Counter', d:'a second tune under the first', v:[.25,.15,.45], b:.72, lvl:6, p:'synco' }
+    ],
+    [ // GUITAR
+      { n:'Jangle Chime', d:'bright, open, ringing out', v:[.35,.20,.45], b:.64, lvl:1, p:'eighth' },
+      { n:'Open-Chord Ring', d:'let the strings do the work', v:[.30,.50,.20], b:.70, lvl:6, p:'four' }
+    ],
+    [ // VOCALS
+      { n:'Half-Shout Chorus', d:'almost singing, almost not', v:[.55,.55,.15], b:.64, lvl:1, p:'back' },
+      { n:'Two-Part Harmony', d:'the other one is the hook', v:[.20,.10,.55], b:.72, lvl:6, p:'sparse' }
+    ]
+  ],
+  /* 1 HYPERPOP */ [
+    [ // DRUMS
+      { n:'Glitch Fill', d:'the drums fall down the stairs', v:[.90,-.20,.95], b:.66, lvl:1, p:'doubles' },
+      { n:'Sugar Snare', d:'pitched up until it hurts', v:[.85,-.40,.85], b:.74, lvl:6, p:'back' }
+    ],
+    [ // BASS
+      { n:'Detuned Saw Bass', d:'two saws, slightly arguing', v:[.90,-.15,.85], b:.66, lvl:1, p:'drive' },
+      { n:'Bitcrushed Sub', d:'low end through a broken toy', v:[.80,.10,.90], b:.74, lvl:6, p:'doubles' }
+    ],
+    [ // GUITAR
+      { n:'Pitched Riser', d:'up, up, and then the drop', v:[.95,-.35,.95], b:.68, lvl:1, p:'drive' },
+      { n:'Nintendo Lead', d:'a square wave with a sugar rush', v:[.85,-.50,.80], b:.72, lvl:6, p:'eighth' }
+    ],
+    [ // VOCALS
+      { n:'Chipmunk Hook', d:'four semitones too high', v:[1.00,-.45,.95], b:.68, lvl:1, p:'doubles' },
+      { n:'Vocal Chop Wall', d:'your own voice as an instrument', v:[.85,-.25,1.00], b:.76, lvl:6, p:'synco' }
+    ]
+  ],
+  /* 2 TRAP */ [
+    [ // DRUMS
+      { n:'Triplet Roll', d:'hats in threes, then twos', v:[.55,.45,.85], b:.66, lvl:1, p:'doubles' },
+      { n:'Half-Time Kick', d:'space where the beat should be', v:[.30,.55,.70], b:.74, lvl:6, p:'sparse' }
+    ],
+    [ // BASS
+      { n:'Sliding 808', d:'the note bends into the next bar', v:[.55,.55,.75], b:.68, lvl:1, p:'sparse' },
+      { n:'Distorted Sub', d:'clipped on purpose', v:[.65,.75,.55], b:.74, lvl:6, p:'four' }
+    ],
+    [ // GUITAR
+      { n:'Dark Bell Loop', d:'four notes, endlessly', v:[.40,.45,.75], b:.64, lvl:1, p:'back' },
+      { n:'Pluck Arp', d:'tight, dry, expensive', v:[.55,.30,.80], b:.72, lvl:6, p:'doubles' }
+    ],
+    [ // VOCALS
+      { n:'Ad-Lib Stack', d:'every line answered', v:[.65,.50,.70], b:.66, lvl:1, p:'synco' },
+      { n:'Deadpan Flow', d:'bored on purpose', v:[.30,.55,.60], b:.72, lvl:6, p:'eighth' }
+    ]
+  ],
+  /* 3 SYNTHWAVE */ [
+    [ // DRUMS
+      { n:'Gated Reverb Snare', d:'1984 in one hit', v:[.25,-.30,.85], b:.68, lvl:1, p:'four' },
+      { n:'Linn Drum Pattern', d:'a machine that never sweats', v:[.30,-.45,.80], b:.74, lvl:6, p:'eighth' }
+    ],
+    [ // BASS
+      { n:'Octave Pulse Bass', d:'driving down an empty highway', v:[.35,-.35,.85], b:.68, lvl:1, p:'eighth' },
+      { n:'Analog Sub Swell', d:'warm, slow, enormous', v:[.05,-.40,.75], b:.72, lvl:6, p:'sparse' }
+    ],
+    [ // GUITAR
+      { n:'Neon Arpeggio', d:'sixteenths that never rest', v:[.35,-.45,.90], b:.70, lvl:1, p:'drive' },
+      { n:'Chorus Lead', d:'one note, endlessly widened', v:[.20,-.30,.80], b:.72, lvl:6, p:'eighth' }
+    ],
+    [ // VOCALS
+      { n:'Vocoder Line', d:'a robot with feelings', v:[.20,-.50,.90], b:.68, lvl:1, p:'eighth' },
+      { n:'Distant Croon', d:'sung from the far end of a hall', v:[-.10,-.35,.70], b:.72, lvl:6, p:'sparse' }
+    ]
+  ],
+  /* 4 GARAGE PUNK */ [
+    [ // DRUMS
+      { n:'One-Mic Bash', d:'the whole kit, one microphone', v:[.85,.95,-.65], b:.66, lvl:1, p:'four' },
+      { n:'Snare-Rush Fill', d:'ahead of the beat, always', v:[.95,.85,-.50], b:.74, lvl:6, p:'drive' }
+    ],
+    [ // BASS
+      { n:'Root Pound', d:'one note, played angrily', v:[.80,.90,-.60], b:.64, lvl:1, p:'four' },
+      { n:'Broken String Buzz', d:'it still works, mostly', v:[.90,1.00,-.70], b:.74, lvl:6, p:'eighth' }
+    ],
+    [ // GUITAR
+      { n:'Three-Chord Slam', d:'you know which three', v:[.90,.95,-.60], b:.68, lvl:1, p:'drive' },
+      { n:'Blown Amp Solo', d:'the speaker gave up first', v:[1.00,.90,-.55], b:.76, lvl:6, p:'synco' }
+    ],
+    [ // VOCALS
+      { n:'Sneer Vocal', d:'every word an accusation', v:[.85,.95,-.65], b:.66, lvl:1, p:'back' },
+      { n:'Gang Chant', d:'everyone in the room, one line', v:[.90,.80,-.40], b:.74, lvl:6, p:'four' }
+    ]
+  ],
+  /* 5 DREAM POP */ [
+    [ // DRUMS
+      { n:'Brush Pulse', d:'barely there, always there', v:[-.55,-.45,.45], b:.64, lvl:1, p:'sparse' },
+      { n:'Soft Mallet Kit', d:'padded sticks, no edges', v:[-.45,-.55,.55], b:.72, lvl:6, p:'eighth' }
+    ],
+    [ // BASS
+      { n:'Slow Glide Bass', d:'no note quite lands', v:[-.50,-.45,.50], b:.64, lvl:1, p:'sparse' },
+      { n:'Warm Round Root', d:'a pillow under the song', v:[-.40,-.50,.45], b:.70, lvl:6, p:'four' }
+    ],
+    [ // GUITAR
+      { n:'Chorus Wash', d:'two guitars pretending to be weather', v:[-.45,-.50,.55], b:.68, lvl:1, p:'sparse' },
+      { n:'Slide Shimmer', d:'notes with no beginning', v:[-.55,-.40,.60], b:.74, lvl:6, p:'eighth' }
+    ],
+    [ // VOCALS
+      { n:'Breathy Double', d:'two takes, one voice', v:[-.55,-.55,.55], b:.68, lvl:1, p:'sparse' },
+      { n:'Wordless Melody', d:'the words were getting in the way', v:[-.50,-.35,.45], b:.72, lvl:6, p:'swing' }
+    ]
+  ],
+  /* 6 DRILL */ [
+    [ // DRUMS
+      { n:'Sliding Hats', d:'the hats move, not the kick', v:[.60,.75,.45], b:.66, lvl:1, p:'doubles' },
+      { n:'Skippy Kick', d:'never where you expect it', v:[.65,.80,.35], b:.74, lvl:6, p:'synco' }
+    ],
+    [ // BASS
+      { n:'Glide Bass', d:'one long slur downward', v:[.60,.85,.40], b:.68, lvl:1, p:'sparse' },
+      { n:'Detuned Slide', d:'two semitones of menace', v:[.55,.90,.30], b:.74, lvl:6, p:'back' }
+    ],
+    [ // GUITAR
+      { n:'Minor Piano Loop', d:'four bars, no resolution', v:[.45,.75,.45], b:.64, lvl:1, p:'back' },
+      { n:'Ice Bell Melody', d:'cold and very precise', v:[.55,.70,.55], b:.72, lvl:6, p:'doubles' }
+    ],
+    [ // VOCALS
+      { n:'Cold Flow', d:'never raises its voice', v:[.55,.85,.35], b:.66, lvl:1, p:'eighth' },
+      { n:'Doubled Ad-Libs', d:'the same threat, twice', v:[.70,.80,.45], b:.74, lvl:6, p:'synco' }
+    ]
+  ],
+  /* 7 DISCO */ [
+    [ // DRUMS
+      { n:'Open Hat Four', d:'the hat opens on every off-beat', v:[.70,-.20,.70], b:.68, lvl:1, p:'four' },
+      { n:'Cowbell Push', d:'yes, more of it', v:[.75,-.10,.65], b:.72, lvl:6, p:'eighth' }
+    ],
+    [ // BASS
+      { n:'Octave Disco Line', d:'up an octave, down again, forever', v:[.75,-.25,.70], b:.70, lvl:1, p:'eighth' },
+      { n:'Slap Octaves', d:'the bass wants the spotlight', v:[.80,-.15,.65], b:.74, lvl:6, p:'synco' }
+    ],
+    [ // GUITAR
+      { n:'Wah Chank', d:'sixteenths through a pedal', v:[.70,-.20,.65], b:.66, lvl:1, p:'doubles' },
+      { n:'String Stabs', d:'a whole orchestra, on the off-beat', v:[.65,-.30,.80], b:.74, lvl:6, p:'back' }
+    ],
+    [ // VOCALS
+      { n:'Falsetto Hook', d:'higher than anyone can sing live', v:[.70,-.30,.75], b:.68, lvl:1, p:'four' },
+      { n:'Backing Sisters', d:'three voices answering the lead', v:[.60,-.25,.80], b:.74, lvl:6, p:'eighth' }
+    ]
+  ],
+  /* 8 SHOEGAZE */ [
+    [ // DRUMS
+      { n:'Buried Kit', d:'the drums are in there somewhere', v:[.10,.60,-.25], b:.64, lvl:1, p:'eighth' },
+      { n:'Motorik Under Fuzz', d:'a straight line through the noise', v:[.30,.55,-.15], b:.72, lvl:6, p:'drive' }
+    ],
+    [ // BASS
+      { n:'Sub Under The Wall', d:'felt rather than heard', v:[.05,.65,-.25], b:.66, lvl:1, p:'four' },
+      { n:'Bowed Bass Drone', d:'a cello that took a wrong turn', v:[-.10,.60,-.10], b:.72, lvl:6, p:'sparse' }
+    ],
+    [ // GUITAR
+      { n:'Reverse Reverb Swell', d:'the note arrives after its echo', v:[.05,.60,-.20], b:.70, lvl:1, p:'sparse' },
+      { n:'Whammy Bend Wall', d:'the whole chord bends at once', v:[.25,.70,-.30], b:.76, lvl:6, p:'drive' }
+    ],
+    [ // VOCALS
+      { n:'Vocal In The Mix', d:'the voice is another guitar', v:[.00,.55,-.15], b:.66, lvl:1, p:'sparse' },
+      { n:'Two Voices, No Words', d:'harmony without language', v:[-.05,.50,-.05], b:.72, lvl:6, p:'swing' }
+    ]
+  ],
+  /* 9 AFROBEATS */ [
+    [ // DRUMS
+      { n:'Log Drum Pulse', d:'wooden and round', v:[.55,-.05,.60], b:.68, lvl:1, p:'synco' },
+      { n:'Shaker Layer', d:'three shakers, three speeds', v:[.60,-.15,.65], b:.72, lvl:6, p:'doubles' }
+    ],
+    [ // BASS
+      { n:'Round Bounce Bass', d:'it never stops moving', v:[.60,-.10,.60], b:.68, lvl:1, p:'synco' },
+      { n:'Muted Pluck Line', d:'short notes, long spaces', v:[.50,-.20,.65], b:.72, lvl:6, p:'eighth' }
+    ],
+    [ // GUITAR
+      { n:'Highlife Guitar', d:'clean, high and endlessly circling', v:[.55,-.05,.55], b:.66, lvl:1, p:'eighth' },
+      { n:'Marimba Loop', d:'wooden keys, warm attack', v:[.60,-.20,.70], b:.74, lvl:6, p:'doubles' }
+    ],
+    [ // VOCALS
+      { n:'Melodic Chant', d:'half sung, half spoken', v:[.60,-.10,.60], b:.68, lvl:1, p:'back' },
+      { n:'Pidgin Hook', d:'the line everyone will learn', v:[.65,.00,.55], b:.74, lvl:6, p:'synco' }
+    ]
+  ],
+  /* 10 METAL */ [
+    [ // DRUMS
+      { n:'Double Kick Run', d:'two pedals, no mercy', v:[.95,.95,-.25], b:.70, lvl:1, p:'drive' },
+      { n:'China Crash Accents', d:'the ugliest cymbal, used well', v:[.90,1.00,-.35], b:.76, lvl:6, p:'back' }
+    ],
+    [ // BASS
+      { n:'Pick Attack Sub', d:'you can hear the pick', v:[.90,1.00,-.30], b:.68, lvl:1, p:'drive' },
+      { n:'Gallop Root', d:'three notes, over and over', v:[.95,.90,-.20], b:.74, lvl:6, p:'doubles' }
+    ],
+    [ // GUITAR
+      { n:'Palm-Muted Gallop', d:'the right hand does the work', v:[.95,1.00,-.30], b:.72, lvl:1, p:'doubles' },
+      { n:'Tremolo Wall', d:'one note, picked into a texture', v:[1.00,.95,-.40], b:.78, lvl:6, p:'drive' }
+    ],
+    [ // VOCALS
+      { n:'Throat Scream', d:'from somewhere below the ribs', v:[.95,1.00,-.45], b:.70, lvl:1, p:'back' },
+      { n:'Clean Chorus Lift', d:'the melody nobody expected', v:[.80,.75,.10], b:.76, lvl:6, p:'four' }
+    ]
+  ],
+  /* 11 LO-FI */ [
+    [ // DRUMS
+      { n:'Dusty Sampled Loop', d:'lifted off a record with a crackle', v:[-.60,.35,-.45], b:.66, lvl:1, p:'back' },
+      { n:'Swung Brush Kit', d:'late on every snare, on purpose', v:[-.55,.25,-.35], b:.72, lvl:6, p:'swing' }
+    ],
+    [ // BASS
+      { n:'Upright Walk', d:'fingers squeaking on the strings', v:[-.55,.20,-.35], b:.68, lvl:1, p:'swing' },
+      { n:'Muddy Round Bass', d:'all body, no edges', v:[-.65,.35,-.45], b:.72, lvl:6, p:'sparse' }
+    ],
+    [ // GUITAR
+      { n:'Tape-Warped Rhodes', d:'the pitch drifts and nobody minds', v:[-.60,.30,-.40], b:.70, lvl:1, p:'sparse' },
+      { n:'Nylon Loop', d:'recorded too close to the mic', v:[-.55,.20,-.30], b:.72, lvl:6, p:'eighth' }
+    ],
+    [ // VOCALS
+      { n:'Half-Whispered Verse', d:'sung at two in the morning', v:[-.65,.25,-.35], b:.68, lvl:1, p:'sparse' },
+      { n:'Old Film Sample', d:'someone else\'s voice, years ago', v:[-.60,.40,-.50], b:.74, lvl:6, p:'back' }
+    ]
+  ],
+  /* 12 HOUSE */ [
+    [ // DRUMS
+      { n:'Four Kick, Open Hat', d:'the oldest trick that still works', v:[.65,-.35,.75], b:.68, lvl:1, p:'four' },
+      { n:'Clap On Two And Four', d:'a room full of hands', v:[.70,-.30,.70], b:.72, lvl:6, p:'back' }
+    ],
+    [ // BASS
+      { n:'Rolling Bassline', d:'eight notes that never sit down', v:[.65,-.35,.75], b:.70, lvl:1, p:'eighth' },
+      { n:'Filtered Sub Pump', d:'breathing with the kick', v:[.60,-.40,.80], b:.74, lvl:6, p:'four' }
+    ],
+    [ // GUITAR
+      { n:'Chopped Chord Stab', d:'one chord, cut to ribbons', v:[.70,-.30,.75], b:.68, lvl:1, p:'synco' },
+      { n:'Filter Sweep Pad', d:'opens over sixteen bars', v:[.55,-.45,.85], b:.74, lvl:6, p:'sparse' }
+    ],
+    [ // VOCALS
+      { n:'Diva Loop', d:'four words, looped until they mean more', v:[.70,-.35,.75], b:.70, lvl:1, p:'back' },
+      { n:'Spoken Sample Hook', d:'someone talking over the drop', v:[.60,-.30,.70], b:.72, lvl:6, p:'doubles' }
+    ]
+  ],
+  /* 13 REGGAETON */ [
+    [ // DRUMS
+      { n:'Dembow', d:'the pattern the whole genre rides', v:[.70,.20,.55], b:.70, lvl:1, p:'synco' },
+      { n:'Snare Skip', d:'one extra hit, everything changes', v:[.75,.25,.50], b:.74, lvl:6, p:'back' }
+    ],
+    [ // BASS
+      { n:'Dembow Sub', d:'the low half of the same pattern', v:[.70,.25,.55], b:.68, lvl:1, p:'synco' },
+      { n:'Bounce Octaves', d:'up and down with the hips', v:[.75,.15,.60], b:.74, lvl:6, p:'eighth' }
+    ],
+    [ // GUITAR
+      { n:'Minor Pluck Loop', d:'bright notes, dark chords', v:[.65,.20,.60], b:.66, lvl:1, p:'doubles' },
+      { n:'Bright Marimba Riff', d:'sunlight over the dembow', v:[.70,.10,.65], b:.74, lvl:6, p:'eighth' }
+    ],
+    [ // VOCALS
+      { n:'Perreo Hook', d:'built for one specific dance', v:[.75,.20,.55], b:.70, lvl:1, p:'synco' },
+      { n:'Doubled Spanish Flow', d:'two takes, hard left and right', v:[.70,.30,.50], b:.74, lvl:6, p:'eighth' }
+    ]
+  ],
+  /* 14 FOLK */ [
+    [ // DRUMS
+      { n:'Kick And Tambourine', d:'the whole rhythm section', v:[-.40,.20,-.20], b:.64, lvl:1, p:'four' },
+      { n:'Brushed Snare', d:'swept, never struck', v:[-.50,.25,-.25], b:.72, lvl:6, p:'swing' }
+    ],
+    [ // BASS
+      { n:'Upright Root', d:'one player, one note, right place', v:[-.45,.20,-.20], b:.64, lvl:1, p:'four' },
+      { n:'Simple Walking Root', d:'goes where the chord goes', v:[-.40,.30,-.25], b:.70, lvl:6, p:'eighth' }
+    ],
+    [ // GUITAR
+      { n:'Fingerpicked Steel', d:'thumb on the bass, fingers on top', v:[-.45,.25,-.15], b:.70, lvl:1, p:'eighth' },
+      { n:'Open Tuning Strum', d:'the guitar rings without being told', v:[-.40,.35,-.30], b:.74, lvl:6, p:'four' }
+    ],
+    [ // VOCALS
+      { n:'Close Harmony', d:'two voices a third apart', v:[-.45,.20,-.10], b:.70, lvl:1, p:'sparse' },
+      { n:'Storytelling Verse', d:'more words than melody', v:[-.55,.30,-.25], b:.72, lvl:6, p:'eighth' }
+    ]
+  ],
+  /* 15 K-POP */ [
+    [ // DRUMS
+      { n:'Stadium Snare', d:'recorded to fill a very big room', v:[.80,-.45,.95], b:.70, lvl:1, p:'four' },
+      { n:'Trap Break Switch', d:'the whole song changes at the bridge', v:[.85,-.35,.95], b:.78, lvl:6, p:'doubles' }
+    ],
+    [ // BASS
+      { n:'Bright Synth Bass', d:'clean, loud, unmissable', v:[.80,-.50,1.00], b:.70, lvl:1, p:'eighth' },
+      { n:'Slap Bass Bridge', d:'eight bars of showing off', v:[.85,-.40,.90], b:.76, lvl:6, p:'synco' }
+    ],
+    [ // GUITAR
+      { n:'Stacked Chord Hits', d:'every hit doubled three ways', v:[.80,-.50,.95], b:.70, lvl:1, p:'back' },
+      { n:'Cinematic Riser', d:'strings, then nothing, then everything', v:[.85,-.55,1.00], b:.78, lvl:6, p:'drive' }
+    ],
+    [ // VOCALS
+      { n:'Member Line Swap', d:'a different voice every two bars', v:[.80,-.50,1.00], b:.72, lvl:1, p:'eighth' },
+      { n:'English Hook Drop', d:'the one line the whole world sings', v:[.90,-.45,.95], b:.78, lvl:6, p:'doubles' }
+    ]
+  ]
+];
+GCARDS.forEach((tracks, gi) => tracks.forEach((cards, tr) =>
+  cards.forEach(c => CARDS[tr].push(Object.assign({ g:gi }, c)))));
 
 /* ===== TRENDS: every genre has heat that drifts, peaks and fades — and your hits push it =====
    Status is heat plus direction, so the same heat reads RISING on the way up and
@@ -967,7 +1356,12 @@ const ICON = {
   bell:'<path d="M6.5 9a5.5 5.5 0 0 1 11 0c0 5 2 6 2 6h-15s2-1 2-6z"/><path d="M10 19a2.2 2.2 0 0 0 4 0"/>',
   trash:'<path d="M4 6.5h16M9.5 6.5V4h5v2.5M6.5 6.5 7.5 20h9l1-13.5"/><path d="M10.5 10v6M13.5 10v6"/>',
   play:'<path d="M8 5.5 18.5 12 8 18.5z"/>',
-  globe:'<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5a13 13 0 0 1 0 17a13 13 0 0 1 0-17"/>'
+  globe:'<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5a13 13 0 0 1 0 17a13 13 0 0 1 0-17"/>',
+  pin:'<path d="M12 21s6.5-6.2 6.5-11a6.5 6.5 0 1 0-13 0C5.5 14.8 12 21 12 21z"/><circle cx="12" cy="10" r="2.4"/>',
+  map:'<path d="M3 6.5 9 4l6 2.5L21 4v13.5L15 20l-6-2.5L3 20z"/><path d="M9 4v13.5M15 6.5V20"/>',
+  flag:'<path d="M6 21V3.5"/><path d="M6 4.5h11l-2 3.5 2 3.5H6z"/>',
+  crown:'<path d="M4 18h16"/><path d="M4 15.5 3 7l5 3.5L12 4l4 6.5L21 7l-1 8.5z"/>',
+  fans:'<circle cx="9" cy="8.5" r="3.2"/><path d="M3 19c0-3.3 2.7-5 6-5s6 1.7 6 5"/><path d="M16 6.2a3.2 3.2 0 0 1 0 5.6M18 4.2a6 6 0 0 1 0 9.6"/>'
 };
 
 /* ===== CHARACTERS (inline SVG, flat and bold, no images) ===== */
@@ -1120,7 +1514,7 @@ function charSVG(role, look, rarity, locked){
 /* ===== AUDIO (Web Audio, synth only — no samples) ===== */
 const SCALE = [0,3,5,7,10];
 const AU = {
-  ctx:null, master:null, wet:null, noise:null, ready:false,
+  ctx:null, master:null, wet:null, noise:null, ready:false, wave:null, cut:0,
   bpm:104, step:0, nextT:0, timer:null, layers:[0,0,0,0], layerGain:[0,0,0,0], energy:[0,0,0,0], deg:0, root:45,
   init(){
     if (this.ctx) return;
@@ -1155,6 +1549,7 @@ const AU = {
   resume(){ if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume(); },
   setMute(m){ if (this.master) this.master.gain.setTargetAtTime(m ? 0 : 0.85, this.ctx.currentTime, 0.05); },
   setStudio(i){ if (this.wet) this.wet.gain.value = Math.min(0.34, 0.10 + i * 0.035); },
+  setGenre(gi){ const g = GENRES[gi]; this.wave = g.w; this.cut = g.cut; },
   setBPM(b){ this.bpm = b; document.documentElement.style.setProperty('--beat', (60/b).toFixed(3) + 's'); },
   freq(m){ return 440 * Math.pow(2, (m - 69) / 12); },
   scaleNote(root, deg){
@@ -1217,7 +1612,8 @@ const AU = {
     if (yours){
       const f = this.freq(this.scaleNote(this.root + 24, this.deg));
       this.deg = (this.deg + (Math.random() < 0.3 ? 2 : 1)) % 15;
-      this.tone(t, f, energy > 0.55 ? 'square' : 'triangle', 0.004, good ? 0.26 : 0.14, good ? 0.26 : 0.13, true, 0);
+      this.tone(t, f, this.wave || (energy > 0.55 ? 'square' : 'triangle'),
+                0.004, good ? 0.26 : 0.14, good ? 0.26 : 0.13, true, 0);
     } else {
       this.noiseHit(t, good ? 5200 : 3000, 0.035, good ? 0.16 : 0.09);
     }
@@ -1286,7 +1682,7 @@ const AU = {
 
 /* ===== STATE ===== */
 const SAVE_KEY = 'chartbreaker.v3', OLD_KEYS = ['chartbreaker.v2','chartbreaker.v1'];
-let S = null, disp = 0, dispM = 0, lastSave = 0, revealing = false, sheetTab = null;
+let S = null, disp = 0, dispM = 0, dispF = 0, lastSave = 0, revealing = false, sheetTab = null;
 
 /* start with one genre hot and one clearly rising, so the first genre choice matters */
 function seedHeat(){
@@ -1301,6 +1697,7 @@ function seedHeat(){
 function newState(){
   return {
     v:3, streams:0, money:0, lifetime:0, picks:0, songs:[], released:0,
+    fans:0, rank:0, home:null,
     band:'', you:null, setup:false, payoutLvl:0,
     vip:false, cloud:{ on:false, email:null, at:0 }, capHit:false,
     heat: seedHeat(), heatVel: GENRES.map(() => (Math.random() - 0.4) * 1.5),
@@ -1344,9 +1741,14 @@ function load(){
       s.members.forEach(m => { if (!m.look) m.look = newLook(); });
       s.flags = Object.assign(base.flags, d.flags || {});
       s.cloud = Object.assign(base.cloud, d.cloud || {});
-      if (!Array.isArray(s.heat) || s.heat.length !== GENRES.length){
-        s.heat = base.heat; s.heatVel = base.heatVel; s.heatT = Date.now();
+      // new genres append, so pad an older save's heat rather than wiping what it had
+      if (!Array.isArray(s.heat)){ s.heat = base.heat; s.heatVel = base.heatVel; s.heatT = Date.now(); }
+      else while (s.heat.length < GENRES.length){
+        s.heat.push(base.heat[s.heat.length]);
+        s.heatVel.push(base.heatVel[s.heatVel.length] || 0);
       }
+      s.heat.length = GENRES.length; s.heatVel.length = GENRES.length;
+      s.rank = rankOf(s.fans || 0);
       (s.songs||[]).forEach(x => GEN.used.add(x.title));
       return s;
     } catch(e){ return newState(); }
@@ -1394,7 +1796,27 @@ const ownedCount = () => S.members.filter(m => m.owned).length;
 const boughtCount = () => S.members.filter((m,i) => m.owned && i !== S.you).length;
 const nextMemberPrice = () => BAL.memberPrices[Math.min(boughtCount(), BAL.memberPrices.length - 1)]
                               * (boughtCount() >= BAL.memberPrices.length ? 8 : 1);
-const payoutRate = () => Math.round((BAL.payoutBase + BAL.payoutStep * S.payoutLvl) * 1000) / 1000;
+/* FANS AND RANKS. Fans never fall, so the rank only ever goes up — it is the one
+   number in the game that cannot go backwards, which is why it carries the long goal. */
+function rankOf(fans){
+  let r = 0;
+  for (let i = 0; i < RANKS.length; i++) if (fans >= RANKS[i].at) r = i;
+  return r;
+}
+const rank = () => RANKS[Math.min(S.rank || 0, RANKS.length - 1)];
+const nextRank = () => RANKS[(S.rank || 0) + 1] || null;
+function rankProgress(){
+  const a = rank().at, nx = nextRank();
+  if (!nx) return 1;
+  return clamp((S.fans - a) / (nx.at - a), 0, 1);
+}
+const fansFor = (q, ti) => Math.max(1, Math.round(BAL.fanTier[ti] * (1 + BAL.fanQBoost * q / 100)));
+const genreOpen = gi => GENRES[gi].r <= (S.rank || 0);
+const openGenres = () => GENRES.map((g,i) => i).filter(genreOpen);
+/* the royalty rate can be bought forever, but never past what your rank can carry */
+const payoutRate = () => Math.min(rank().payCap,
+  Math.round((BAL.payoutBase + BAL.payoutStep * S.payoutLvl) * 1000) / 1000);
+const payoutCapped = () => BAL.payoutBase + BAL.payoutStep * S.payoutLvl > rank().payCap + 1e-9;
 const payoutUpCost = () => Math.floor(BAL.payoutCost * Math.pow(BAL.payoutGrow, S.payoutLvl));
 /* Members no longer emit streams on their own — songs do. A member's level is a
    multiplier on the whole catalogue, so levelling still visibly moves streams/sec,
@@ -1406,12 +1828,16 @@ function decayOf(s){
   const days = (Date.now() - s.at) / 864e5;
   return Math.max(BAL.decayFloor, Math.pow(0.5, days / BAL.decayHalfDays));
 }
-const songSPS = s => (s.base != null ? s.base : s.raw) * bandMult() * studioMult() * trendOf(s.g).m * decayOf(s);
+const homeMult = g => (S.home != null && g === S.home ? BAL.homeMult : 1);
+const songSPS = s => (s.base != null ? s.base : s.raw) * bandMult() * studioMult()
+                     * trendOf(s.g).m * decayOf(s) * homeMult(s.g);
 function catalogSPS(){ let t = 0; for (const s of S.songs) t += songSPS(s); return t; }
 /* the two headline rates. Streams come only from released songs — no songs, no streams.
    Money has its own floor: the band gigs for cash long before it streams for it. */
 function totalSPS(){ return catalogSPS(); }
-const gigMoney = () => BAL.gigBase * (1 + BAL.gigPerMember * Math.max(0, ownedCount() - 1));
+/* bigger rank, bigger rooms: the gig pays more and the crowd on the stage grows */
+const gigMoney = () => BAL.gigBase * (1 + BAL.gigPerMember * Math.max(0, ownedCount() - 1)) * rank().gig;
+const fanRate = () => BAL.fanGig * gigMoney();
 const moneyRate = () => gigMoney() + totalSPS() * payoutRate();
 const qFactor = q => 0.25 + 1.75 * Math.pow(clamp(q,0,100) / 100, 1.6);
 const baseFor = (q, ti) => BAL.songScale * qFactor(q) * TIERS[ti].mult;   // band/studio applied live
@@ -1448,6 +1874,8 @@ const chartFor = ti => rndi(TIERS[ti].lo, TIERS[ti].hi);
 const el = {
   streams:$('#streams'), sps:$('#sps'), money:$('#money'), mps:$('#mps'),
   picks:$('#picks'), studioChip:$('#studioChip'), bandChip:$('#bandChip'),
+  fans:$('#fans'), fps:$('#fps'), rankbar:$('#rankbar'), rankBadge:$('#rankBadge'),
+  rankName:$('#rankName'), rankNext:$('#rankNext'), rankFill:$('#rankFill'),
   band:$('#band'), stage:$('#stage'), bg:$('#bg'), dock:$('#dock'),
   idlebox:$('#idlebox'), genrebox:$('#genrebox'), writebox:$('#writebox'), qualbox:$('#qualbox'),
   takefs:$('#takefs'), hwy:$('#hwy'), takejudge:$('#takejudge'), takecombo:$('#takecombo'),
@@ -1494,6 +1922,8 @@ function applyStudio(){
 function renderTop(){
   el.sps.textContent = '+' + fmtRate(totalSPS()) + '/s';
   el.mps.textContent = '+' + fmtRate(moneyRate()) + '/s';
+  el.fps.textContent = '+' + fmtRate(fanRate()) + '/s';
+  renderRank();
   el.picks.textContent = fmt(S.picks);
   el.bandChip.textContent = S.band || 'Your Band';
   let alert = false;
@@ -1505,6 +1935,50 @@ function renderTop(){
   if (nx && S.money >= nx.cost) alert = true;
   if (S.money >= payoutUpCost()) alert = true;
   document.querySelector('.tab[data-tab="band"]').classList.toggle('alert', alert);
+}
+function renderRank(){
+  const r = rank(), nx = nextRank();
+  el.rankbar.style.setProperty('--rc', r.c);
+  el.rankBadge.innerHTML = ico(ICON[r.i], { s:17, c:'#FFF6E6', w:2.1 });
+  el.rankName.textContent = r.n;
+  el.rankNext.textContent = nx ? fmt(Math.max(0, nx.at - S.fans)) + ' to ' + nx.n : 'the top of the game';
+  el.rankFill.style.width = (rankProgress() * 100).toFixed(1) + '%';
+  const c = $('.crowd');
+  if (c) c.style.setProperty('--crowd', r.crowd);
+}
+/* fans only ever go up, so this only ever fires forward */
+function addFans(n, why){
+  if (!(n > 0)) return;
+  S.fans += n;
+  const r = rankOf(S.fans);
+  if (r > S.rank){ S.rank = r; rankUp(r); }
+}
+let rankQueue = [];
+function rankUp(r){
+  const R = RANKS[r], prev = RANKS[r-1] || RANKS[0];
+  const gained = GENRES.filter(g => g.r === r).map(g => g.n);
+  if (revealing || $('#gone').classList.contains('on')){ rankQueue.push(r); return; }
+  const rows = [];
+  if (gained.length) rows.push('<b>' + gained.length + ' new genre' + (gained.length > 1 ? 's' : '') +
+    '</b> — ' + gained.join(', '));
+  rows.push('<b>Bigger rooms</b> — gigs pay x' + R.gig + ', and the crowd grows');
+  rows.push('<b>Royalty ceiling</b> — the rate can now reach ' + (R.payCap * 100).toFixed(0) + '%');
+  if (R.crate > prev.crate) rows.push('<b>Better crate odds</b> — banked until crates land with Gear');
+  $('#rankup').style.setProperty('--rc', R.c);
+  $('#ruBadge').innerHTML = ico(ICON[R.i], { s:56, c:'#FFF6E6', w:1.9 });
+  $('#ruName').textContent = R.n;
+  $('#ruFans').textContent = fmt(R.at) + ' fans';
+  $('#ruList').innerHTML = rows.map(t => '<div><i></i><span>' + t + '</span></div>').join('');
+  $('#rankup').classList.add('on');
+  memEls.forEach(m => { if (m){ m.classList.remove('nod'); void m.offsetWidth; m.classList.add('nod'); } });
+  confetti(3); AU.chord('big'); buzz([25, 60, 25, 60, 40]);
+  save();
+}
+function closeRankUp(){
+  $('#rankup').classList.remove('on');
+  renderTop(); renderIdle();
+  if (sheetTab) renderSheet(sheetTab);
+  if (rankQueue.length) rankUp(rankQueue.shift());
 }
 let toastQueue = [];
 function toast(msg){
@@ -1549,8 +2023,9 @@ function tick(){
     S.members[i].solo += soloRate(i) * dt;
     if (S.members[i].solo >= 1){
       S.members[i].solo -= 1;
-      const q = rndi(BAL.soloQ[0], BAL.soloQ[1]), g = rndi(0, GENRES.length-1), ti = rollTier(q);
+      const q = rndi(BAL.soloQ[0], BAL.soloQ[1]), g = pick(openGenres()), ti = rollTier(q);
       const s = addSong({ title:genTitle(), g, q, t:ti, chart:chartFor(ti), cover:newCover(), by:S.members[i].name });
+      addFans(fansFor(q, ti));
       toast('🎧 ' + S.members[i].name.split(' ')[0] + ' finished "' + s.title + '" (Q' + q + ')');
       if (sheetTab === 'catalog') renderSheet('catalog');
     }
@@ -1580,6 +2055,10 @@ function tick(){
   dispM += (S.money - dispM) * Math.min(1, dt * 7);
   if (Math.abs(S.money - dispM) < 0.05) dispM = S.money;
   el.money.textContent = fmt(dispM);
+  addFans(fanRate() * dt);                    // the band gigs for fans as well as cash
+  dispF += (S.fans - dispF) * Math.min(1, dt * 7);
+  if (Math.abs(S.fans - dispF) < 0.5) dispF = S.fans;
+  el.fans.textContent = fmt(dispF);
 
   uiClock += dt;
   if (uiClock > 0.2){
@@ -1648,7 +2127,7 @@ function genreFit(gi){
   activeTracks().forEach(tr => {
     const lvl = S.members[tr].lvl;
     let best = 0;
-    CARDS[tr].forEach(c => { if (c.lvl <= lvl) best = Math.max(best, fitOf(c.v, g.v)); });
+    CARDS[tr].forEach(c => { if (c.lvl <= lvl && (c.g == null || c.g === gi)) best = Math.max(best, fitOf(c.v, g.v)); });
     sum += best; n++;
   });
   return n ? sum / n : 0;
@@ -1657,15 +2136,16 @@ function startWriting(){
   if (S.pending || S.session) return;
   AU.init(); AU.resume(); AU.reset();
   S.session = { phase:'genre' };
-  const all = GENRES.map((g,i) => i).sort((a,b) => S.heat[b] - S.heat[a]);
+  const all = openGenres().sort((a,b) => S.heat[b] - S.heat[a]);
   const offer = [all[0]];                                    // the hottest is always on the table
   const rest = all.slice(1);
-  while (offer.length < 4 && rest.length) offer.push(rest.splice(rndi(0, rest.length - 1), 1)[0]);
+  while (offer.length < Math.min(4, all.length) && rest.length) offer.push(rest.splice(rndi(0, rest.length - 1), 1)[0]);
   el.gpick.innerHTML = offer.map(gi => {
     const tr = trendOf(gi), f = genreFit(gi);
     const fitTxt = f > 0.82 ? 'easy write' : f > 0.62 ? 'tricky' : 'hard write';
-    return `<button class="gbtn" data-g="${gi}"><div class="gn">${GENRES[gi].n}
-      <div style="font-size:9.5px;font-weight:700;color:var(--dim);letter-spacing:0">${fitTxt} · x${tr.m} streams${
+    const home = S.home === gi ? ' · <b>home x' + BAL.homeMult + '</b>' : '';
+    return `<button class="gbtn" data-g="${gi}" style="--gc:${GENRES[gi].c}"><div class="gn">${GENRES[gi].n}
+      <div style="font-size:9.5px;font-weight:700;color:var(--dim);letter-spacing:0">${fitTxt} · x${tr.m} streams${home}${
         tr.n === 'RISING' ? ' · a hit could tip it hot' : ''}</div></div>
       <span class="trend" style="background:${tr.c}">${tr.n}</span></button>`;
   }).join('');
@@ -1676,6 +2156,7 @@ function chooseGenre(gi){
   S.session = { phase:'cards', g:gi, step:0, order, picks:[], jam:[0,0,0,0],
                 timeLeft:BAL.sessionSecs, title:genTitle(), cover:newCover(), offers:[], reacts:[], takePts:0 };
   AU.root = 40 + rndi(0, 11);
+  AU.setGenre(gi);
   AU.setBPM(Math.round(88 + (GENRES[gi].v[0] + 1) * 22));
   AU.reset();
   showDock('write');
@@ -1685,7 +2166,9 @@ function chooseGenre(gi){
 function dealStep(){
   const s = S.session, track = s.order[s.step], lvl = S.members[track].lvl;
   const genre0 = GENRES[s.g];
-  const pool = CARDS[track].map((c,i) => i).filter(i => CARDS[track][i].lvl <= lvl);
+  // the shared pool plus this genre's own signature cards, never another genre's
+  const pool = CARDS[track].map((c,i) => i)
+    .filter(i => CARDS[track][i].lvl <= lvl && (CARDS[track][i].g == null || CARDS[track][i].g === s.g));
   // always deal one card that genuinely suits the genre, so a sharp player can reach 90+.
   // it is the best *genre* fit, not the best overall — coherence with earlier picks can still
   // make a different card the right call, which is what keeps the decision a decision.
@@ -2075,16 +2558,19 @@ async function release(){
   // The reveal shows what the song made; nothing lands until the player presses COLLECT.
   const payS = songSPS(song) * BAL.payoutSecs;
   const payM = payS * payoutRate() * BAL.advanceMult;
-  S.payout = { s:payS, m:payM };
+  const payF = fansFor(p.q, ti);
+  S.payout = { s:payS, m:payM, f:payF };
   S.released++;
   S.pending = null;
 
+  if (S.home == null){ S.home = p.g; toastQueue.push('🏠 ' + GENRES[p.g].n + ' is your home genre — x' + BAL.homeMult + ' streams'); }
   const heat = pushHeat(p.g, p.q, ti);
   const tv = $('#rvTier');
   tv.textContent = T.n; tv.style.color = T.c; tv.classList.add('pop');
   $('#rvPayS').textContent = '+' + fmt(payS);
   $('#rvPayM').textContent = '+' + fmt(payM);
-  $('#rvPayF').textContent = fmt(songSPS(song)) + '/s FOREVER';
+  $('#rvPayF').textContent = '+' + fmt(payF);
+  $('#rvPayFore').textContent = fmt(songSPS(song)) + '/s FOREVER';
   $('#rvPay').classList.add('fadein');
   if (ti >= 2){ confetti(ti); buzz(ti >= 3 ? [20,50,20,50,40] : 40);
     $('#rvQuote').textContent = genQuote(); $('#rvQuote').classList.add('fadein'); }
@@ -2108,6 +2594,7 @@ function bankPayout(){
   S.money += p.m;
   S.payout = null;
   toast('💰 +' + fmt(p.m) + ' in the account');
+  if (p.f) addFans(p.f);            // may tip a rank — the card waits until the reveal closes
   buzz(18);
 }
 function endReveal(){
@@ -2150,7 +2637,8 @@ function closeSheet(){
   el.sheet.classList.remove('on'); el.scrim.classList.remove('on');
   document.querySelectorAll('.tab').forEach(b => b.classList.remove('sel'));
 }
-function bandSig(){ return S.studio + '|' + S.payoutLvl + '|' + S.members.map(m => (m.owned?1:0) + ':' + m.lvl).join(','); }
+function bandSig(){ return S.studio + '|' + S.payoutLvl + '|' + S.rank + '|' + S.home + '|' +
+  S.members.map(m => (m.owned?1:0) + ':' + m.lvl).join(','); }
 let lastBandSig = '';
 function softBand(){
   const b = el.shBody;
@@ -2185,12 +2673,30 @@ function htmlBand(){
       <div class="d">${ownedCount()} of 4 slots filled · band multiplier x${fmt(bandMult())}
         · ${fmt(catalogSPS())}/s from ${S.songs.length} songs · ${fmt(gigMoney())} money/s from gigs</div></div>
       <button class="buy alt" data-act="rename" data-i="-1">RENAME</button></div>`;
+  const R = rank(), NX = nextRank();
+  h += `<div class="sect">Rank</div>
+    <div class="card"><div class="av" style="--c1:${R.c}">${ico(ICON[R.i], {c:'#FFF6E6', s:24})}</div>
+      <div class="info"><div class="t">${R.n}</div>
+      <div class="d">${fmt(S.fans)} fans · gigs x${R.gig} · royalty ceiling ${(R.payCap*100).toFixed(0)}%<br>
+        ${NX ? fmt(Math.max(0, NX.at - S.fans)) + ' more fans for <b>' + NX.n + '</b>'
+             : 'Nothing above this one.'}</div></div></div>`;
+  h += `<div class="sect">Genres <span style="color:var(--dim2);font-weight:700">${openGenres().length} of ${GENRES.length} open</span></div>`;
+  GENRES.forEach((g, gi) => {
+    const open = genreOpen(gi), tr = open ? trendOf(gi) : null, home = S.home === gi;
+    h += `<div class="card ${open ? '' : 'locked'}">
+      <div class="av" style="--c1:${g.c}">${ico(ICON.catalog, {c:'#FFF6E6', s:20})}</div>
+      <div class="info"><div class="t">${g.n}${home ? ' <span class="rar" style="color:var(--accent2-dk)">HOME x' + BAL.homeMult + '</span>' : ''}</div>
+      <div class="d">${open ? tr.n + ' ' + Math.round(S.heat[gi]) + ' · x' + tr.m + ' streams'
+                            : 'Opens at <b>' + RANKS[g.r].n + '</b>'}</div></div>
+      ${open && !home ? `<button class="buy alt" data-act="home" data-i="${gi}">MAKE HOME</button>` : ''}</div>`;
+  });
   h += `<div class="sect">Royalty rate</div>
     <div class="card"><div class="av" style="--c1:#FFC22E">${ico(ICON.money, {c:'#5A3F00', s:24})}</div>
       <div class="info"><div class="t">${(payoutRate()*100).toFixed(0)}% payout</div>
       <div class="d">Every stream/sec pays ${payoutRate().toFixed(2)} money/sec.
-        Next deal: ${((payoutRate()+BAL.payoutStep)*100).toFixed(0)}%</div></div>
-      <button class="buy ${S.money >= payoutUpCost() ? '' : 'no'}" data-act="payout" data-i="-1">
+        ${payoutCapped() ? '<b>Capped by your rank</b> — ' + R.n + ' tops out at ' + (R.payCap*100).toFixed(0) + '%'
+                         : 'Next deal: ' + ((payoutRate()+BAL.payoutStep)*100).toFixed(0) + '%'}</div></div>
+      <button class="buy ${S.money >= payoutUpCost() && !payoutCapped() ? '' : 'no'}" data-act="payout" data-i="-1">
         BETTER DEAL<small>${fmt(payoutUpCost())}</small></button></div>`;
   h += '<div class="sect">Studio</div>';
   h += `<div class="card"><div class="av" style="--c1:#12A79C">${ico(ICON.house, {c:'#FFF6E6', s:24})}</div>
@@ -2339,9 +2845,16 @@ function buy(act, i){
     });
     return;
   }
+  if (act === 'home'){
+    if (!genreOpen(i) || S.home === i) return;
+    S.home = i;
+    toast('🏠 ' + GENRES[i].n + ' is your home genre — x' + BAL.homeMult + ' streams');
+    renderTop(); renderSheet(sheetTab); save(); buzz(14);
+    return;
+  }
   if (act === 'payout'){
     const c = payoutUpCost();
-    if (S.money < c) return;
+    if (S.money < c || payoutCapped()) return;
     S.money -= c; S.payoutLvl++;
     toast('💵 Royalty rate up to ' + (payoutRate()*100).toFixed(0) + '%');
     AU.chord('small'); buzz(14);
@@ -2428,12 +2941,13 @@ function countTo(el, target, money){
   };
   requestAnimationFrame(step);
 }
-function showGone(secs, songs, streams, money){
-  gone = { streams, money, songs, doubled:false };
+function showGone(secs, songs, streams, money, fans){
+  gone = { streams, money, songs, fans:fans || 0, doubled:false };
   $('#goneAway').textContent = dur(secs) + ' away' + (S.vip ? ' · VIP 24h' : '');
   $('#goneCap').hidden = !S.capHit;
   $('#goneTitle').textContent = songs ? 'Your band kept working' : 'The catalogue kept streaming';
   $('#goneSongs').textContent = '0'; $('#goneStreams').textContent = '0'; $('#goneMoney').textContent = '0';
+  $('#goneFans').textContent = '0';
   const ad = $('#goneAd');
   ad.classList.remove('spent');
   ad.innerHTML = ico(ICON.play, {s:15, w:2.4}) + '<span>WATCH AD FOR x2</span>';
@@ -2442,13 +2956,16 @@ function showGone(secs, songs, streams, money){
     $('#goneSongs').textContent = songs;
     countTo($('#goneStreams'), streams);
     countTo($('#goneMoney'), money, true);
+    countTo($('#goneFans'), gone.fans);
   });
   if (S.capHit) markCapped(true);
 }
 function collectGone(){
   if (!gone) return;
   S.streams += gone.streams; S.lifetime += gone.streams; S.money += gone.money;
-  disp = S.streams; dispM = S.money;
+  const f = gone.fans;
+  disp = S.streams; dispM = S.money; dispF = S.fans + f;
+  addFans(f);
   gone = null;
   $('#gone').classList.remove('on');
   S.capHit = false; markCapped(false);
@@ -2528,27 +3045,29 @@ function boot(){
     S.capHit = away >= cap;
     stepTrends(Math.floor(away / 60));
     const before = totalSPS();
-    let wrote = 0;
+    let wrote = 0, wroteFans = 0;
     for (let i = 0; i < 4; i++){
       if (!S.members[i].owned) continue;
       const prog = S.members[i].solo + capped * soloRate(i);   // nothing accrues past the cap
       const n = Math.floor(prog);
       S.members[i].solo = prog - n;
       for (let k = 0; k < n; k++){
-        const q = rndi(BAL.soloQ[0], BAL.soloQ[1]), g = rndi(0, GENRES.length-1), ti = rollTier(q);
+        const q = rndi(BAL.soloQ[0], BAL.soloQ[1]), g = pick(openGenres()), ti = rollTier(q);
         addSong({ title:genTitle(), g, q, t:ti, chart:chartFor(ti), cover:newCover(),
                   by:S.members[i].name, at:Date.now() - Math.random() * capped * 1000 });
+        wroteFans += fansFor(q, ti);
         wrote++;
       }
     }
     const after = totalSPS();
     const earned = before * capped + (after - before) * capped * 0.5;
     const earnedMoney = gigMoney() * capped + earned * payoutRate();
-    if (earned > 1 || wrote) showGone(capped, wrote, earned, earnedMoney);
+    const earnedFans = wroteFans + fanRate() * capped;
+    if (earned > 1 || wrote) showGone(capped, wrote, earned, earnedMoney, earnedFans);
   }
   if (S.pending) showDock('qual'); else showDock('idle');
   renderIdle();
-  dispM = S.money;
+  dispM = S.money; dispF = S.fans;
   if (!S.setup) showSetup();
 
   last = now(); lastSave = now();
@@ -2585,13 +3104,16 @@ function boot(){
   });
   $('#setBtn').addEventListener('click', e => { e.stopPropagation(); openTab('settings'); });
   $('#setBtn').innerHTML = ico(ICON.cog, {s:17});
+  $('#ruGo').addEventListener('click', closeRankUp);
+  el.rankbar.addEventListener('click', () => openTab('band'));
   $('#goneGo').addEventListener('click', collectGone);
   $('#goneAd').addEventListener('click', () => {
     if (!gone || gone.doubled) return;                  // stub: no ad, just the reward
     gone.doubled = true;
-    gone.streams *= 2; gone.money *= 2;
+    gone.streams *= 2; gone.money *= 2; gone.fans *= 2;
     countTo($('#goneStreams'), gone.streams);
     countTo($('#goneMoney'), gone.money, true);
+    countTo($('#goneFans'), gone.fans);
     const ad = $('#goneAd');
     ad.classList.add('spent');
     ad.innerHTML = '<span>x2 APPLIED</span>';

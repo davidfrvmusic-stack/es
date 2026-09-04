@@ -46,9 +46,10 @@ is not that.
 > again mid-sentence under ADDICTION LOOPS. This order is derived from the brief.
 
 1. **Core loop** — SVG characters, 20s writing session with card decisions and
-   nod/wince hints, a 10s recording take per decision, Quality, Quality-driven release reveal, per-song decaying
-   streams, weekly genre trends, solo demos, studios, member levels, offline
-   earnings, save/load, tab shell. **← current step**
+   nod/wince hints, a 10s three-lane recording take per decision, Quality,
+   Quality-driven release reveal, per-song decaying streams, live genre trends,
+   16 genres with signature cards, fans and ranks, solo demos, studios, member levels,
+   offline earnings, save/load, tab shell. **← current step**
 2. **Gear** — guitars, pedals, amps, mics. Visible on the characters, and each piece
    unlocks better writing cards. Crates become real drops.
 3. **Crates + rarity** — member drops, Merge 3-same-rarity → +1 rarity, rarity
@@ -186,6 +187,74 @@ the screen, played with one thumb. The band stays visible above it.
   is bounded by the time cap alone, which is a lot of songs — see SAVES below.
   Player sessions played well reach 90+.
 
+## 4b. GENRES — 16 OF THEM, AND THE CARDS CHANGE WITH THEM
+
+Sixteen genres: indie rock, hyperpop, trap, synthwave, garage punk, dream pop, drill,
+disco, shoegaze, afrobeats, metal, lo-fi, house, reggaeton, folk, k-pop. **The first
+ten keep their original index** so an existing save's `heat` array still lines up; the
+six new ones are appended and `load()` pads the array rather than resetting it.
+
+Each genre carries its `[energy, grit, polish]` vector, a badge colour `c`, a take/loop
+flavour (`w` oscillator, `cut` filter), and `r` — the rank that opens it.
+
+- **You start with three** (INDIE ROCK, TRAP, DREAM POP) and each rank-up opens two or
+  three more, 3 → 5 → 8 → 11 → 14 → 16. The genre picker only ever offers what is open,
+  and offers `min(4, open)` so the first pick is a real choice from three.
+- **Signature cards.** `GCARDS` adds **two cards per instrument per genre — 128 in all**
+  — merged into the per-track `CARDS` array with a `g` field. A card with `g` is dealt
+  only when you are writing in that genre, so METAL deals Palm-Muted Gallop and Throat
+  Scream while LO-FI deals Tape-Warped Rhodes and Half-Whispered Verse. They are merged
+  into one array rather than kept separate so `ci` stays a single index and saves,
+  `s.picks` and the hint code need no special case.
+  > The brief asked for **six unique cards per track per genre** (384). This is two per
+  > track per genre on top of the shared pool instead: it gives every genre a visibly
+  > different deal without 384 hand-written entries, most of which would be filler.
+  > Going to the full six is a content pass, not a mechanics change — the plumbing
+  > (`g` gating in `dealStep` and `genreFit`) already supports any number.
+- **Home genre, x1.5.** Your first release sets `S.home`; the Band tab can move it. Home
+  applies live to every song in that genre via `homeMult`, like the trend multiplier.
+- **Trends** are the live heat cycle in §6 — COLD → RISING → HOT → FADING, with a hit in
+  a RISING genre able to tip it HOT. That is already stronger than the brief's weekly
+  rotation, so it stays as is.
+
+## 4c. FANS AND RANKS — the number that never goes down
+
+**FANS** is the third counter in the header, next to money and streams. It is the only
+value in the game that cannot fall, which is why it carries the long goal.
+
+- Earned from **every release**, banked with the rest of the payout on COLLECT:
+  `fansFor(q, tier)` = `BAL.fanTier[tier] × (1 + Quality/100)`, `fanTier` = 4 / 25 / 200
+  / 1200 / 6000 for flop → #1. Solo demos earn it too, immediately, awake or offline.
+- Earned from **playing live**: `fanRate() = BAL.fanGig × gigMoney()`, so bigger rooms
+  bring more people as well as more money. (The brief's "every gig win" is this until
+  the Daily Gig event lands in BUILD ORDER step 4 — there is no gig *event* yet.)
+
+**RANKS** are pure fan thresholds: Garage Band 0 → Local Act 1K → Regional 10K →
+National 100K → Global 1M → Legend 10M. Each one buys four things, all live:
+
+| rank | genres open | gigs | royalty ceiling | crowd |
+|---|---|---|---|---|
+| Garage Band | 3 | x1 | 9% | small |
+| Local Act | 5 | x1.6 | 14% | — |
+| Regional | 8 | x2.4 | 20% | — |
+| National | 11 | x3.5 | 30% | — |
+| Global | 14 | x5 | 45% | — |
+| Legend | 16 | x8 | 100% | packed |
+
+- **Bigger rooms** is both halves of the same idea: `gigMoney()` is multiplied by the
+  rank, and the crowd drawn behind the band grows (`--crowd` drives the `.crowd`
+  height and opacity).
+- **The royalty ceiling** is a real cap — `payoutRate()` is `min(rank.payCap, base +
+  step × level)`, the Band tab says so when it bites, and BETTER DEAL refuses to sell
+  you a rate you cannot use. It is the one place where fans gate money.
+- **Better crate odds** are stored on the rank (`crate`) and honestly labelled in the
+  rank-up card as banked until crates land with Gear. Nothing reads it yet.
+- **The rank-up is a moment**: a full-screen card with the new badge, the fan count, the
+  list of what just opened, confetti, a chord, a buzz and the whole band nodding. It
+  queues behind the release reveal and the offline panel rather than stacking on them.
+- **The header carries the goal**: badge, rank name, "N to <next rank>" and a progress
+  bar, on screen every second. Tapping it opens the Band tab.
+
 ## 5. RELEASE
 Slot-machine chart reveal: title → procedural cover → chart-position reel → tier.
 Flop / Solid / Hit / Viral / #1, **weighted by Quality** (`ODDS` table, interpolated:
@@ -210,8 +279,8 @@ with separate jobs: **streams are reach, money is what you spend.**
 and the counter sits at 0 until the first release — streams are what a *record* does,
 not what a person does.
 
-**Money has its own floor.** `gigMoney = 1.0 × (1 + 0.5 × (members − 1))` — the band
-plays live for cash. This is why money can start at 1.0/sec while streams start at 0;
+**Money has its own floor.** `gigMoney = 1.0 × (1 + 0.5 × (members − 1)) × rank.gig`
+— the band plays live for cash, in rooms that grow with the rank. This is why money can start at 1.0/sec while streams start at 0;
 without it the two requirements contradict each other. It also gives hiring an
 immediate payoff before you have any catalogue.
 
@@ -222,11 +291,12 @@ immediate payoff before you have any catalogue.
 - A song's `base` is fixed at release from Quality and chart tier; band multiplier,
   studio, trend and decay are all applied **live**.
 - **payoutRate** starts at 0.04 and rises `+0.008` per Royalty Rate upgrade
-  (cost `250 × 2.1^n`). It multiplies *everything*, so it stays worth buying forever.
+  (cost `250 × 2.1^n`), **capped by the rank's `payCap`** (§4c). It multiplies
+  *everything*, so it stays worth buying up to the ceiling your fans have earned.
 - **No passive money from tapping.** Every released song earns its own streams/sec:
 
     base  = 1.0 × qFactor(Quality) × tierMultiplier          (fixed at release)
-    live  = base × bandMult × studioMultiplier × genreTrend(now) × decay(now)
+    live  = base × bandMult × studioMultiplier × genreTrend(now) × decay(now) × homeMult
 
 - `qFactor` = `0.25 + 1.75 × (Q/100)^1.6`.
 - **Decay:** songs below Hit halve every 3 days down to a 15% floor. Hit / Viral /
@@ -290,20 +360,41 @@ Three changes fixed it, and they must be kept together:
 Plus supporting cuts: `songScale` 1.5→1.0, `payoutBase` 0.10→0.04, `payoutSecs`
 90→40, member prices `[30, 300, 2200]`, level costs `[14, 22, 34, 50]`.
 
-**Measured** (greedy buyer, headless, real game code):
+**Measured** (greedy buyer, headless, real game code, 168 simulated hours):
 
 | milestone | steady (a song every 2 min) | casual (every 10 min) |
 |---|---|---|
 | 2nd member | 2m | 2m |
-| full band | 25m | 84m |
-| Bedroom Studio | 43m | 2.7h |
-| Rehearsal Space | 82m | 5.8h |
-| Pro Studio | 3.1h | ~16h |
-| Label HQ | ~23h | ~45h |
-| Tour Bus / Stadium / Space | days | days |
+| Local Act | 6m | 1.5h |
+| full band | 22m | 88m |
+| Bedroom Studio | 35m | 2.4h |
+| Regional | 38m | 2.8h |
+| Rehearsal Space | 82m | 5.2h |
+| Pro Studio | 3.9h | 12.5h |
+| National | 6.7h | 32.3h |
+| Label HQ | 12.9h | 34.1h |
+| Global | 3.5d | not in a week |
+| Tour Bus | 6.3d | not in a week |
+| Stadium / Space | not in a week | not in a week |
 
-A week of steady play lands around Label HQ — studio 5 of 8 — which leaves the top
-three as the long tail prestige is meant to sit behind.
+A week of steady play now ends at **Tour Bus, rank Global, 2.16M fans**; a casual week
+ends at **Label HQ, rank National**. Stadium and Space stay past a week, which is where
+prestige is meant to sit.
+
+**This is about twice as fast to Label HQ as the pre-fans build (12.9h against 23.6h),
+and the cause is worth knowing before anyone retunes.** It is not the home-genre x1.5
+(that touches maybe an eighth of the catalogue) and not the gig multiplier (gig money
+is rounding error once songs are streaming). It is the **royalty ceiling**: when the
+rate is capped, the money that would have bought the next Royalty Rate upgrade goes
+into **member levels** instead, and levels multiply the entire catalogue. A cap meant
+to slow the player down redirects them to a *better* purchase. A real player faces the
+same choice, so this is genuine rather than a simulation artefact.
+
+The pacing was left as measured rather than re-tuned, because the shape §9 protects is
+intact — nothing runs away, and the top of the ladder is still out of reach in a week.
+If it should be pulled back to the old curve, the one knob is `costGrow` 1.25 → **1.26**
+(about 2.2x on a level-100 cost, about 8% at level 10, so it bites late and not early).
+Re-run the simulation after changing it.
 
 **If you retune, re-run the simulation** (`scratchpad/.../verify.js` pattern: drive a
 greedy buyer through the real `moneyRate`/`upCost`/`addSong` functions for 168
@@ -374,6 +465,7 @@ hear which part is yours. `AU.takeHit(yours, energy, good)`.
 ## 12. CURRENCIES
 - **Streams** — reach. Accumulates from the rate above; drives Legacy at prestige.
 - **Money** — the spend currency. Members, levels, royalties, studios.
+- **Fans** — the rank currency, and the only number that never falls. See §4c.
 - **Picks** (premium) — crates, skips, streak saves.
 - **Legacy** (prestige) — permanent multipliers.
 - **VIP** — `S.vip` only raises the offline cap to 24h today. Nothing grants it yet;
@@ -381,8 +473,10 @@ hear which part is yours. `AU.takeHit(yours, energy, good)`.
 Formatting: 1.2K, 3.4M, 8.9B, 1.1T… Counters animate up.
 
 ## 13. UI (portrait, one-thumb)
-Top: two animated counters side by side — MONEY (total + /s) and STREAMS
-(total + /s) — then band name, Picks and studio chips.
+Top: three animated counters side by side — MONEY, STREAMS and FANS (each total + /s)
+— then the **rank bar** (badge, rank name, fans to the next rank, progress bar; tap it
+for the Band tab), then band name, Picks and studio chips. The toast rail sits below
+all of that.
 Middle: the stage — 4 SVG characters, the active one stepped forward.
 The **Band tab is a full-page screen** (`#sheet.full`), not a bottom panel: band
 identity, royalty rate, studio, every member with level and upgrade, and empty slots
@@ -421,6 +515,15 @@ M0.2), Gold 150 (Epic+), Mythic 500 (Legendary). Battle Pass ₪35/mo. VIP ₪19
   5/tracks and closing the panel, and the Quality note reporting "takes +N". A take
   played clean scores 5, or 6 when the streak reaches x4. Frame time with 42 notes
   falling: median 16.7ms, p95 17.0ms, worst 18.2ms.
+- Fans, ranks and the 16 genres verified in headless mobile Chromium: 16 genres with
+  3 open at Garage Band and 5 after the first rank-up; 128 signature cards merged into
+  the per-track pool, dealt only in their own genre (checked: no foreign-genre card
+  ever entered a deal, and `genreFit` ignores them too); the genre picker offering only
+  what is open; fans landing on COLLECT with the streams and money (a Q-mid Solid paid
+  41); the first release setting the home genre; a forced rank-up showing the full-page
+  card with the right unlock list, then opening 2 genres and lifting gig money 2.5 → 4;
+  the header rank bar tracking fans (Local Act, 35.6% to Regional) and the crowd
+  growing with it. Suite t1/t2/t4/e1/f1/sv all pass, no console errors.
 - COLLECT verified: the reveal holds `S.payout` (a Q63 Viral = 3.97K streams / 1.27K
   money), the money counter does not move until the button is pressed, and it then
   jumps by exactly the held amount. Suite t1–t4/e1/f1/sv all pass, no console errors,
@@ -438,8 +541,11 @@ M0.2), Gold 150 (Epic+), Mythic 500 (Legendary). Battle Pass ₪35/mo. VIP ₪19
   raises gig money (1.0→1.5) with no songs out; the first release starts streams;
   hire ladder 30/300/2200; first level 14; royalty 4% at 250. Pacing per §8.
 
-**Known gaps (deliberate, deferred):** gear, crates as real drops, rarity/merge,
-daily gig, streaks, prestige, league, weekend events, real shop, LLM content,
+**Known gaps (deliberate, deferred):** gear, crates as real drops (and with them the
+rank's `crate` bonus, which is stored but unread), rarity/merge,
+daily gig (so fans come from releases and from gigging passively, not from a gig
+*event*), six-cards-per-track-per-genre (128 signature cards ship, 384 do not),
+streaks, prestige, league, weekend events, real shop, LLM content,
 `sw.js` offline (and with it, true background storage-full notifications), a real
 cloud-save backend, any way to actually grant VIP.
 
@@ -453,15 +559,17 @@ base payout rate, levels, ownership, songs, time away) rather than discarded.
 
 - Palette tokens live in `:root`. Never write a raw hex in a rule — if a colour is
   missing, add a token. The JS colour tables (`MEMBERS.c1/c2`, `RARITY`, `TIERS`,
-  `TRENDS`, `STUDIOS.bg`, `SKIN`, `HAIRC`, `RARITY_TRIM`) carry the same palette and
-  must move with it.
+  `TRENDS`, `STUDIOS.bg`, `SKIN`, `HAIRC`, `RARITY_TRIM`, `GENRES.c`, `RANKS.c`) carry
+  the same palette and must move with it. `GENRES.c` is the one table that needs more
+  hues than the palette has — sixteen genres have to be told apart at a glance — so it
+  extends into the same warm/teal/blue family rather than inventing a second style.
 - A member's own colour is their shirt; **rarity is a treatment on top** (jacket
   panels → studs → trim + glow → aura), not a recolour. That keeps the four members
   distinguishable at every rarity.
 - Everything lives in `index.html`. Keep the section-comment banners
   (`/* ===== AUDIO ===== */` etc.) and add new systems as new banners.
 - Tunables live in the tables near the top of the script — `BAL`, `MEMBERS`,
-  `RARITY`, `STUDIOS`, `TIERS`, `ODDS`, `GENRES`, `CARDS`, `PATTERNS`. Never inline a balance
+  `RARITY`, `STUDIOS`, `TIERS`, `ODDS`, `GENRES`, `GCARDS`, `RANKS`, `CARDS`, `PATTERNS`. Never inline a balance
   number in logic. Studio costs are on the *money* scale, which accrues roughly 10x
   slower than streams — rescale them if `payoutBase` ever changes.
 - Card vectors are the game's difficulty knob. `DSCALE` (2.2) is the distance at
