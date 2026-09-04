@@ -698,6 +698,38 @@ What the screen holds, top to bottom:
 `renderSheet()` now restores `scrollTop` after a re-render, so buying something no
 longer throws you back to the top of the screen.
 
+## 13c. REWARD MOMENTS, AND THE THREE LAYERS
+
+**Four panels, one component.** `#reveal`, `#gigres`, `#rankup` and `#gone` all say the
+same three things — what it was, how much, and one button to take it — so they now share
+their ground, padding, `.meyebrow`, `.mhead`, `.mnum` and `.mgo`. Only the middle of each
+panel differs: the chart reel, the five score bars, the unlock list, the offline haul.
+**Every collect is gold** (`.mgo`), because gold is the reward colour and nothing else;
+`#goneGo` used to be teal and was the odd one out.
+
+**Every reward lands in three layers, and `reward()` is the one place all three happen**,
+so a new reward cannot ship with two of them:
+
+| layer | what it is | where |
+|---|---|---|
+| 1 · the press answers | a chord and a haptic, on the press itself | `AU.chord` + `buzz` |
+| 2 · the number moves | the counter **eases up, never snaps**; its tile pops; the amount floats off it in place of the label | `statPop()` |
+| 3 · the band answers | all four characters nod on stage | `bandNod()` |
+
+Audited action by action:
+- **Release COLLECT** — money, streams and fans all pop; big chord.
+- **Gig COLLECT** — money and fans; the chord is `big` only on a SOLD OUT.
+- **Rank up TAKE IT** — the number that changed is the **rank bar**, so the bar itself
+  pops rather than a counter.
+- **While you were gone COLLECT** — all three.
+- **A member LEVEL UP** — the number that moved is a *rate*, not a total, so the streams
+  tile pops with `+N/s`: what a level actually buys is more per second from every song
+  already released. The portrait bumps on the character sheet as well.
+
+Two counters were **snapping instead of moving**: `collectGig()` set `dispM = S.money` and
+`collectGone()` set all three `disp*` to their new totals, so the single most rewarding
+moments in the game showed no movement at all. Both now leave the easing alone.
+
 ## 14. SHOP (stub)
 Picks 100/₪12, 550/₪45, 1200/₪90, 3500/₪219. Crates: Bronze 50 (C60 R30 E8 L1.8
 M0.2), Gold 150 (Epic+), Mythic 500 (Legendary). Battle Pass ₪35/mo. VIP ₪19/mo
@@ -955,6 +987,37 @@ level and the catalogue and pays **exactly** the listed price (measured inside o
 because money accrues between two reads), the disabled state when short, an empty slot
 routing to Band, and a mid-session member tap still counting as a jam. Sixteen suites
 pass, no console errors, frame time median 16.7ms / p95 17.0ms.
+
+**Phase Two, stage 7 — every reward legible: what, how much, where it went.** §13c has
+the result. What is worth knowing about the build:
+
+- **The four moments were four stylesheets.** Reveal, gig result, rank up and offline each
+  carried their own copy of the same centred layout, the same radial ground, the same
+  eyebrow, headline and big number, and their own hand-rolled gold button — at four
+  slightly different values each (headline 27/29/31/34px, padding three ways). They now
+  share `.meyebrow` / `.mhead` / `.mnum` / `.mgo` and one panel rule; each keeps only its
+  `z-index` and its `gap`. The suite asserts the four resolve to the same ground, padding
+  and alignment, and that all four collect buttons resolve to the same fill.
+- **`reward()` is a contract, not a helper.** Three layers, one call, so the next reward
+  cannot quietly ship with only sound. `statPop()` also hides the tile's label while the
+  amount floats in its place — otherwise `+1.90K` lands directly on top of `MONEY` and
+  neither can be read.
+- **The bug the audit turned up:** two of the four collects were assigning the display
+  counters straight to the new totals, which cancels the ease-up the tick does. The two
+  biggest payouts in the game — a gig and a return from offline — banked silently. That is
+  the whole point of the audit: it is not visible in code review, only in play.
+- `bankPayout()` lost its own `buzz()`. It is called from `boot()` as well, where a haptic
+  with no press behind it is wrong; the press is answered by `reward()` now.
+
+Nothing in `newState()` changed and no balance number moved, so a v3 save written before
+this stage loads unchanged.
+
+Suites: the new `rw` suite spies on `AU.chord` and `navigator.vibrate` and drives all five
+rewards, asserting for each one which tiles popped, what the floating amounts read, that
+the band nodded, that a sound and a haptic fired, and that the counters are **behind** the
+totals afterwards (i.e. still easing, not snapped). It also asserts the four panels
+resolve identically and that every collect button is the same gold. Seventeen suites pass,
+no console errors, frame time median 16.7ms / p95 17.1ms.
 
 **Removed along the way:** the tap-to-fill-tracks loop, Hook Moments, the Hype stat
 (Quality shifts chart odds instead), and weekly-seeded genre trends (replaced by the

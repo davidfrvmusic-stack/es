@@ -76,7 +76,18 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 #gigTop .gs{flex:0 0 auto;font-size:10px;font-weight:800;letter-spacing:.14em;color:var(--dim2)}
 #gigTop .ti{flex:0 0 auto;display:grid;place-items:center}
 .rates{display:flex;align-items:flex-start;gap:9px}
-.rate{flex:1;min-width:0}
+.rate{flex:1;min-width:0;position:relative}
+/* layer two: the tile the reward landed in pops, and the amount floats off it — taking
+   the label's place while it does, so the two never sit on top of each other */
+.rate .rl{transition:opacity var(--m1) ease}
+.rate.pop .rl{opacity:0}
+.rate.pop .rv{animation:statpop .5s cubic-bezier(.2,1.5,.4,1)}
+@keyframes statpop{0%{transform:scale(1)}35%{transform:scale(1.14)}100%{transform:scale(1)}}
+.rdelta{position:absolute;left:0;top:-2px;font-size:12.5px;font-weight:800;white-space:nowrap;
+  pointer-events:none;z-index:3;animation:rdelta 1.1s cubic-bezier(.2,.9,.3,1) forwards}
+@keyframes rdelta{0%{opacity:0;transform:translateY(6px)}
+  18%{opacity:1;transform:translateY(-2px)}70%{opacity:1}100%{opacity:0;transform:translateY(-16px)}}
+#rankbar.pop{animation:statpop .5s cubic-bezier(.2,1.5,.4,1)}
 .rate .rl{font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim2);font-weight:800}
 .rate .rv{font-size:23px;font-weight:800;letter-spacing:-.8px;line-height:1.05;color:var(--ink)}
 .rate .rs{font-size:10.5px;font-weight:800;color:var(--accent2-dk);margin-top:1px}
@@ -443,10 +454,21 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 #reveal,#gigs,#gigres,#rankup,#setup,#gone{
   position:fixed;inset:0;display:none;flex-direction:column}
 #reveal.on,#gigs.on,#gigres.on,#rankup.on,#setup.on,#gone.on{display:flex}
+/* ---- and the one MOMENT: four rewards that all say the same three things — what it
+   was, how much, and one button to take it. Ground, padding, eyebrow, headline, big
+   number and button are shared; only the middle of each panel differs. ---- */
+#reveal,#gigres,#rankup,#gone{align-items:center;justify-content:center;
+  padding:calc(var(--safe-t) + 22px) 24px calc(var(--safe-b) + 22px);
+  background:radial-gradient(90% 62% at 50% 27%,var(--panel-top) 0%,var(--cream2) 55%,var(--panel-bot) 100%)}
+.meyebrow{font-size:10.5px;font-weight:800;letter-spacing:.22em;text-transform:uppercase;color:var(--dim2)}
+.mhead{font-size:30px;font-weight:800;letter-spacing:-.6px;text-align:center;line-height:1.1;text-wrap:pretty}
+.mnum{font-size:56px;font-weight:800;letter-spacing:-2.5px;line-height:1}
+/* every collect is gold, because gold is the reward colour and nothing else */
+.mgo{margin-top:6px;padding:16px 46px;border-radius:18px;font-size:15px;font-weight:800;
+  letter-spacing:.1em;background:var(--gold);color:var(--onAccent);box-shadow:0 5px 0 var(--gold-dk)}
+.mgo:active{box-shadow:0 2px 0 var(--gold-dk)}
 
-#reveal{z-index:30;align-items:center;
-  justify-content:center;gap:13px;padding:26px 24px;
-  background:radial-gradient(90% 62% at 50% 30%,var(--panel-top) 0%,var(--cream2) 55%,var(--panel-bot) 100%)}
+#reveal{z-index:30;gap:13px}
 #rvTitle{font-size:29px;font-weight:800;text-align:center;letter-spacing:-.6px;opacity:0;line-height:1.1;
   text-wrap:pretty}
 #rvGenre{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--dim);opacity:0;font-weight:800}
@@ -477,8 +499,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   font-size:10px;font-weight:800;letter-spacing:.08em;color:var(--dim2)}
 #rvQuote{font-size:12px;color:var(--dim);font-style:italic;text-align:center;max-width:300px;opacity:0;
   line-height:1.5;text-wrap:pretty}
-#rvGo{margin-top:4px;padding:16px 44px;border-radius:18px;font-size:16px;font-weight:800;
-  letter-spacing:.1em;background:var(--gold);color:var(--onAccent);opacity:0;box-shadow:0 5px 0 var(--gold-dk)}
+#rvGo{opacity:0}
 #rvSkip{position:absolute;top:calc(var(--safe-t) + 18px);right:18px;font-size:11px;color:var(--dim);
   letter-spacing:.1em;padding:8px 14px;border-radius:999px;background:var(--panel);border:2px solid var(--line);
   opacity:0;font-weight:800}
@@ -571,13 +592,9 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 @keyframes crowdbob{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
 
 /* ===== GIG RESULT ===== */
-#gigres{z-index:37;align-items:center;
-  justify-content:center;gap:9px;padding:calc(var(--safe-t) + 20px) 24px calc(var(--safe-b) + 20px);
-  background:radial-gradient(90% 60% at 50% 25%,var(--panel-top) 0%,var(--cream2) 55%,var(--panel-bot) 100%)}
-#gigres .gt{font-size:10px;font-weight:800;letter-spacing:.22em;text-transform:uppercase;color:var(--dim2)}
-#grOut{font-size:31px;font-weight:800;letter-spacing:-.6px;text-align:center;
-  animation:rupop .5s cubic-bezier(.2,1.5,.4,1)}
-#grScore{font-size:56px;font-weight:800;letter-spacing:-2.5px;line-height:1;color:var(--ink)}
+#gigres{z-index:37;gap:9px}
+#grOut{animation:rupop .5s cubic-bezier(.2,1.5,.4,1)}
+#grScore{color:var(--ink)}
 #grBars{width:100%;max-width:320px;display:flex;flex-direction:column;gap:6px;margin:4px 0 2px}
 #grBars .b{display:flex;align-items:center;gap:9px;font-size:10.5px;font-weight:800;color:var(--dim)}
 #grBars .b span{width:88px;flex:0 0 auto;letter-spacing:.06em}
@@ -592,27 +609,22 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 #grRew b{display:block;font-size:19px;font-weight:800;margin-top:2px}
 #grRew .m b{color:var(--accent-dk)}
 #grRew .f b{color:var(--accent2-dk)}
-#grGo{margin-top:6px;padding:16px 46px;border-radius:18px;font-size:15px;font-weight:800;
-  letter-spacing:.1em;background:var(--gold);color:var(--onAccent);box-shadow:0 5px 0 var(--gold-dk)}
+
 
 /* ===== RANK UP ===== */
-#rankup{z-index:38;align-items:center;
-  justify-content:center;gap:11px;padding:26px 24px;
-  background:radial-gradient(90% 60% at 50% 28%,var(--panel-top) 0%,var(--cream2) 55%,var(--panel-bot) 100%)}
-#rankup .rt{font-size:10.5px;font-weight:800;letter-spacing:.24em;text-transform:uppercase;color:var(--dim2)}
+#rankup{z-index:38;gap:11px}
 #ruBadge{width:112px;height:112px;border-radius:32px;display:grid;place-items:center;
   background:var(--rc,var(--accent2));box-shadow:0 10px 0 rgba(120,70,30,.22);
   animation:rupop .55s cubic-bezier(.2,1.5,.4,1)}
 @keyframes rupop{0%{opacity:0;transform:scale(.4) rotate(-12deg)}100%{opacity:1;transform:scale(1) rotate(0)}}
-#rankup h3{font-size:34px;font-weight:800;letter-spacing:-.8px;text-align:center}
+#rankup h3{font-size:34px;letter-spacing:-.8px}
 #ruFans{font-size:12px;font-weight:800;letter-spacing:.06em;color:var(--dim);margin-top:-6px}
 #ruList{width:100%;max-width:320px;display:flex;flex-direction:column;gap:7px;margin-top:6px}
 #ruList div{display:flex;align-items:center;gap:9px;padding:11px 13px;border-radius:15px;
   background:var(--panel);border:2px solid var(--line);font-size:12px;font-weight:700;color:var(--ink)}
 #ruList div b{font-weight:800}
 #ruList div i{flex:0 0 auto;width:8px;height:8px;border-radius:50%;background:var(--rc,var(--accent2))}
-#ruGo{margin-top:8px;padding:16px 46px;border-radius:18px;font-size:15px;font-weight:800;
-  letter-spacing:.1em;background:var(--gold);color:var(--onAccent);box-shadow:0 5px 0 var(--gold-dk)}
+
 
 /* ===== SETUP / NAME ===== */
 #setup{z-index:45;
@@ -720,11 +732,8 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   78%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.02)}}
 
 /* ===== WHILE YOU WERE GONE ===== */
-#gone{z-index:42;align-items:center;
-  justify-content:center;gap:6px;padding:calc(var(--safe-t) + 26px) 24px calc(var(--safe-b) + 26px);
-  background:radial-gradient(92% 62% at 50% 22%,var(--panel-top) 0%,var(--cream2) 56%,var(--panel-bot) 100%)}
-#gone .gt{font-size:10px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--dim2)}
-#gone h3{font-size:27px;font-weight:800;letter-spacing:-.5px;text-align:center;margin-bottom:2px}
+#gone{z-index:42;gap:6px}
+#gone h3{margin-bottom:2px}
 #gone .gaway{font-size:12.5px;font-weight:700;color:var(--dim);margin-bottom:14px}
 .gcap{font-size:10.5px;font-weight:800;letter-spacing:.06em;color:var(--accent-dk);
   background:var(--bad-w);border:2px solid var(--accent);border-radius:10px;padding:6px 12px;margin-bottom:14px}
@@ -793,7 +802,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
         <div class="rv num" id="money">0</div>
         <div class="rs num" id="mps">+1/s</div>
       </div>
-      <div class="rate">
+      <div class="rate streams">
         <div class="rl">streams</div>
         <div class="rv num" id="streams">0</div>
         <div class="rs num" id="sps">+0/s</div>
@@ -923,33 +932,33 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 </div>
 
 <div id="gigres">
-  <div class="gt" id="grVenue">open mic</div>
-  <div id="grOut">GOOD SHOW</div>
-  <div id="grScore" class="num">0</div>
+  <div class="meyebrow" id="grVenue">open mic</div>
+  <div id="grOut" class="mhead">GOOD SHOW</div>
+  <div id="grScore" class="num mnum">0</div>
   <div id="grBars"></div>
   <div id="grNote">—</div>
   <div id="grRew">
     <div class="m"><span>MONEY</span><b id="grMoney">0</b></div>
     <div class="f"><span>FANS</span><b id="grFans">0</b></div>
   </div>
-  <button id="grGo">COLLECT</button>
+  <button id="grGo" class="mgo">COLLECT</button>
 </div>
 
 <div id="rankup">
-  <div class="rt">rank up</div>
+  <div class="meyebrow">rank up</div>
   <div id="ruBadge"></div>
-  <h3 id="ruName">Local Act</h3>
+  <h3 id="ruName" class="mhead">Local Act</h3>
   <div id="ruFans">1.0K fans</div>
   <div id="ruList"></div>
-  <button id="ruGo">TAKE IT</button>
+  <button id="ruGo" class="mgo">TAKE IT</button>
 </div>
 
 <div id="reveal">
   <button id="rvSkip">SKIP</button>
-  <div id="rvGenre">—</div>
-  <div id="rvTitle">—</div>
+  <div id="rvGenre" class="meyebrow">—</div>
+  <div id="rvTitle" class="mhead">—</div>
   <div id="rvCover"><span></span></div>
-  <div id="rvChart" class="num">#—</div>
+  <div id="rvChart" class="num mnum">#—</div>
   <div id="rvTier">—</div>
   <div id="rvPay">
     <div class="pr streams"><span class="pl">STREAMS</span><span class="pv num" id="rvPayS">0</span></div>
@@ -958,7 +967,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
     <div class="pf" id="rvPayFore">—</div>
   </div>
   <div id="rvQuote">—</div>
-  <button id="rvGo">COLLECT</button>
+  <button id="rvGo" class="mgo">COLLECT</button>
 </div>
 
 <div id="setup">
@@ -978,8 +987,8 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 </div>
 
 <div id="gone">
-  <div class="gt">while you were gone</div>
-  <h3 id="goneTitle">Your band kept working</h3>
+  <div class="meyebrow">while you were gone</div>
+  <h3 id="goneTitle" class="mhead">Your band kept working</h3>
   <div class="gaway" id="goneAway">—</div>
   <div class="gcap" id="goneCap" hidden>Storage was full — the last stretch was lost</div>
   <div class="grow songs"><div class="gl">Songs out</div><div class="gv num" id="goneSongs">0</div></div>
@@ -988,7 +997,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   <div class="grow fans"><div class="gl">Fans</div><div class="gv num" id="goneFans">0</div></div>
   <div class="btns">
     <button class="ad" id="goneAd">WATCH AD FOR x2</button>
-    <button class="bigbtn teal" id="goneGo">COLLECT</button>
+    <button class="mgo" id="goneGo" style="margin-top:0">COLLECT</button>
   </div>
 </div>
 
@@ -2379,6 +2388,10 @@ function rankUp(r){
 function closeRankUp(){
   $('#rankup').classList.remove('on');
   renderTop(); renderIdle();
+  const rb = el.rankbar;                       // the rank bar is what this reward changed
+  rb.classList.remove('pop'); void rb.offsetWidth; rb.classList.add('pop');
+  clearTimeout(rb._pop); rb._pop = setTimeout(() => rb.classList.remove('pop'), 520);
+  AU.chord('big'); buzz([20, 45, 20]); bandNod();
   if (sheetTab) renderSheet(sheetTab);
   if (rankQueue.length) rankUp(rankQueue.shift());
 }
@@ -2454,7 +2467,8 @@ function ctaState(){
 function ctaAct(){
   const st = ctaState();
   if (st.k === 'collect'){
-    if (S.payout) return bankPayout(), renderIdle();
+    if (S.payout){ const p = S.payout; bankPayout(); renderIdle();
+      return reward({ m:p.m, s:p.s, f:p.f, big:true }); }
     return showGigResult(S.gig.payout, S.gig.payout.parts || []);
   }
   if (st.k === 'release') return showDock('qual');
@@ -3393,8 +3407,8 @@ function collectGig(){
   if (p.first) S.gig.first[p.v] = true;
   if (p.cleared) S.gig.cleared = Math.min(VENUES.length - 1, p.v + 1);
   S.gig.payout = null;
-  dispM = S.money;
   save(); renderTop(); renderIdle();
+  reward({ m:p.m, f:p.f, big:p.out === 2 });   // the counter eases up; it is not snapped
   toast('💰 +' + fmt(p.m) + ' from the show');
   if (p.cleared && VENUES[p.v + 1]) toast('🎪 ' + VENUES[p.v + 1].n + ' is open');
 }
@@ -3490,14 +3504,15 @@ function bankPayout(){
   S.payout = null;
   toast('💰 +' + fmt(p.m) + ' in the account');
   if (p.f) addFans(p.f);            // may tip a rank — the card waits until the reveal closes
-  buzz(18);
-}
+}                                   // the press itself is answered by reward(), not here
 function endReveal(){
   if (!revealing) return;
+  const p = S.payout;
   bankPayout();
   $('#reveal').classList.remove('on');
   revealing = false;
   AU.reset();
+  if (p) reward({ m:p.m, s:p.s, f:p.f, big:true });
   showDock('idle'); renderIdle(); renderTop();
   if (sheetTab) renderSheet(sheetTab);
   const q = toastQueue; toastQueue = []; q.forEach(toast);
@@ -3515,6 +3530,38 @@ function confetti(tier){
     document.body.appendChild(d);
     setTimeout(() => d.remove(), 2800);
   }
+}
+
+/* ===== REWARD MOMENTS =====
+   Every reward lands in three layers, and a reward missing one of them is a reward the
+   player did not feel:
+     1. the press answers      — a chord and a haptic, on the press itself
+     2. the number moves       — the counter eases up (never snaps), its tile pops, and
+                                 the amount floats off it, so you can see where it went
+     3. the band answers       — the four characters nod on stage
+   `reward()` is the one place all three happen, so a new reward cannot ship with two. */
+const STAT_EL = { money:'.rate.money', streams:'.rate.streams', fans:'.rate.fans' };
+function statPop(which, txt, col){
+  const n = document.querySelector(STAT_EL[which]);
+  if (!n) return;
+  n.classList.remove('pop'); void n.offsetWidth; n.classList.add('pop');
+  clearTimeout(n._pop); n._pop = setTimeout(() => n.classList.remove('pop'), 1150);
+  const d = document.createElement('i');
+  d.className = 'rdelta'; d.textContent = txt; d.style.color = col;
+  n.appendChild(d);
+  setTimeout(() => d.remove(), 1200);
+}
+function bandNod(){
+  memEls.forEach(m => { if (!m) return; m.classList.remove('nod'); void m.offsetWidth; m.classList.add('nod'); });
+}
+function reward(o){
+  o = o || {};
+  if (o.m) statPop('money', '+' + fmt(o.m), PAL.accent);
+  if (o.s) statPop('streams', '+' + fmt(o.s), PAL.ink);
+  if (o.f) statPop('fans', '+' + fmt(o.f), PAL.accent2);
+  AU.chord(o.big ? 'big' : 'small');
+  buzz(o.big ? [20, 45, 20] : 16);
+  bandNod();
 }
 
 /* ===== SHEETS (tabs) ===== */
@@ -3901,8 +3948,13 @@ function buy(act, i){
   } else if (act === 'lvl'){
     const c = upCost(i);
     if (S.money < c) return;
+    const sps0 = totalSPS();
     S.money -= c; S.members[i].lvl++;
-    buildBand(); AU.tap(false); buzz(12);
+    buildBand();
+    // layer two for an upgrade is the rate, not a total: every song already out earns more
+    const up = totalSPS() - sps0;
+    if (up > 0) statPop('streams', '+' + fmt(up) + '/s', PAL.accent2);
+    AU.chord('small'); buzz([12, 30, 12]); bandNod();
     toast(S.members[i].name.split(' ')[0] + ' → Lv ' + S.members[i].lvl);
     memberReact = sheetTab === 'member' ? i : -1;   // the sheet answers the purchase
   } else if (act === 'studio'){
@@ -4001,14 +4053,14 @@ function showGone(secs, songs, streams, money, fans){
 }
 function collectGone(){
   if (!gone) return;
+  const got = { m:gone.money, s:gone.streams, f:gone.fans };
   S.streams += gone.streams; S.lifetime += gone.streams; S.money += gone.money;
-  const f = gone.fans;
-  disp = S.streams; dispM = S.money; dispF = S.fans + f;
-  addFans(f);
+  addFans(got.f);
   gone = null;
   $('#gone').classList.remove('on');
   S.capHit = false; markCapped(false);
   renderIdle(); renderTop(); save();
+  reward({ m:got.m, s:got.s, f:got.f, big:true });
 }
 /* the 8h ceiling, surfaced where a player can see it from outside the game */
 function markCapped(on){
