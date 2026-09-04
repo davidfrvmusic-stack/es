@@ -663,6 +663,41 @@ stub, and Settings is still reached from the cog rather than a tab. Gear and Lea
 until they are real — an empty tab is a worse promise than no tab. Targets ≥44px,
 `env(safe-area-inset-*)` respected.
 
+## 13b. THE CHARACTER SHEET
+
+Tap a member **on the stage** — or their row in the Band tab — and you get their own
+screen. It is a *detour*, not a tab: `sheetBack` remembers where you came from, the
+header button becomes `←` instead of `✕`, and it returns you there. Opened from the
+stage there is nowhere to go back to, so it is a `✕` and closes to the stage. An empty
+slot is a hire rather than a person, so tapping one opens the Band tab instead.
+
+**The tap is gated on the game being idle.** During a writing session every tap on the
+stage is a jam (§4), and during a take the lanes own the input — so a member tap only
+opens the sheet when no session, take or reveal is running. The jam mechanic is
+untouched.
+
+What the screen holds, top to bottom:
+- **Portrait, identity, bio.** The same `charSVG` as the stage, at 104x132, with the
+  role, an `LV n` chip, the rarity chip and their one line of bio.
+- **What they bring** — the two things a member actually does today: their band
+  multiplier (with the reminder that it lifts the *whole* catalogue, and what that
+  catalogue currently earns) and their writing-card count, hint clarity and the next
+  card level unlocks.
+- **Stats** — SKILL / WRITING / STAGE / STAMINA, drawn as four empty hatched rails
+  labelled `SOON`. They are deliberately **not filled with a number**: nothing in the
+  game computes them yet, and a rail with an invented value in it is a lie the player
+  cannot check. They arrive with Gear.
+- **Gear** — two dashed slots, `INSTRUMENT` and `RIG`, tappable and honest about what
+  they are waiting for.
+- **Level n → n+1** — three `before → after` rows measured with the real formulas
+  (`memberSPS`, the hint curve, the card pool), then `LEVEL UP · cost`. When the money
+  is short the button greys out, disables itself, and the line under it says how much
+  more is needed. Buying calls the **existing** `buy('lvl', i)` — same cost curve, same
+  effect, no new economy — and the portrait bumps in answer.
+
+`renderSheet()` now restores `scrollTop` after a re-render, so buying something no
+longer throws you back to the top of the screen.
+
 ## 14. SHOP (stub)
 Picks 100/₪12, 550/₪45, 1200/₪90, 3500/₪219. Crates: Bronze 50 (C60 R30 E8 L1.8
 M0.2), Gold 150 (Epic+), Mythic 500 (Legendary). Battle Pass ₪35/mo. VIP ₪19/mo
@@ -895,6 +930,31 @@ stage labels stepping aside, lane clipping, the single slot with a moment holdin
 against a judgement and letting go after, every tier boundary, and a milestone shouting
 exactly once. Fifteen suites pass, no console errors, frame time median 16.7ms / p95
 17.1ms.
+
+**Phase Two, stage 6 — the members became people you can open.** A member used to be a
+row in a list with a LEVEL UP button bolted to its right edge. Now they have a screen
+(§13b), reached by tapping them on the stage.
+
+- **`openScreen()` was split out of `openTab()`**, so a screen and a tab are no longer
+  the same thing. A tab clears `sheetBack`; the character sheet sets it. `sheetOut()`
+  is what the header button calls, and it goes back or closes depending on that one
+  field. Adding the next non-tab screen is now three lines.
+- **The upgrade explains itself before it takes the money.** Three `before → after`
+  rows, computed by temporarily stepping `lvl` and calling the real `memberSPS` rather
+  than duplicating the formula — if the curve is retuned, the sheet follows it for free.
+- **The stat rails ship empty on purpose.** The plan's wireframe drew them part-filled;
+  that would be inventing numbers the game does not have. Empty, hatched and labelled
+  `SOON` is the honest version of the same reservation.
+- The Band tab's member rows tap through to the same screen (`data-act="member"` on the
+  card, with the LEVEL UP and ✎ buttons still winning the `closest()` inside it).
+
+Suites: the new `cs` suite drives opening from the stage and from Band, the header
+button being `←` or `✕` and going to the right place, the four rails and two gear slots,
+`before → after` matching what `memberSPS` actually returns, a level-up that raises the
+level and the catalogue and pays **exactly** the listed price (measured inside one turn,
+because money accrues between two reads), the disabled state when short, an empty slot
+routing to Band, and a mid-session member tap still counting as a jam. Sixteen suites
+pass, no console errors, frame time median 16.7ms / p95 17.0ms.
 
 **Removed along the way:** the tap-to-fill-tracks loop, Hook Moments, the Hype stat
 (Quality shifts chart odds instead), and weekly-seeded genre trends (replaced by the

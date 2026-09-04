@@ -177,6 +177,8 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .mem .tag{margin-top:2px;font-size:9.5px;font-weight:800;letter-spacing:.05em;color:var(--dim);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .mem.locked{opacity:.75}
+#stage:not(.playing) .mem{cursor:pointer}
+#stage:not(.playing) .mem:active{transform:translateY(2px)}
 #band.focus .mem{opacity:.22;transform:scale(.74)}
 #band.focus .mem.up{opacity:1;position:absolute;left:50%;bottom:0;width:26%;
   transform:translateX(-50%) scale(1.18);z-index:3}
@@ -261,6 +263,9 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 /* gold is the reward colour, so the CTA wears it exactly when something is owed to you */
 .bigbtn.gold{background:var(--gold);color:var(--onAccent);box-shadow:0 5px 0 var(--gold-dk)}
 .bigbtn.gold:active{box-shadow:0 2px 0 var(--gold-dk)}
+.bigbtn.no{background:var(--elev);color:var(--dim2);box-shadow:none}
+.bigbtn.no::after{display:none}
+.bigbtn.no:active{transform:none}
 #gigBtn{margin-top:8px;min-height:44px}
 
 #timerbar{height:7px;border-radius:4px;margin-bottom:12px}
@@ -388,6 +393,38 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   padding:6px 10px;border-radius:999px;background:var(--panel);border:2px solid var(--line);color:var(--ink)}
 .gchip i{width:8px;height:8px;border-radius:50%;background:var(--gc);display:block;flex:0 0 auto}
 .gchip.home{border-color:var(--accent2);background:var(--accent2-w)}
+/* ---- CHARACTER SHEET: one member, full height, and an honest account of them ---- */
+.chead{display:flex;align-items:flex-end;gap:var(--s3);margin-bottom:var(--s3)}
+.chead .por{width:104px;height:132px;flex:0 0 auto;display:grid;place-items:end center;
+  background:var(--panel);border:2px solid var(--line);border-radius:var(--r3);padding:6px 4px 0}
+.chead .por svg{width:100%;height:100%;overflow:visible}
+.chead .por.up{animation:cbump .5s cubic-bezier(.2,1.4,.4,1)}
+@keyframes cbump{0%{transform:scale(1)}35%{transform:scale(1.06)}100%{transform:scale(1)}}
+.chead .cid{flex:1;min-width:0;padding-bottom:2px}
+.chead .cline{font-size:11.5px;font-weight:700;color:var(--dim);margin-top:3px}
+.clv{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;letter-spacing:.1em;
+  padding:4px 9px;border-radius:999px;background:var(--elev);color:var(--ink)}
+/* rails that exist but hold nothing yet: drawn empty and labelled, never filled with a
+   number the game cannot actually justify */
+.statrail{display:flex;align-items:center;gap:10px;margin-bottom:7px}
+.statrail .sn{width:74px;flex:0 0 auto;font-size:9.5px;font-weight:800;letter-spacing:.13em;color:var(--dim2)}
+.statrail .sb{flex:1;height:7px;border-radius:99px;background:var(--elev);
+  background-image:repeating-linear-gradient(115deg,var(--line) 0 6px,transparent 6px 12px)}
+.statrail .sv{flex:0 0 auto;font-size:9px;font-weight:800;letter-spacing:.12em;color:var(--dim3)}
+.gearrow{display:flex;gap:var(--s2)}
+.gearslot{flex:1;min-height:76px;border-radius:var(--r2);background:var(--panel);
+  border:2px dashed var(--line2);display:grid;place-items:center;gap:3px;color:var(--dim3);
+  font-size:9.5px;font-weight:800;letter-spacing:.11em;text-align:center;padding:8px}
+.gearslot:active{transform:translateY(2px)}
+.gearslot b{font-size:19px;font-weight:800;color:var(--dim2);line-height:1}
+/* before -> after: an upgrade should say what it buys before it takes the money */
+.ba{display:flex;align-items:center;gap:9px;padding:8px 12px;border-radius:var(--r2);
+  background:var(--panel);border:2px solid var(--line);margin-bottom:7px}
+.ba .bl{flex:1;min-width:0;font-size:10.5px;font-weight:800;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--dim2)}
+.ba .bn{font-size:13px;font-weight:800;color:var(--dim)}
+.ba .ar{font-size:12px;font-weight:800;color:var(--dim3)}
+.ba .bv{font-size:13px;font-weight:800;color:var(--accent2)}
 .empty{text-align:center;padding:38px 16px;color:var(--dim);font-size:12.5px;line-height:1.6;font-weight:600}
 .empty svg{display:block;margin:0 auto 12px;opacity:.75}
 .song{display:flex;gap:10px;align-items:center;background:var(--panel);
@@ -2251,6 +2288,7 @@ function buildBand(){
     const st = S.members[i];
     const d = document.createElement('div');
     d.className = 'mem' + (st.owned ? '' : ' locked');
+    d.dataset.i = i;
     d.style.position = 'relative';
     d.innerHTML = charSVG(i, st.look, st.rarity, !st.owned) +
       `<div class="tag">${st.owned ? esc(st.name.split(' ')[0]) : '???'}</div>` +
@@ -2527,6 +2565,7 @@ function tick(){
     renderTop();
     if (!el.idlebox.hidden) renderDemo();
     if (sheetTab === 'band') renderSheet('band', true);
+    else if (sheetTab === 'member') softMember();
   }
   if (t - lastSave > 5){ lastSave = t; save(); }
   requestAnimationFrame(tick);
@@ -3480,23 +3519,44 @@ function confetti(tier){
 
 /* ===== SHEETS (tabs) ===== */
 const TAB_TITLES = { band:'Band', music:'Music', shop:'Shop', settings:'Settings' };
+let sheetBack = null, memberView = 0;
 /* HOME is not a screen of its own — it is the stage with nothing over it, so the tab
    simply closes whatever is open. That keeps one shell instead of a router. */
-function openTab(t){
-  if (t === 'home') return closeSheet();
+function openScreen(t, title){
   const swap = sheetTab && sheetTab !== t;
   sheetTab = t;
   el.sheet.classList.toggle('noTab', !document.querySelector('.tab[data-tab="' + t + '"]'));
-  el.shTitle.textContent = TAB_TITLES[t];
+  el.shTitle.textContent = title;
+  $('#shClose').textContent = sheetBack ? '←' : '✕';
   renderSheet(t);
   if (swap) el.shBody.scrollTop = 0;   // a new screen starts at its top; a refresh keeps place
   el.sheet.classList.add('on');
   document.querySelectorAll('.tab').forEach(b => b.classList.toggle('sel', b.dataset.tab === t));
 }
+function openTab(t){
+  if (t === 'home') return closeSheet();
+  sheetBack = null;                    // a tab press is a destination, not a detour
+  openScreen(t, TAB_TITLES[t]);
+}
+/* The character sheet is a detour, not a tab: it remembers where you came from, and its
+   one button goes back there rather than dumping you on the stage. */
+function openMember(i){
+  if (!S.members[i].owned) return openTab('band');   // an empty slot is a hire, not a person
+  memberView = i;
+  sheetBack = sheetTab;
+  openScreen('member', S.members[i].name);
+}
+function sheetOut(){ if (sheetBack) openTab(sheetBack); else closeSheet(); }
 function closeSheet(){
-  sheetTab = null;
+  sheetTab = null; sheetBack = null;
   el.sheet.classList.remove('on');
   document.querySelectorAll('.tab').forEach(b => b.classList.toggle('sel', b.dataset.tab === 'home'));
+}
+function softMember(){
+  const b = $('#cLvl');
+  if (!b) return;
+  const ok = S.money >= upCost(memberView);
+  b.classList.toggle('teal', ok); b.classList.toggle('no', !ok); b.disabled = !ok;
 }
 function bandSig(){ return S.studio + '|' + S.payoutLvl + '|' + S.rank + '|' + S.home + '|' +
   S.members.map(m => (m.owned?1:0) + ':' + m.lvl).join(','); }
@@ -3522,8 +3582,75 @@ function renderSheet(t, soft){
   }
   b.dataset.tab = t;
   if (t === 'band') lastBandSig = bandSig();
+  const sc = b.scrollTop;              // a purchase re-renders the screen; stay where you were
   b.innerHTML = t === 'band' ? htmlBand() : t === 'music' ? htmlMusic()
+              : t === 'member' ? htmlMember(memberView)
               : t === 'shop' ? htmlShop() : htmlSettings();
+  b.scrollTop = sc;
+}
+/* ===== CHARACTER SHEET =====
+   Everything about one member in one place. The four stat rails and the two gear slots
+   are drawn and labelled but empty: they are what the next two build steps fill, and a
+   rail with an invented number in it would be a lie the player cannot check. */
+const STAT_RAILS = ['Skill', 'Writing', 'Stage', 'Stamina'];
+const hintPct = lvl => Math.round(clamp(0.5 + 0.035 * lvl, 0.5, 0.97) * 100);
+function htmlMember(i){
+  const m = MEMBERS[i], st = S.members[i], c = upCost(i), ok = S.money >= c;
+  const nCards = CARDS[i].filter(x => x.lvl <= st.lvl).length;
+  const nextCard = CARDS[i].filter(x => x.lvl > st.lvl).sort((a,b) => a.lvl - b.lvl)[0];
+  // what the next level actually buys, measured with the real formulas
+  const was = memberSPS(i), lvlWas = st.lvl;
+  st.lvl++;
+  const now = memberSPS(i), cardsNext = CARDS[i].filter(x => x.lvl <= st.lvl).length;
+  st.lvl = lvlWas;
+  let h = `<div class="chead">
+    <div class="por" id="cPor">${charSVG(i, st.look, st.rarity, false)}</div>
+    <div class="cid">
+      <div class="cline" style="margin:0 0 7px;color:var(--dim2);letter-spacing:.14em;
+        text-transform:uppercase;font-size:10px">${m.role}${i === S.you ? ' · you' : ''}</div>
+      <span class="clv">LV ${st.lvl}</span>
+      <span class="clv" style="color:${RARITY[st.rarity].c}">${RARITY[st.rarity].n}</span>
+      <div class="cline">Theirs is the ${m.track.toLowerCase()} decision, every song</div>
+    </div></div>
+    <div class="hint" style="text-align:left;padding:0 2px 12px">${esc(st.bio)}</div>`;
+
+  h += `<div class="sect">What they bring</div>
+    <div class="card"><div class="av" style="--c1:${PAL.accent2}">${ico(ICON.music, {c:PAL.onAccent, s:22})}</div>
+      <div class="info"><div class="t">+${fmt(was)} band multiplier</div>
+      <div class="d">Lifts every song in the catalogue, not just their own — ${fmt(catalogSPS())}/s
+        across ${S.songs.length} ${S.songs.length === 1 ? 'song' : 'songs'} right now</div></div></div>
+    <div class="card"><div class="av" style="--c1:${PAL.gold}">${ico(ICON.band, {c:PAL.onGold, s:22})}</div>
+      <div class="info"><div class="t">${nCards} writing cards · hints ${hintPct(st.lvl)}% clear</div>
+      <div class="d">${nextCard ? 'Lv ' + nextCard.lvl + ' unlocks &ldquo;' + esc(nextCard.n) + '&rdquo;'
+                                : 'Every card on this track is unlocked'}</div></div></div>`;
+
+  h += `<div class="sect">Stats <span style="color:var(--dim3);font-weight:700">arrive with Gear</span></div>`;
+  STAT_RAILS.forEach(n => h += `<div class="statrail"><span class="sn">${n.toUpperCase()}</span>
+    <span class="sb"></span><span class="sv">SOON</span></div>`);
+
+  h += `<div class="sect">Gear <span style="color:var(--dim3);font-weight:700">2 slots</span></div>
+    <div class="gearrow">
+      <button class="gearslot" data-act="gear" data-i="${i}"><b>+</b>INSTRUMENT</button>
+      <button class="gearslot" data-act="gear" data-i="${i}"><b>+</b>RIG</button>
+    </div>
+    <div class="hint">Gear is the next build step. It will hang on this character and open
+      writing cards the way levels do.</div>`;
+
+  h += `<div class="sect">Level ${st.lvl} → ${st.lvl + 1}</div>
+    <div class="ba"><span class="bl">Band multiplier</span>
+      <span class="bn">+${fmt(was)}</span><span class="ar">→</span><span class="bv">+${fmt(now)}</span></div>
+    <div class="ba"><span class="bl">Hint accuracy</span>
+      <span class="bn">${hintPct(st.lvl)}%</span><span class="ar">→</span>
+      <span class="bv">${hintPct(st.lvl + 1)}%</span></div>
+    <div class="ba"><span class="bl">Writing cards</span>
+      <span class="bn">${nCards}</span><span class="ar">→</span><span class="bv">${cardsNext}</span></div>
+    <button class="bigbtn ${ok ? 'teal' : 'no'}" data-act="lvl" data-i="${i}" id="cLvl"
+      ${ok ? '' : 'disabled'}>LEVEL UP · ${fmt(c)}</button>
+    <button class="ghost" data-act="rename" data-i="${i}" style="margin-top:9px;min-height:44px">RENAME</button>
+    <div class="hint">${ok ? '' : fmt(c - S.money) + ' more to go.'} Levels are the one upgrade
+      that pays twice: more multiplier on everything released, and a better card pool next
+      time they write.</div>`;
+  return h;
 }
 function htmlBand(){
   const nx = STUDIOS[S.studio + 1];
@@ -3571,7 +3698,7 @@ function htmlBand(){
     const c = upCost(i), ok = S.money >= c;
     const nCards = CARDS[i].filter(x => x.lvl <= st.lvl).length;
     const nextCard = CARDS[i].filter(x => x.lvl > st.lvl).sort((a,b) => a.lvl - b.lvl)[0];
-    h += `<div class="card"><div class="por">${charSVG(i, st.look, st.rarity, false)}</div>
+    h += `<div class="card" data-act="member" data-i="${i}"><div class="por">${charSVG(i, st.look, st.rarity, false)}</div>
       <div class="info">
         <div class="t">${esc(st.name)} <span class="rar" style="color:${RARITY[st.rarity].c}">${RARITY[st.rarity].n}</span></div>
         <div class="d">${m.role}${i === S.you ? ' · you' : ''} · Lv ${st.lvl} · +${fmt(memberSPS(i))} multiplier
@@ -3766,12 +3893,18 @@ function buy(act, i){
       S.members[i].name = nm; buildBand(); renderIdle(); renderSheet(sheetTab); save();
     });
     return;
+  } else if (act === 'member'){
+    openMember(i); return;
+  } else if (act === 'gear'){
+    toast('🎸 Gear arrives in the next build — the slot is already yours');
+    buzz(10); return;
   } else if (act === 'lvl'){
     const c = upCost(i);
     if (S.money < c) return;
     S.money -= c; S.members[i].lvl++;
     buildBand(); AU.tap(false); buzz(12);
     toast(S.members[i].name.split(' ')[0] + ' → Lv ' + S.members[i].lvl);
+    memberReact = sheetTab === 'member' ? i : -1;   // the sheet answers the purchase
   } else if (act === 'studio'){
     const nx = STUDIOS[S.studio + 1];
     if (!nx || S.money < nx.cost) return;
@@ -3780,7 +3913,13 @@ function buy(act, i){
     toast('🏗️ Moved into ' + nx.n + ' — all streams x4');
   }
   renderSheet(sheetTab); renderTop(); save();
+  if (memberReact >= 0){
+    const por = $('#cPor');
+    if (por){ void por.offsetWidth; por.classList.add('up'); }
+    memberReact = -1;
+  }
 }
+let memberReact = -1;
 /* ===== SETUP: your character, your role, your band ===== */
 let setupLook = null, setupRole = 0;
 function renderSetupRoles(){
@@ -3982,6 +4121,11 @@ function boot(){
 
   el.stage.addEventListener('pointerdown', e => {
     if (e.target.closest('button')) return;
+    // a tap on a member opens them — except mid-session, where every tap is a jam
+    const mem = e.target.closest('.mem');
+    if (mem && !take && !(S.session && S.session.phase === 'cards') && !revealing){
+      buzz(10); openMember(+mem.dataset.i); return;
+    }
     jam(e.clientX, e.clientY);
   });
   $('#writeBtn').addEventListener('click', e => { e.stopPropagation(); ctaAct(); });
@@ -4031,7 +4175,7 @@ function boot(){
     ad.innerHTML = '<span>x2 APPLIED</span>';
     buzz(20);
   });
-  $('#shClose').addEventListener('click', closeSheet);
+  $('#shClose').addEventListener('click', sheetOut);
   el.shBody.addEventListener('click', e => {
     const seg = e.target.closest('[data-mt]');
     if (seg){ musicTab = seg.dataset.mt; renderSheet('music'); buzz(10); return; }
