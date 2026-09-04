@@ -261,6 +261,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .card .por svg{width:100%;height:100%;overflow:visible}
 .card .av{width:46px;height:46px;border-radius:15px;display:grid;place-items:center;flex:0 0 auto;
   background:var(--c1)}
+.card.home{border-color:var(--accent2);background:var(--accent2-w)}
 .card .info{flex:1;min-width:0}
 .card .t{font-size:14.5px;font-weight:800;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .card .d{font-size:11px;color:var(--dim);margin-top:2px;font-weight:600;
@@ -3253,16 +3254,6 @@ function htmlBand(){
       <div class="d">${fmt(S.fans)} fans · gigs x${R.gig} · royalty ceiling ${(R.payCap*100).toFixed(0)}%<br>
         ${NX ? fmt(Math.max(0, NX.at - S.fans)) + ' more fans for <b>' + NX.n + '</b>'
              : 'Nothing above this one.'}</div></div></div>`;
-  h += `<div class="sect">Genres <span style="color:var(--dim2);font-weight:700">${openGenres().length} of ${GENRES.length} open</span></div>`;
-  GENRES.forEach((g, gi) => {
-    const open = genreOpen(gi), tr = open ? trendOf(gi) : null, home = S.home === gi;
-    h += `<div class="card ${open ? '' : 'locked'}">
-      <div class="av" style="--c1:${g.c}">${ico(ICON.catalog, {c:'#FFF6E6', s:20})}</div>
-      <div class="info"><div class="t">${g.n}${home ? ' <span class="rar" style="color:var(--accent2-dk)">HOME x' + BAL.homeMult + '</span>' : ''}</div>
-      <div class="d">${open ? tr.n + ' ' + Math.round(S.heat[gi]) + ' · x' + tr.m + ' streams'
-                            : 'Opens at <b>' + RANKS[g.r].n + '</b>'}</div></div>
-      ${open && !home ? `<button class="buy alt" data-act="home" data-i="${gi}">MAKE HOME</button>` : ''}</div>`;
-  });
   h += `<div class="sect">Royalty rate</div>
     <div class="card"><div class="av" style="--c1:#FFC22E">${ico(ICON.money, {c:'#5A3F00', s:24})}</div>
       <div class="info"><div class="t">${(payoutRate()*100).toFixed(0)}% payout</div>
@@ -3302,10 +3293,42 @@ function htmlBand(){
       <button class="buy ${ok ? '' : 'no'}" data-act="lvl" data-i="${i}">LEVEL UP<small>${fmt(c)}</small></button>
       <button class="buy alt" data-act="rename" data-i="${i}">✎</button></div>`;
   });
+  h += htmlGenres();
   h += `<div class="hint">Streams come only from released songs. Members multiply the whole
     catalogue, so every level lifts every song you have ever put out — and the band earns
     money from gigs whether or not anything is streaming.<br>
     Rarity, crates and merging arrive in a later build.</div>`;
+  return h;
+}
+/* The genres you actually have. Locked ones are not listed — one line says how many
+   are coming and what opens them, which is the part a player can act on. */
+function nextGenreDrop(){
+  for (let r = (S.rank || 0) + 1; r < RANKS.length; r++){
+    const n = GENRES.filter(g => g.r === r).length;
+    if (n) return { rank: RANKS[r], n };
+  }
+  return null;
+}
+function htmlGenres(){
+  const open = openGenres();
+  let h = `<div class="sect">Genres <span style="color:var(--dim2);font-weight:700">${open.length} open</span></div>`;
+  open.sort((a, b) => (b === S.home) - (a === S.home) || S.heat[b] - S.heat[a]).forEach(gi => {
+    const g = GENRES[gi], tr = trendOf(gi), home = S.home === gi;
+    h += `<div class="card${home ? ' home' : ''}">
+      <div class="av" style="--c1:${g.c}">${ico(ICON.catalog, {c:'#FFF6E6', s:20})}</div>
+      <div class="info"><div class="t">${g.n}
+        ${home ? '<span class="tag ok">HOME · x' + BAL.homeMult + ' STREAMS</span>' : ''}</div>
+      <div class="d"><b style="color:${tr.c}">${tr.n}</b> ${Math.round(S.heat[gi])} · x${tr.m} streams${
+        home ? '' : ' · x' + (tr.m * BAL.homeMult).toFixed(2) + ' if you move in'}</div></div>
+      ${home ? '' : `<button class="buy alt" data-act="home" data-i="${gi}">MAKE HOME</button>`}</div>`;
+  });
+  const nx = nextGenreDrop();
+  h += `<div class="hint" id="genreHint">${S.home == null
+    ? 'Your first release picks your home genre. Home streams x' + BAL.homeMult + ', and you can move it here any time.<br>'
+    : 'Home genre streams x' + BAL.homeMult + '. Move it whenever the charts turn.<br>'}${
+    nx ? '<b>' + nx.n + ' more</b> open at <b>' + nx.rank.n + '</b> — ' +
+         fmt(Math.max(0, nx.rank.at - S.fans)) + ' fans away.'
+       : 'Every genre in the game is open to you.'}</div>`;
   return h;
 }
 function htmlCatalog(){

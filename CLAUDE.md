@@ -215,6 +215,14 @@ flavour (`w` oscillator, `cut` filter), and `r` — the rank that opens it.
   > (`g` gating in `dealStep` and `genreFit`) already supports any number.
 - **Home genre, x1.5.** Your first release sets `S.home`; the Band tab can move it. Home
   applies live to every song in that genre via `homeMult`, like the trend multiplier.
+- **Where genres live in the UI.** `htmlGenres()` sits at the **bottom of the Band tab**,
+  below the members — it is management, not a headline. It lists **only the genres your
+  rank has opened**, home pinned first and the rest by heat, each showing its trend, heat,
+  multiplier and what it would be worth as home. The home card is a teal `.card.home`
+  with a `HOME · x1.5 STREAMS` tag and no MAKE HOME button. **Locked genres are never
+  listed** — one line (`#genreHint`) says how many open next and at which rank
+  ("3 more open at National — 58.0K fans away"), or that everything is open. The count
+  comes from `nextGenreDrop()`, which skips any rank that opens nothing.
 - **Trends** are the live heat cycle in §6 — COLD → RISING → HOT → FADING, with a hit in
   a RISING genre able to tip it HOT. That is already stronger than the brief's weekly
   rotation, so it stays as is.
