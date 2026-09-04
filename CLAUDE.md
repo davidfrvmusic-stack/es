@@ -128,26 +128,45 @@ Locked members are a dark silhouette with a lock. Flat, bold, slightly cartoonis
   you).
 
 **THE RECORDING TAKE.** Choosing a card does not advance the session; it starts a
-**10-second take** for that track. One lane, thumb only, notes falling to a hit line
-at the song's BPM.
+**10-second take** for that track — a three-lane rhythm game in the bottom ~46% of
+the screen, played with one thumb. The band stays visible above it.
+- **Three lanes: left / centre / right**, each a full-height touch target with a
+  coloured pad at the bottom (coral / teal / gold) and the part it plays written on
+  it — `LANE_NAMES` per instrument, so the drummer's read SNARE / KICK / HAT and the
+  guitarist's CHUG / CHORD / LEAD. You tap the lane the note lands in.
 - The **pattern comes from the card** — every card carries `p`, a key into `PATTERNS`
-  (16 steps = two bars of eighths). "Trap Hi-Hats" is `doubles`, "Slow Groove" is
-  `sparse`, "Wall Of Fuzz" is `drive`. The choice and the skill are the same choice.
-- `perfectMs` 62 / `goodMs` 135 either side of the beat; a tap nowhere near a note is
-  ignored rather than punished. Perfect scores 2, Good 1, and the track's take is
-  graded on the ratio of the possible total: ≥0.80 → `takePerfect` (+5 Quality),
-  ≥0.45 → `takeGood` (+2), else 0. Across a whole song, `takeMax` (20) is the cap.
+  (16 steps). "Trap Hi-Hats" is `doubles`, "Slow Groove" is `sparse`, "Wall Of Fuzz"
+  is `drive`. The choice and the skill are the same choice.
+- **Which lane a note lands in comes from where it sits in the bar**, not from a
+  random roll: downbeat → centre (kick), backbeat → left (snare), everything between
+  → right, with every third in-between note and every fourth downbeat crossing back
+  left so the part moves. A running counter does that crossing, not the step index —
+  a pattern like `back` never lands on a strong beat at all, and the position rule
+  alone dumped all of its notes in one lane.
+- `perfectMs` 62 / `goodMs` 135 either side of the beat; a tap in empty air is
+  ignored rather than punished, but tapping the **wrong lane** while a note was there
+  breaks the streak and costs half a miss. Perfect scores 2, Good 1, and the track's
+  take is graded on the ratio of the possible total: ≥0.80 → `takePerfect` (+5
+  Quality), ≥0.45 → `takeGood` (+2), else 0. Across a whole song, `takeMax` (20) is
+  the cap.
+- **Note streak multiplier** at `BAL.multSteps` (6 / 14 / 24 in a row → x2 / x3 / x4),
+  shown in the take's header. It is not a score multiplier — the grade is accuracy —
+  but finishing a take on x4 is worth `multBonus` (+1 Quality).
+- **The take meter** starts at `meterStart` (65), rises `meterHit` (3) per hit and
+  falls `meterMiss` (6) per miss. At 0 the take **falls apart**: it ends there, scores
+  nothing, and the member winces. Eleven misses in a row, so it is a real fail state
+  and not a casual one — and it costs that track's take, never the song.
 - **AUTO-TAKE** skips it for a flat `takeAuto` (5) split across the tracks — always
   available, always worse than playing.
 - **The 20-second decision clock stops while a take is running.** The take has its
   own countdown; the two clocks never run together.
 - Better members give you more time to read the lane, not fewer notes:
   `approach = 1.9s + 0.03/level`, capped at 2.7s.
-- 8 perfect hits in a row is **IN THE POCKET** — screen flash, the member cheers, the
-  lane turns gold, and the genre's heat moves by `BAL.pocketHeat`. (The brief asked
+- 8 perfect hits in a row is **IN THE POCKET** — screen flash, the member cheers, all
+  three lanes turn gold, and the genre's heat moves by `BAL.pocketHeat`. (The brief asked
   for a Hype bonus; Hype was retired, and genre heat is the live system that replaced
   it — so the reward is real, it just lands on the market instead.) Only dense
-  patterns can reach 8 in a row, which is another reason the card matters.
+  patterns deal 8 notes to hit, which is another reason the card matters.
 - Your own instrument plays real pentatonic notes on a hit; the other three get a
   muted click, so you can hear which part is yours.
 - Quality is normalised over however many tracks are unlocked, so an early one-track
@@ -360,11 +379,13 @@ Middle: the stage — 4 SVG characters, the active one stepped forward.
 The **Band tab is a full-page screen** (`#sheet.full`), not a bottom panel: band
 identity, royalty rate, studio, every member with level and upgrade, and empty slots
 with prices. The other tabs remain bottom sheets.
-Bottom dock, one of five states: **idle** (solo-demo progress + WRITE A SONG),
-**genre** pick, **writing** (timer, song-sheet strip, 3 cards), **take** (track name,
-countdown, the falling-note lane, AUTO-TAKE), **quality** (score + RELEASE IT). The
-lane takes its own `pointerdown` — during a take the thumb is on the dock, not the
-stage, so the stage tap handler alone would miss every note. Tabs: Band | Gear | Catalog | Shop | League open as bottom sheets over
+Bottom dock, one of four states: **idle** (solo-demo progress + WRITE A SONG),
+**genre** pick, **writing** (timer, song-sheet strip, 3 cards), **quality** (score +
+RELEASE IT). The **take is not a dock state** — it is `#takefs`, a fixed panel over
+the bottom 46% (min 300px) holding its header, meter, three lanes and AUTO-TAKE,
+with the stage and the song-sheet strip still visible above it. Each lane owns its
+own `pointerdown`; `jam()` returns early while a take is running, so the only input
+during a take is the lanes. Tabs: Band | Gear | Catalog | Shop | League open as bottom sheets over
 the stage. Targets ≥44px, `env(safe-area-inset-*)` respected.
 
 ## 14. SHOP (stub)
@@ -382,13 +403,14 @@ M0.2), Gold 150 (Epic+), Mythic 500 (Legendary). Battle Pass ₪35/mo. VIP ₪19
 - Measured Quality spread at level 1 with a full band: worst-card play median 43,
   random 55, best-card play 69–81; at level 12 best play reaches 88 (+4 from jamming
   → 90+). Levelling visibly matters.
-- Recording takes verified in headless mobile Chromium: the lane builds from the
-  chosen card's pattern, a bot tapping inside the perfect window scores 22/42 hits
-  before reaching 11 in a row (IN THE POCKET fires at 8, lane goes gold, genre heat
-  +2), the 20-second decision clock is frozen for the length of the take, AUTO-TAKE
-  banks 5/tracks, a take where every note is missed scores 0, and the Quality note
-  reports "takes +N". Only dense card patterns can reach a pocket — sparse ones deal
-  6 notes in 10s.
+- Recording takes verified in headless mobile Chromium: three 119x231 lanes at the
+  bottom of the screen with the band still visible above, labels following the
+  instrument, notes dealt into lanes from the card's pattern, a bot tapping the right
+  lane inside the perfect window scoring PERFECT and running the streak up (IN THE
+  POCKET fires at 8, lanes go gold, genre heat +2), a wrong-lane tap reading WRONG
+  LANE and costing meter, a take with no taps bottoming the meter out and scoring 0,
+  the 20-second decision clock frozen for the length of the take, AUTO-TAKE banking
+  5/tracks and closing the panel, and the Quality note reporting "takes +N".
 - COLLECT verified: the reveal holds `S.payout` (a Q63 Viral = 3.97K streams / 1.27K
   money), the money counter does not move until the button is pressed, and it then
   jumps by exactly the held amount. Suite t1–t4/e1/f1/sv all pass, no console errors,

@@ -19,6 +19,7 @@
   --accent:#FF5A45; --accent-dk:#D93A26; --accent-sh:#C0331F;
   --gold:#FFC22E; --gold-dk:#E39A00;
   --accent2:#12A79C; --accent2-dk:#0B7A72;
+  --accent-w:#FFE3DC; --accent2-w:#DDF1EF; --gold-w:#FFF0C9;   /* lane washes */
   --bad:#D93A26;
   --safe-b:env(safe-area-inset-bottom,0px); --safe-t:env(safe-area-inset-top,0px);
   --beat:.577s;
@@ -340,36 +341,60 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .ghost{width:100%;padding:11px;border-radius:14px;background:var(--panel);
   border:2px solid var(--line);font-size:12px;font-weight:800;letter-spacing:.08em;color:var(--dim)}
 
-/* ===== RECORDING TAKE ===== */
-#takebox{text-align:center}
-#takelane{position:relative;height:168px;border-radius:18px;overflow:hidden;margin:8px 0 10px;
-  background:var(--panel);border:2px solid var(--line)}
-#takelane.pocket{border-color:var(--gold);background:#FFF7E4}
-#tkrail{position:absolute;left:50%;top:0;bottom:0;width:2px;margin-left:-1px;background:var(--line)}
-#hitline{position:absolute;left:0;right:0;top:138px;height:3px;background:var(--line2)}
-#hitring{position:absolute;left:50%;top:117px;width:44px;height:44px;margin-left:-22px;border-radius:50%;
-  border:3px dashed var(--line2);box-sizing:border-box;z-index:1}
-#takelane.pocket #hitring{border-color:var(--gold);border-style:solid;box-shadow:0 0 0 6px #FFF0C4}
-.tnote{position:absolute;left:50%;top:0;width:34px;height:34px;margin-left:-17px;border-radius:50%;z-index:2;
-  background:var(--accent);box-shadow:0 3px 0 var(--accent-sh);
-  animation-name:fall;animation-timing-function:linear;animation-fill-mode:forwards}
-.tnote.hit{animation:none;transform:translateY(122px) scale(1.6);opacity:0;transition:transform .18s ease,opacity .18s ease}
-.tnote.gone{background:var(--dim2);box-shadow:none;opacity:0;transition:opacity .45s ease .12s}
-@keyframes fall{from{transform:translateY(-40px)}to{transform:translateY(122px)}}
-#takejudge{position:absolute;left:0;right:0;top:52px;text-align:center;font-size:19px;font-weight:800;
-  letter-spacing:.12em;opacity:0;z-index:3;text-shadow:0 0 9px var(--panel),0 0 4px var(--panel)}
-#takejudge.on{animation:jpop .5s ease-out}
-@keyframes jpop{0%{opacity:0;transform:scale(.7)}30%{opacity:1;transform:scale(1.08)}100%{opacity:0;transform:scale(1)}}
-#takecombo{position:absolute;left:0;right:0;top:11px;text-align:center;font-size:11px;font-weight:800;
-  letter-spacing:.14em;color:var(--dim2);z-index:3;text-shadow:0 0 8px var(--panel)}
-#takehead{display:flex;align-items:baseline;gap:8px;margin-bottom:2px}
-#takehead .tk{font-size:15px;font-weight:800;letter-spacing:.13em}
-#takehead .who{flex:1;font-size:10.5px;font-weight:700;color:var(--dim);text-align:left;
+/* ===== RECORDING TAKE (three lanes, thumb-sized, bottom of the screen) ===== */
+#takefs{position:fixed;left:0;right:0;bottom:0;height:46vh;min-height:300px;z-index:22;display:none;
+  flex-direction:column;padding:6px 10px calc(8px + var(--safe-b));background:var(--cream2);
+  border-top:2px solid var(--line2);box-shadow:0 -14px 30px rgba(120,70,30,.14)}
+#takefs.on{display:flex}
+#tkbar{display:flex;align-items:center;gap:9px;padding:2px 2px 6px}
+#tkbar .tk{font-size:14px;font-weight:800;letter-spacing:.13em}
+#tkbar .who{flex:1;font-size:10.5px;font-weight:700;color:var(--dim);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#taketime{font-size:10px;font-weight:800;color:var(--gold-dk)}
-#takeauto{width:100%;padding:12px;border-radius:14px;font-size:12px;font-weight:800;letter-spacing:.08em;
+#tkmult{font-size:17px;font-weight:800;color:var(--dim2);font-variant-numeric:tabular-nums}
+#tkmult.hot{color:var(--accent-dk)}
+#taketime{font-size:11px;font-weight:800;color:var(--gold-dk);min-width:36px;text-align:right;
+  font-variant-numeric:tabular-nums}
+#takeauto{padding:10px 13px;border-radius:12px;font-size:10px;font-weight:800;letter-spacing:.09em;
   background:var(--panel);border:2px solid var(--line);color:var(--dim)}
 #takeauto:active{transform:translateY(2px)}
+#tkmeter{height:6px;border-radius:99px;background:var(--cream3);overflow:hidden;margin-bottom:7px;
+  border:0;flex:0 0 auto}
+#tkmfill{height:100%;background:var(--accent2);border-radius:99px;transition:width .16s linear}
+#tkmeter.low #tkmfill{background:var(--accent)}
+#hwy{position:relative;flex:1 1 auto;min-height:0;display:flex;gap:6px}
+#hwy i{font-style:normal}
+.lane{position:relative;flex:1;border-radius:16px;background:var(--panel);border:2px solid var(--line);
+  overflow:hidden}
+.lane .pad{position:absolute;left:8px;right:8px;bottom:8px;height:46px;border-radius:14px;
+  border:3px solid var(--lc);box-sizing:border-box}
+.lane .lbl{position:absolute;left:0;right:0;bottom:24px;text-align:center;font-size:9px;font-weight:800;
+  letter-spacing:.14em;color:var(--dim2)}
+.lane.on{background:var(--lc2)}
+.lane.on .pad{background:var(--lc)}
+.lane .flame{position:absolute;left:50%;bottom:8px;width:56px;height:56px;margin-left:-28px;border-radius:50%;
+  background:var(--lc);opacity:0;pointer-events:none}
+.lane.fire .flame{animation:flame .36s ease-out}
+@keyframes flame{0%{opacity:.8;transform:scale(.45)}100%{opacity:0;transform:scale(2.2)}}
+#hwy.pocket .lane{border-color:var(--gold);background:var(--gold-w)}
+.l0{--lc:var(--accent);--lcd:var(--accent-sh);--lc2:var(--accent-w)}
+.l1{--lc:var(--accent2);--lcd:var(--accent2-dk);--lc2:var(--accent2-w)}
+.l2{--lc:var(--gold);--lcd:var(--gold-dk);--lc2:var(--gold-w)}
+#notes{position:absolute;inset:0;display:flex;gap:6px;pointer-events:none;z-index:2}
+.ncol{position:relative;flex:1}
+.tnote{position:absolute;left:11%;right:11%;top:0;height:34px;border-radius:17px;
+  background:var(--lc);box-shadow:0 3px 0 var(--lcd);
+  animation-name:fall;animation-timing-function:linear;animation-fill-mode:forwards}
+@keyframes fall{from{transform:translateY(-42px)}to{transform:translateY(var(--fy,240px))}}
+.tnote.hit{animation:none;transform:translateY(var(--fy,240px)) scale(1.4);opacity:0;
+  transition:transform .16s ease,opacity .16s ease}
+.tnote.gone{background:var(--dim2);box-shadow:none;opacity:0;transition:opacity .4s ease .1s}
+#takejudge{position:absolute;left:0;right:0;top:34%;text-align:center;font-size:20px;font-weight:800;
+  letter-spacing:.12em;opacity:0;z-index:3;pointer-events:none;
+  text-shadow:0 0 10px var(--panel),0 0 4px var(--panel)}
+#takejudge.on{animation:jpop .5s ease-out}
+@keyframes jpop{0%{opacity:0;transform:scale(.7)}30%{opacity:1;transform:scale(1.08)}100%{opacity:0;transform:scale(1)}}
+#takecombo{position:absolute;left:0;right:0;top:12px;text-align:center;font-size:11px;font-weight:800;
+  letter-spacing:.14em;color:var(--dim2);z-index:3;pointer-events:none;text-shadow:0 0 8px var(--panel)}
 
 /* ===== WHILE YOU WERE GONE ===== */
 #gone{position:fixed;inset:0;z-index:42;display:none;flex-direction:column;align-items:center;
@@ -496,23 +521,6 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
         <div id="cards"></div>
       </div>
 
-      <!-- RECORDING TAKE -->
-      <div id="takebox" hidden>
-        <div id="takehead">
-          <div class="tk" id="tkTrack">DRUMS</div>
-          <div class="who" id="tkWho">—</div>
-          <div id="taketime">10.0s</div>
-        </div>
-        <div id="takelane">
-          <div id="tkrail"></div>
-          <div id="hitline"></div>
-          <div id="hitring"></div>
-          <div id="takecombo"></div>
-          <div id="takejudge"></div>
-        </div>
-        <button id="takeauto">AUTO-TAKE</button>
-      </div>
-
       <!-- QUALITY -->
       <div id="qualbox" hidden>
         <div class="dtitle">demo finished</div>
@@ -540,6 +548,25 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   <div class="shhead"><h2 id="shTitle">Band</h2><button class="x" id="shClose">✕</button></div>
   <div id="shbody"></div>
 </aside>
+
+<div id="takefs">
+  <div id="tkbar">
+    <div class="tk" id="tkTrack">DRUMS</div>
+    <div class="who" id="tkWho">—</div>
+    <div id="tkmult">x1</div>
+    <div id="taketime">10.0s</div>
+    <button id="takeauto">AUTO-TAKE</button>
+  </div>
+  <div id="tkmeter"><div id="tkmfill" style="width:55%"></div></div>
+  <div id="hwy">
+    <button class="lane l0" data-l="0"><i class="flame"></i><i class="pad"></i><i class="lbl">SNARE</i></button>
+    <button class="lane l1" data-l="1"><i class="flame"></i><i class="pad"></i><i class="lbl">KICK</i></button>
+    <button class="lane l2" data-l="2"><i class="flame"></i><i class="pad"></i><i class="lbl">HAT</i></button>
+    <div id="notes"><i class="ncol l0"></i><i class="ncol l1"></i><i class="ncol l2"></i></div>
+    <div id="takecombo"></div>
+    <div id="takejudge"></div>
+  </div>
+</div>
 
 <div id="reveal">
   <button id="rvSkip">SKIP</button>
@@ -637,6 +664,10 @@ const BAL = {
   takeAuto: 5,            // auto-taking every track is worth this in total
   takePerfect: 5, takeGood: 2,
   perfectMs: 62, goodMs: 135,   // hit windows either side of the beat
+  takeLanes: 3,           // left / centre / right — one thumb, wide targets
+  multSteps: [6, 14, 24], // note streaks that step the multiplier to x2 / x3 / x4
+  multBonus: 1,           // ...and finishing a take on the top one is worth this
+  meterStart: 65, meterHit: 3, meterMiss: 6,     // the take falls apart at 0
   pocketStreak: 8,        // perfect hits in a row before you are "in the pocket"
   pocketHeat: 2,          // ...which nudges the genre, since Hype no longer exists
   approachBase: 1.9, approachPerLvl: 0.03, approachMax: 2.7,
@@ -1407,8 +1438,10 @@ const el = {
   picks:$('#picks'), studioChip:$('#studioChip'), bandChip:$('#bandChip'),
   band:$('#band'), stage:$('#stage'), bg:$('#bg'), dock:$('#dock'),
   idlebox:$('#idlebox'), genrebox:$('#genrebox'), writebox:$('#writebox'), qualbox:$('#qualbox'),
-  takebox:$('#takebox'), takelane:$('#takelane'), takejudge:$('#takejudge'), takecombo:$('#takecombo'),
-  taketime:$('#taketime'), tkTrack:$('#tkTrack'), tkWho:$('#tkWho'),
+  takefs:$('#takefs'), hwy:$('#hwy'), takejudge:$('#takejudge'), takecombo:$('#takecombo'),
+  taketime:$('#taketime'), tkTrack:$('#tkTrack'), tkWho:$('#tkWho'), tkmult:$('#tkmult'),
+  tkmeter:$('#tkmeter'), tkmfill:$('#tkmfill'),
+  lanes:[...document.querySelectorAll('#hwy .lane')], ncols:[...document.querySelectorAll('#notes .ncol')],
   idleSong:$('#idleSong'), idleTitle:$('#idleTitle'), writers:$('#writers'), gpick:$('#gpick'),
   timerbar:$('#timerbar'), timerfill:$('#timerfill'), strip:$('#sheetstrip'),
   whTrack:$('#whTrack'), whWho:$('#whWho'), whJam:$('#whJam'), cards:$('#cards'),
@@ -1475,9 +1508,8 @@ function showDock(which){
   el.idlebox.hidden = which !== 'idle';
   el.genrebox.hidden = which !== 'genre';
   el.writebox.hidden = which !== 'write';
-  el.takebox.hidden = which !== 'take';
   el.qualbox.hidden = which !== 'qual';
-  el.band.classList.toggle('focus', which === 'write' || which === 'take');
+  el.band.classList.toggle('focus', which === 'write');
 }
 function renderIdle(){
   const n = S.songs.length;
@@ -1562,8 +1594,7 @@ function checkUnlocks(){
 /* ===== INPUT: tapping is a garnish, not the engine ===== */
 let rippleCount = 0, flyCount = 0, tapKick = 0;
 function jam(x, y){
-  if (revealing) return;
-  if (take){ tapTake(); ripple(x, y); return; }
+  if (revealing || take) return;      // during a take the lanes are the only input
   AU.init(); AU.resume(); AU.tap(false); buzz(8);
   $('#flash').classList.remove('on'); void $('#flash').offsetWidth; $('#flash').classList.add('on');
   ripple(x, y);
@@ -1760,45 +1791,87 @@ function finishWriting(){
 }
 
 
-/* ===== RECORDING TAKE — the skill layer on top of the decision ===== */
+/* ===== RECORDING TAKE — the skill layer on top of the decision =====
+   Three lanes, thumb-sized, at the bottom of the screen. The pattern the card
+   chose decides the rhythm; where each note lands is the part it plays. */
 let take = null;
 const approachFor = lvl => Math.min(BAL.approachMax, BAL.approachBase + BAL.approachPerLvl * (lvl - 1));
+/* What each lane is, per instrument — the drummer's kit, everyone else's part. */
+const LANE_NAMES = [
+  ['SNARE','KICK','HAT'], ['SLIDE','ROOT','WALK'],
+  ['CHUG','CHORD','LEAD'], ['LOW','HOOK','HIGH']
+];
+const JUDGE = { perfect:'#0B7A72', good:'#E39A00', miss:'#A9856B', pocket:'#D93A26' };
+/* Downbeat in the middle, backbeat on the left, everything between on the right:
+   for the drummer that is literally kick / snare / hi-hat, and it still reads as
+   a part for the other three. */
+function laneFor(step, fill, db){
+  const b = step % 8;
+  if (b === 0) return db % 4 === 3 ? 0 : 1;  // downbeat — kick, with an accent off it
+  if (b === 4) return 0;                     // backbeat — snare
+  return fill % 3 === 2 ? 0 : 2;             // everything between leans right, and
+}                                            // every third one crosses back left
 /* note arrival times, in seconds from the start of the take */
 function takeNotes(card, bpm, approach){
   const pat = PATTERNS[card.p] || PATTERNS.eighth;
   const step = 60 / bpm / 2;                       // one eighth note
   const out = [];
+  let fill = 0, db = 0;
   for (let i = 0; ; i++){
     const t = approach + i * step;
     if (t > approach + BAL.takeSecs) break;
-    if (pat[i % pat.length] === 'x') out.push({ t, done:false, node:null });
+    if (pat[i % pat.length] !== 'x') continue;
+    const b = i % 8, lane = laneFor(i, fill, db);
+    if (b === 0) db++; else if (b !== 4) fill++;
+    out.push({ t, lane, done:false, node:null });
   }
   return out;
 }
+function multFor(streak){
+  let m = 1;
+  BAL.multSteps.forEach(v => { if (streak >= v) m++; });
+  return m;
+}
+function renderMult(){
+  const m = multFor(take.streak);
+  take.bestMult = Math.max(take.bestMult, m);
+  el.tkmult.textContent = 'x' + m;
+  el.tkmult.classList.toggle('hot', m > 1);
+}
+function renderMeter(){
+  el.tkmfill.style.width = clamp(take.meter, 0, 100) + '%';
+  el.tkmeter.classList.toggle('low', take.meter < 30);
+}
 function startTake(track, card){
-  const s = S.session;
   const lvl = S.members[track].lvl;
-  const approach = approachFor(lvl);              // better members give you longer to read the lane
+  const approach = approachFor(lvl);              // better members give you longer to read
   take = {
     track, card, approach, notes: takeNotes(card, AU.bpm, approach),
-    t0: now(), pts: 0, streak: 0, best: 0, pocket: 0, ended: false, lastMiss: -9,
-    yours: track === S.you, energy: (card.v[0] + 1) / 2
+    t0: now(), pts: 0, streak: 0, best: 0, bestMult: 1, pocket: 0, ended: false, lastMiss: -9,
+    meter: BAL.meterStart, yours: track === S.you, energy: (card.v[0] + 1) / 2
   };
   el.tkTrack.textContent = MEMBERS[track].track;
   el.tkWho.textContent = S.members[track].name + ' · ' + card.n;
   el.takecombo.textContent = '';
-  el.takelane.classList.remove('pocket');
-  [...el.takelane.querySelectorAll('.tnote')].forEach(n => n.remove());
+  el.takejudge.textContent = '';
+  el.hwy.classList.remove('pocket');
+  LANE_NAMES[track].forEach((n,i) => { const l = el.lanes[i].querySelector('.lbl'); if (l) l.textContent = n; });
+  el.ncols.forEach(c => c.innerHTML = '');
+  memEls.forEach((m,i) => m.classList.toggle('up', i === track));
+  el.takefs.classList.add('on');
+  renderMult(); renderMeter();
+  // the lanes are laid out now, so the fall distance is measurable
+  const h = el.hwy.clientHeight || 260;
+  const fy = Math.max(90, h - 48);                // note lands centred on the pad
   take.notes.forEach(n => {
     const d = document.createElement('i');
     d.className = 'tnote';
+    d.style.setProperty('--fy', fy + 'px');
     d.style.animationDuration = approach + 's';
     d.style.animationDelay = (n.t - approach) + 's';
-    el.takelane.appendChild(d);
+    el.ncols[n.lane].appendChild(d);
     n.node = d;
   });
-  memEls.forEach((m,i) => m.classList.toggle('up', i === track));
-  showDock('take');
   AU.layerOn(track, take.energy);
 }
 function judgeText(txt, col){
@@ -1806,39 +1879,62 @@ function judgeText(txt, col){
   j.textContent = txt; j.style.color = col;
   j.classList.remove('on'); void j.offsetWidth; j.classList.add('on');
 }
-function tapTake(){
+function lanePop(L){
+  const n = el.lanes[L];
+  if (!n) return;
+  n.classList.add('on', 'fire');
+  clearTimeout(n._t); n._t = setTimeout(() => n.classList.remove('on', 'fire'), 170);
+}
+function tapLane(L){
   if (!take || take.ended) return;
-  const t = now() - take.t0;
-  let best = null, bestD = 1e9;
+  const t = now() - take.t0, win = BAL.goodMs / 1000;
+  let best = null, bestD = 1e9, near = false;
   for (const n of take.notes){
     if (n.done) continue;
     const d = Math.abs(n.t - t);
-    if (d < bestD){ bestD = d; best = n; }
+    if (d > win) continue;
+    near = true;
+    if (n.lane === L && d < bestD){ bestD = d; best = n; }
   }
-  if (!best || bestD > BAL.goodMs / 1000) return;   // a tap nowhere near a note is simply ignored
+  lanePop(L);
+  if (!best){
+    // a tap in empty air costs nothing; a tap on the wrong lane while a note was
+    // there is a real mistake, and the take feels it.
+    if (near) missNote(true);
+    return;
+  }
   best.done = true;
   const perfect = bestD <= BAL.perfectMs / 1000;
   best.node.classList.add('hit');
   take.pts += perfect ? 2 : 1;
+  take.meter = clamp(take.meter + BAL.meterHit, 0, 100);
   AU.takeHit(take.yours, take.energy, perfect);
   buzz(perfect ? 12 : 8);
-  if (perfect){
-    take.streak++;
-    take.best = Math.max(take.best, take.streak);
-    judgeText('PERFECT', '#0B7A72');
-    if (take.streak === BAL.pocketStreak) pocket();
-  } else {
-    take.streak = 0;
-    judgeText('GOOD', '#E39A00');
-  }
+  take.streak++;
+  take.best = Math.max(take.best, take.streak);
+  judgeText(perfect ? 'PERFECT' : 'GOOD', perfect ? JUDGE.perfect : JUDGE.good);
+  if (perfect && take.streak === BAL.pocketStreak) pocket();
+  renderMult(); renderMeter();
   el.takecombo.textContent = take.streak > 2 ? take.streak + ' IN A ROW' : '';
+}
+function missNote(wrongLane){
+  const t = now() - take.t0;
+  take.streak = 0;
+  take.meter -= wrongLane ? BAL.meterMiss / 2 : BAL.meterMiss;
+  el.takecombo.textContent = '';
+  if (t - take.lastMiss > 0.4){
+    take.lastMiss = t;
+    judgeText(wrongLane ? 'WRONG LANE' : 'MISS', JUDGE.miss);
+  }
+  renderMult(); renderMeter();
+  if (take.meter <= 0) endTake(false, true);
 }
 /* Hype was retired, so being in the pocket heats the genre instead — the live
    system that replaced it, and still real money. */
 function pocket(){
   take.pocket++;
-  el.takelane.classList.add('pocket');
-  judgeText('IN THE POCKET', '#D93A26');
+  el.hwy.classList.add('pocket');
+  judgeText('IN THE POCKET', JUDGE.pocket);
   $('#flash').classList.remove('on'); void $('#flash').offsetWidth; $('#flash').classList.add('on');
   const m = memEls[take.track];
   if (m){
@@ -1854,32 +1950,36 @@ function tickTake(){
   const t = now() - take.t0;
   const late = BAL.goodMs / 1000;
   for (const n of take.notes){
-    if (!n.done && t > n.t + late){
-      n.done = true; n.node.classList.add('gone'); take.streak = 0;
-      el.takecombo.textContent = '';
-      if (t - take.lastMiss > 0.45){ take.lastMiss = t; judgeText('MISS', '#A9856B'); }
-    }
+    if (!n.done && t > n.t + late){ n.done = true; n.node.classList.add('gone'); missNote(false); }
+    if (!take || take.ended) return;
   }
   el.taketime.textContent = Math.max(0, BAL.takeSecs + take.approach - t).toFixed(1) + 's';
   if (t > take.approach + BAL.takeSecs + 0.4) endTake(false);
 }
-function endTake(auto){
+function endTake(auto, botched){
   if (!take || take.ended) return;
   take.ended = true;
   const s = S.session;
   let got;
-  if (auto){
+  if (botched){
+    got = 0;
+    const m = memEls[take.track];
+    if (m){ m.classList.remove('wince'); void m.offsetWidth; m.classList.add('wince'); }
+    toast('🎙️ The take fell apart — nothing usable');
+  } else if (auto){
     got = BAL.takeAuto / Math.max(1, s.order.length);      // auto every track = takeAuto total
   } else {
     const max = take.notes.length * 2;
     const ratio = max ? take.pts / max : 0;
     got = ratio >= 0.80 ? BAL.takePerfect : ratio >= 0.45 ? BAL.takeGood : 0;
-    toast(got === BAL.takePerfect ? '🎙️ Perfect take — +' + got + ' Quality'
+    if (got && take.bestMult >= BAL.multSteps.length + 1) got += BAL.multBonus;
+    toast(got >= BAL.takePerfect ? '🎙️ Perfect take — +' + got + ' Quality'
         : got ? '🎙️ Good take — +' + got + ' Quality'
         : '🎙️ That take did not make it');
   }
   s.takePts = (s.takePts || 0) + got;
-  [...el.takelane.querySelectorAll('.tnote')].forEach(n => n.remove());
+  el.takefs.classList.remove('on');
+  el.ncols.forEach(c => c.innerHTML = '');
   take = null;
   advanceSession();
 }
@@ -2442,7 +2542,7 @@ function boot(){
   $('#setGo').addEventListener('click', finishSetup);
   $('#releaseBtn').addEventListener('click', e => { e.stopPropagation(); release(); });
   $('#takeauto').addEventListener('click', e => { e.stopPropagation(); autoTake(); });
-  el.takelane.addEventListener('pointerdown', e => { e.preventDefault(); jam(e.clientX, e.clientY); });
+  el.lanes.forEach((n, i) => n.addEventListener('pointerdown', e => { e.preventDefault(); tapLane(i); }));
   el.gpick.addEventListener('click', e => {
     const b = e.target.closest('[data-g]');
     if (b) chooseGenre(+b.dataset.g);
