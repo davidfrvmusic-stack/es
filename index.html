@@ -86,24 +86,39 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* ---- the one meter: every trough is the raised surface, every fill starts at the
    left edge. Only height, radius and fill colour differ. ---- */
-#rankbar .rp,.wrow .wb,#timerbar,#qbar,#grBars .b i,#tkmeter{
+#rankbar .rp,.goal .gp,.demo .db,#timerbar,#qbar,#grBars .b i,#tkmeter{
   background:var(--elev);overflow:hidden}
-#rankbar .rp i,.wrow .wf,#timerfill,#qfill,#grBars .b i u,#tkmfill{display:block;height:100%}
+#rankbar .rp i,.goal .gp i,.demo .db i,#timerfill,#qfill,#grBars .b i u,#tkmfill{display:block;height:100%}
 /* the fills that grow by transform anchor left; #tkmfill grows by width and does not */
-#rankbar .rp i,.wrow .wf,#timerfill,#qfill{transform-origin:left}
+#rankbar .rp i,.goal .gp i,.demo .db i,#timerfill,#qfill{transform-origin:left}
 
 #rankbar .rp{display:block;height:6px;border-radius:99px;margin-top:4px}
 #rankbar .rp i{width:0;border-radius:99px;background:var(--rc,var(--accent2));
   transition:width .4s ease}
-.sub{display:flex;align-items:center;gap:7px;margin-top:9px}
-#savedTag{margin-left:auto;display:flex;align-items:center;gap:5px;font-size:9.5px;font-weight:800;
-  letter-spacing:.12em;color:var(--accent2-dk);opacity:0;transition:opacity .3s ease;flex:0 0 auto}
+/* the save pill floats over the stage now that the chip row is gone */
+#savedTag{position:absolute;top:10px;right:12px;z-index:4;display:flex;align-items:center;gap:5px;
+  font-size:9.5px;font-weight:800;
+  letter-spacing:.12em;color:var(--accent2-dk);opacity:0;transition:opacity .3s ease}
 #savedTag.on{opacity:1}
 #savedTag i{width:6px;height:6px;border-radius:50%;background:var(--accent2);display:block;
   animation:savedot .9s ease-out}
 @keyframes savedot{0%{transform:scale(.4)}45%{transform:scale(1.35)}100%{transform:scale(1)}}
-#bandChip{display:block;min-width:0;font-weight:800;max-width:44%;white-space:nowrap;overflow:hidden;
-  text-overflow:ellipsis;background:var(--elev);color:var(--ink);border-color:var(--line2)}
+/* ---- the stage names itself: whose band, and which room ---- */
+#bandChip{position:relative;z-index:2;flex:0 0 auto;padding:9px 46px 0;text-align:center;
+  font-size:10.5px;font-weight:800;letter-spacing:.22em;text-transform:uppercase;color:var(--dim2);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#studioChip{position:relative;z-index:2;flex:0 0 auto;padding:0 14px 6px;text-align:center;
+  font-size:9px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--dim3)}
+/* the side rail carries one icon per system with something waiting. Nothing is waiting
+   today — daily, events and inbox do not exist yet — so it draws nothing at all. */
+#rail{position:absolute;top:34px;right:10px;z-index:3;display:flex;flex-direction:column;gap:8px}
+#rail:empty{display:none}
+.railbtn{position:relative;width:44px;height:44px;border-radius:14px;background:var(--panel);
+  border:2px solid var(--line);display:grid;place-items:center}
+.railbtn:active{transform:translateY(2px)}
+.railbtn b{position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;padding:0 4px;
+  border-radius:9px;background:var(--accent);color:var(--onAccent);font-size:9.5px;font-weight:800;
+  display:grid;place-items:center}
 /* ---- the one pill: five badge shapes, one set of type rules ---- */
 .chip,.tag,.rar,.tierbadge,.trend{font-weight:800}
 
@@ -188,12 +203,22 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .dtitle{text-align:center;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim2);
   margin-bottom:4px;font-weight:800}
 .dsong{text-align:center;font-size:19px;font-weight:800;letter-spacing:-.2px;margin-bottom:10px}
-#idlebox .writers{display:flex;flex-direction:column;gap:7px;margin-bottom:12px}
-.wrow{display:flex;align-items:center;gap:9px;font-size:10.5px;color:var(--dim);font-weight:700}
-.wrow .nm{width:62px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.wrow .wb{flex:1;height:6px;border-radius:3px}
-.wrow .wf{width:100%;transform:scaleX(0);border-radius:3px;
-  background:var(--accent2)}
+/* ---- NEXT GOAL: one line naming the nearest thing worth doing, and how close it is ---- */
+.goal{margin-bottom:10px;padding:9px 12px 10px;border-radius:16px;
+  background:var(--panel);border:2px solid var(--line)}
+.goal .gl{font-size:8.5px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--gold)}
+.goal .gt{font-size:13.5px;font-weight:800;margin-top:2px;line-height:1.25}
+.goal .gh{font-size:10.5px;font-weight:600;color:var(--dim);margin-top:2px;line-height:1.4}
+.goal .gp{display:block;height:5px;border-radius:99px;margin-top:7px}
+.goal .gp i{width:100%;transform:scaleX(0);border-radius:99px;background:var(--gold);
+  transition:transform .5s ease}
+/* ---- the demo the band finishes while you are doing something else ---- */
+.demo{display:flex;align-items:center;gap:9px;margin-bottom:11px;font-size:9.5px;font-weight:800;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--dim2)}
+.demo .dn{max-width:34%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.demo .db{flex:1;height:4px;border-radius:99px}
+.demo .db i{width:100%;transform:scaleX(0);border-radius:99px;background:var(--accent2)}
+.demo[hidden]{display:none}
 /* ---- the one button: everything pressable shares its press and its type, and each
    rule below keeps only what differs — the fill, the size and the shadow tone ---- */
 .bigbtn,.buy,.ghost,.sbtn,.venue .vgo,#rvGo,#ruGo,#grGo,#takeauto,#tixAd,#gone .ad,
@@ -216,6 +241,10 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 @keyframes sweep{0%{left:-50%}100%{left:105%}}
 .bigbtn.teal{background:var(--accent2);color:var(--onAccent);box-shadow:0 5px 0 var(--accent2-dk)}
 .bigbtn.teal:active{box-shadow:0 2px 0 var(--accent2-dk)}
+/* gold is the reward colour, so the CTA wears it exactly when something is owed to you */
+.bigbtn.gold{background:var(--gold);color:var(--onAccent);box-shadow:0 5px 0 var(--gold-dk)}
+.bigbtn.gold:active{box-shadow:0 2px 0 var(--gold-dk)}
+#gigBtn{margin-top:8px;min-height:44px}
 
 #timerbar{height:7px;border-radius:4px;margin-bottom:12px}
 #timerfill{width:100%;border-radius:4px;background:var(--gold)}
@@ -717,28 +746,34 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
         <span class="rp"><i id="rankFill"></i></span>
       </span>
     </button>
-    <div class="sub">
-      <div class="chip" id="bandChip">—</div>
-      <div class="chip pk"><span id="pickIco"></span><span id="picks" class="num">0</span></div>
-      <div class="chip" id="studioChip">Garage</div>
-      <div id="savedTag"><i></i>SAVED</div>
-    </div>
   </header>
 
   <main id="stage">
     <div id="bg"></div>
     <div class="crowd"></div>
     <div id="flash"></div>
+    <div id="savedTag"><i></i>SAVED</div>
+    <div id="rail"></div>
+    <div id="bandChip">—</div>
     <div id="band"></div>
+    <div id="studioChip">Garage</div>
 
     <div id="dock">
       <!-- IDLE -->
       <div id="idlebox">
-        <div class="dtitle" id="idleTitle">next single</div>
-        <div class="dsong" id="idleSong">—</div>
-        <div class="writers" id="writers"></div>
+        <div class="goal">
+          <div class="gl">next goal</div>
+          <div class="gt" id="goalT">—</div>
+          <div class="gh" id="goalH">—</div>
+          <div class="gp"><i id="goalFill"></i></div>
+        </div>
+        <div class="demo" id="demoRow" hidden>
+          <span class="dn" id="demoWho">—</span>
+          <span class="db"><i id="demoFill"></i></span>
+          <span>demo</span>
+        </div>
         <button class="bigbtn pulse" id="writeBtn">WRITE A SONG</button>
-        <button class="ghost" id="gigBtn" style="margin-top:8px;min-height:44px">GIGS<span id="gigTix"></span></button>
+        <button class="ghost" id="gigBtn">GIGS<span id="gigTix"></span></button>
       </div>
 
       <!-- GENRE PICK -->
@@ -998,6 +1033,7 @@ const BAL = {
   advanceMult: 8,         // ...and the money advance is that many streams x the royalty
                           // rate x this. Small, but enough that COLLECT means something.
   songScale: 1.0,
+  studioStep: 4,          // every studio multiplies all song streams by this (see PACING)
   gigBase: 1.0,           // money/sec from playing live, before any release exists
   gigPerMember: 0.5,      // each extra member makes the gigs pay better
   payoutBase: 0.04,       // money/sec = gig money + streams/sec x this
@@ -2054,7 +2090,7 @@ function load(){
    gain here beats an exponential cost curve and the game finishes in an hour. */
 const memberSPS = i => MEMBERS[i].sps * Math.pow(S.members[i].lvl, BAL.lvlExp) * RARITY[S.members[i].rarity].m;
 const upCost = i => Math.floor(MEMBERS[i].lvlCost * Math.pow(BAL.costGrow, S.members[i].lvl - 1));
-const studioMult = () => Math.pow(4, S.studio);
+const studioMult = () => Math.pow(BAL.studioStep, S.studio);
 const ownedCount = () => S.members.filter(m => m.owned).length;
 const boughtCount = () => S.members.filter((m,i) => m.owned && i !== S.you).length;
 const nextMemberPrice = () => BAL.memberPrices[Math.min(boughtCount(), BAL.memberPrices.length - 1)]
@@ -2158,7 +2194,7 @@ const chartFor = ti => rndi(TIERS[ti].lo, TIERS[ti].hi);
 /* ===== RENDER ===== */
 const el = {
   streams:$('#streams'), sps:$('#sps'), money:$('#money'), mps:$('#mps'),
-  picks:$('#picks'), studioChip:$('#studioChip'), bandChip:$('#bandChip'),
+  studioChip:$('#studioChip'), bandChip:$('#bandChip'), rail:$('#rail'),
   fans:$('#fans'), fps:$('#fps'), rankbar:$('#rankbar'), rankBadge:$('#rankBadge'),
   rankName:$('#rankName'), rankNext:$('#rankNext'), rankFill:$('#rankFill'),
   band:$('#band'), stage:$('#stage'), bg:$('#bg'), dock:$('#dock'),
@@ -2167,7 +2203,8 @@ const el = {
   taketime:$('#taketime'), tkTrack:$('#tkTrack'), tkWho:$('#tkWho'), tkmult:$('#tkmult'),
   tkmeter:$('#tkmeter'), tkmfill:$('#tkmfill'),
   lanes:[...document.querySelectorAll('#hwy .lane')], ncols:[...document.querySelectorAll('#notes .ncol')],
-  idleSong:$('#idleSong'), idleTitle:$('#idleTitle'), writers:$('#writers'), gpick:$('#gpick'),
+  goalT:$('#goalT'), goalH:$('#goalH'), goalFill:$('#goalFill'), cta:$('#writeBtn'),
+  demoRow:$('#demoRow'), demoWho:$('#demoWho'), demoFill:$('#demoFill'), gpick:$('#gpick'),
   timerbar:$('#timerbar'), timerfill:$('#timerfill'), strip:$('#sheetstrip'),
   whTrack:$('#whTrack'), whWho:$('#whWho'), whJam:$('#whJam'), cards:$('#cards'),
   qnum:$('#qnum'), qlabel:$('#qlabel'), qfill:$('#qfill'), qnote:$('#qnote'),
@@ -2209,7 +2246,6 @@ function renderTop(){
   el.mps.textContent = '+' + fmtRate(moneyRate()) + '/s';
   el.fps.textContent = '+' + fmtRate(fanRate()) + '/s';
   renderRank();
-  el.picks.textContent = fmt(S.picks);
   el.bandChip.textContent = S.band || 'Your Band';
   let alert = false;
   for (let i = 0; i < 4; i++){
@@ -2286,18 +2322,94 @@ function renderGigBtn(){
   const b = $('#gigTix');
   if (b && S.gig) b.textContent = '  ·  ' + S.gig.tickets + '/' + BAL.gigFree;
 }
+
+/* ===== HOME =====
+   Home answers one question — what should I do next? — with one line that names it and
+   one button that does it. Anything that is not waiting on the player is not drawn. */
+
+/* The goal ladder, nearest first: a thing you can act on in the next minute outranks a
+   rank three hours out. The first entry that returns an object wins. */
+const firstEmpty = () => S.members.findIndex(m => !m.owned);
+const GOALS = [
+  /* nothing streams until a record exists, so that is the whole game until it does */
+  () => !S.released && { t:'Release your first song',
+        h:'Streams only start when a record does',
+        p:S.pending ? 0.66 : S.session ? 0.33 : 0 },
+  /* a hire pays the same minute, in gig money, before it ever writes anything */
+  () => firstEmpty() >= 0 && { t:'Hire a ' + MEMBERS[firstEmpty()].role.toLowerCase(),
+        h:fmt(nextMemberPrice()) + ' to hire — they write demos, and every member lifts every song',
+        p:S.money / nextMemberPrice() },
+  /* a ticket in hand and a room that has never paid its first clear */
+  () => S.released && S.gig.tickets > 0 && VENUES[S.gig.cleared] && !S.gig.first[S.gig.cleared] &&
+        { t:'Play ' + VENUES[S.gig.cleared].n,
+          h:'First clear pays x' + BAL.gigFirstMult + ' — you have ' + S.gig.tickets +
+            (S.gig.tickets === 1 ? ' ticket' : ' tickets'), p:1 },
+  /* the biggest multiplier you can simply buy */
+  () => STUDIOS[S.studio + 1] && S.money >= STUDIOS[S.studio + 1].cost &&
+        { t:'Move into ' + STUDIOS[S.studio + 1].n,
+          h:'x' + BAL.studioStep + ' on every song you have ever released', p:1 },
+  /* and under all of it, the number that never goes down */
+  () => nextRank() && { t:fmt(Math.max(0, nextRank().at - S.fans)) + ' fans to ' + nextRank().n,
+        h:rankOpens(S.rank + 1), p:rankProgress() },
+  () => ({ t:'Every rank and every genre is yours', h:'Keep the catalogue climbing', p:1 })
+];
+function rankOpens(r){
+  const R = RANKS[r], prev = RANKS[r-1], n = GENRES.filter(g => g.r === r).length, bits = [];
+  if (n) bits.push(n + (n === 1 ? ' genre' : ' genres'));
+  if (R.gig > prev.gig) bits.push('gigs x' + R.gig);
+  if (R.payCap > prev.payCap) bits.push('royalty to ' + (R.payCap * 100).toFixed(0) + '%');
+  return 'Opens ' + bits.join(' · ');
+}
+function nextGoal(){ for (const g of GOALS){ const r = g(); if (r) return r; } }
+
+/* The one button, reading the state it is standing in. Anything collectable outranks
+   everything else: if money is sitting on the table, the button says so. */
+function ctaState(){
+  if (S.payout || S.gig.payout) return { k:'collect', l:'COLLECT', c:'gold' };
+  if (S.pending)                return { k:'release', l:'RELEASE SONG', c:'gold' };
+  if (S.session)                return { k:'session', l:'CONTINUE SONG', c:'teal' };
+  return { k:'write', l:'WRITE A SONG', c:'' };
+}
+function ctaAct(){
+  const st = ctaState();
+  if (st.k === 'collect'){
+    if (S.payout) return bankPayout(), renderIdle();
+    return showGigResult(S.gig.payout, S.gig.payout.parts || []);
+  }
+  if (st.k === 'release') return showDock('qual');
+  if (st.k === 'session') return showDock('write');
+  startWriting();
+}
+/* Each rail icon belongs to a system that can have something waiting. None of them exist
+   yet, so the rail renders nothing — that is the rule working, not a gap. */
+const RAIL = [];
+function renderRail(){
+  el.rail.innerHTML = RAIL.filter(r => r.when()).map(r =>
+    `<button class="railbtn" data-rail="${r.id}">${ico(r.icon, {s:20})}${
+      r.badge ? '<b>' + r.badge() + '</b>' : ''}</button>`).join('');
+}
 function renderIdle(){
   renderGigBtn();
-  const n = S.songs.length;
-  el.idleTitle.textContent = S.band || 'your band';
-  el.idleSong.textContent = n ? n + (n === 1 ? ' song out' : ' songs out') : 'no songs — no streams yet';
-  el.writers.innerHTML = MEMBERS.map((m,i) => {
-    const st = S.members[i];
-    if (!st.owned) return `<div class="wrow" style="opacity:.55"><div class="nm">${esc(m.role)}</div>
-      <div class="wb"><div class="wf"></div></div><div>${fmt(nextMemberPrice())} to hire</div></div>`;
-    return `<div class="wrow"><div class="nm">${esc(st.name.split(' ')[0])}</div>
-      <div class="wb"><div class="wf" data-solo="${i}"></div></div><div>demo</div></div>`;
-  }).join('');
+  const g = nextGoal(), st = ctaState();
+  el.goalT.textContent = g.t;
+  el.goalH.textContent = g.h;
+  el.goalFill.style.transform = 'scaleX(' + clamp(g.p, 0, 1).toFixed(3) + ')';
+  el.cta.textContent = st.l;
+  el.cta.className = 'bigbtn' + (st.c ? ' ' + st.c : '') + (st.k === 'write' ? ' pulse' : '');
+  el.cta.dataset.cta = st.k;
+  renderDemo();
+  renderRail();
+}
+/* one line for the demo the band is closest to finishing, not four bars for four people:
+   they share one output, so they share one bar */
+function renderDemo(){
+  let best = -1;
+  for (let i = 0; i < 4; i++) if (S.members[i].owned && (best < 0 || S.members[i].solo > S.members[best].solo)) best = i;
+  el.demoRow.hidden = best < 0;
+  if (best < 0) return;
+  el.demoRow.dataset.i = best;
+  el.demoWho.textContent = S.members[best].name.split(' ')[0];
+  el.demoFill.style.transform = 'scaleX(' + clamp(S.members[best].solo, 0, 1).toFixed(3) + ')';
 }
 
 /* ===== LOOP ===== */
@@ -2359,12 +2471,7 @@ function tick(){
   if (uiClock > 0.2){
     uiClock = 0;
     renderTop();
-    if (!el.idlebox.hidden){
-      for (let i = 0; i < 4; i++){
-        const b = el.writers.querySelector('[data-solo="' + i + '"]');
-        if (b) b.style.transform = 'scaleX(' + clamp(S.members[i].solo, 0, 1) + ')';
-      }
-    }
+    if (!el.idlebox.hidden) renderDemo();
     if (sheetTab === 'band') renderSheet('band', true);
   }
   if (t - lastSave > 5){ lastSave = t; save(); }
@@ -3354,7 +3461,7 @@ function htmlBand(){
   h += '<div class="sect">Studio</div>';
   h += `<div class="card"><div class="av" style="--c1:${PAL.accent2}">${ico(ICON.house, {c:PAL.onAccent, s:24})}</div>
     <div class="info"><div class="t">${STUDIOS[S.studio].n}</div>
-    <div class="d">All song streams x${fmt(studioMult())}${nx ? ' · next: ' + nx.n + ' (x4)' : ' · maxed'}</div></div>
+    <div class="d">All song streams x${fmt(studioMult())}${nx ? ' · next: ' + nx.n + ' (x' + BAL.studioStep + ')' : ' · maxed'}</div></div>
     ${nx ? `<button class="buy ${S.money >= nx.cost ? '' : 'no'}" data-act="studio">MOVE IN<small>${fmt(nx.cost)}</small></button>`
          : '<div class="rar">MAX</div>'}</div>`;
   h += '<div class="sect">Band</div>';
@@ -3472,7 +3579,11 @@ function htmlShop(){
   const packs = [['100 Picks','₪12',''],['550 Picks','₪45','BEST VALUE'],['1200 Picks','₪90',''],['3500 Picks','₪219','']];
   const crates = [['Bronze Crate','50 Picks','C60 R30 E8 L1.8 M0.2'],['Gold Crate','150 Picks','Epic or better guaranteed'],
                   ['Mythic Crate','500 Picks','Legendary guaranteed']];
-  let h = '<div class="hint" style="padding-top:0">Storefront preview — nothing is purchasable in this build.</div><div class="sect">Picks</div>';
+  let h = `<div class="card"><div class="av" style="--c1:${PAL.gold}">${ico(ICON.pick, {c:PAL.onGold, s:22})}</div>
+    <div class="info"><div class="t">${fmt(S.picks)} Picks</div>
+    <div class="d">Premium currency — crates, skips and streak saves, once those exist</div></div></div>
+    <div class="hint" style="padding-top:0">Storefront preview — nothing is purchasable in this build.</div>
+    <div class="sect">Picks</div>`;
   packs.forEach(p => h += `<div class="card locked"><div class="av" style="--c1:${PAL.gold}">${ico(ICON.pick, {c:PAL.onGold, s:22})}</div>
     <div class="info"><div class="t">${p[0]} ${p[2] ? '<span class="rar" style="color:${PAL.gold}">' + p[2] + '</span>' : ''}</div>
     <div class="d">Premium currency</div></div><button class="buy no">${p[1]}</button></div>`);
@@ -3781,7 +3892,7 @@ function boot(){
     if (e.target.closest('button')) return;
     jam(e.clientX, e.clientY);
   });
-  $('#writeBtn').addEventListener('click', e => { e.stopPropagation(); startWriting(); });
+  $('#writeBtn').addEventListener('click', e => { e.stopPropagation(); ctaAct(); });
   $('#setRoles').addEventListener('click', e => {
     const b = e.target.closest('[data-r]');
     if (b){ setupRole = +b.dataset.r; renderSetupRoles(); }
@@ -3844,7 +3955,6 @@ function boot(){
     $('#muteBtn').innerHTML = ico(S.mute ? ICON.muted : ICON.sound, {s:17}); save();
   });
   $('#muteBtn').innerHTML = ico(S.mute ? ICON.muted : ICON.sound, {s:17});
-  $('#pickIco').innerHTML = ico(ICON.pick, {s:13, w:2.4});
   document.querySelectorAll('.tab .ic').forEach(n => {
     n.innerHTML = ico(ICON[n.parentNode.dataset.tab], {s:19});
   });

@@ -426,7 +426,8 @@ which writing cards you start with, not which is strongest.
 - **Rarity** — Common→Rare→Epic→Legendary→Mythic, from crates; merge 3 → one up.
 - **Gear** — 2 slots per member; visible on the character; unlocks writing cards.
 - **Studios** — Garage → Bedroom → Rehearsal → Pro Studio → Label HQ → Tour Bus →
-  Stadium → Space. Each x4 all song streams and repaints the stage.
+  Stadium → Space. Each multiplies all song streams by `BAL.studioStep` (4) and
+  repaints the stage.
 
 ## 9. PACING — why the curve is shaped the way it is
 
@@ -561,11 +562,36 @@ hear which part is yours. `AU.takeHit(yours, energy, good)`.
 Formatting: 1.2K, 3.4M, 8.9B, 1.1T… Counters animate up.
 
 ## 13. UI (portrait, one-thumb)
-Top: three animated counters side by side — MONEY, STREAMS and FANS (each total + /s)
-— then the **rank bar** (badge, rank name, fans to the next rank, progress bar; tap it
-for the Band tab), then band name, Picks and studio chips. The toast rail sits below
-all of that.
-Middle: the stage — 4 SVG characters, the active one stepped forward.
+
+**HOME answers one question: what should I do next?** Three animated counters side by
+side — MONEY, STREAMS and FANS (each total + /s) — with the settings cog and the sound
+toggle; then the **rank bar** (badge, rank name, the exact fans to the next rank, a
+progress bar; tap it for the Band tab). The toast rail sits below that. There is no
+chip row any more: the band's name and the studio it plays in are printed on the stage
+itself, above and below the band, and Picks moved to the Shop where it is spent.
+
+Middle: the stage — 4 SVG characters, the active one stepped forward — with the SAVED
+pill floating top-right and `#rail` under it. **The rail draws one icon per system that
+has something waiting** (daily, event, inbox); none of those exist, so it renders
+nothing at all. That is the rule working, not a gap — nothing inactive is drawn.
+
+Bottom, on HOME: the **Next Goal** card, one **demo line**, the **adaptive CTA** and
+**GIGS**.
+- **Next Goal** (`GOALS`, nearest first) names one thing and how close it is: release
+  your first song → hire the next member → play the room whose first clear is still
+  unpaid → move into the studio you can afford → the fans to the next rank, and what it
+  opens. A goal you can act on in the next minute outranks a rank three hours out.
+- **The demo line** is one bar, not four. The band shares one solo-demo output
+  (§4), so it shows whoever is closest to finishing, and hides entirely with no band.
+- **The adaptive CTA** is one button reading the state it stands in: COLLECT (gold) if
+  a release or gig payout is unbanked, RELEASE SONG (gold) if a demo is waiting,
+  CONTINUE SONG (teal) mid-session, else WRITE A SONG (coral). Collectables outrank
+  everything — if money is on the table the button says so. The first three are safety
+  nets rather than everyday states, because the dock and `boot()` normally catch those
+  cases first; they exist so no path can strand a payout behind an idle screen.
+- **GIGS** stays the secondary outline button, with the ticket count on it.
+
+Home's accent budget is exactly three: coral CTA, teal rank bar, gold Next Goal.
 **Every tab is a screen, not a drawer.** `#sheet` fills everything from the top to the
 tab bar (`bottom:calc(var(--safe-b) + 56px)`) and swaps its content in place — a tab is
 somewhere you go, not something that slides over the stage. There is no scrim, no grab
@@ -770,6 +796,33 @@ screen geometry, the absent grab/scrim/✕ and the Settings exception, and five 
 now leave a screen by pressing HOME rather than the ✕. Twelve suites pass, no console
 errors.
 
+**Phase Two, stage 4 — a Home worth returning to.** Home used to be whatever was left
+over: the stage as a permanent backdrop, and a dock that said the band's name, how many
+songs were out, and drew four progress bars for four people who share one output. None
+of it told the player what to do next.
+
+Now it does. §13 has the layout; what is worth knowing about the build:
+- **`GOALS` is an ordered table of predicates**, each returning `{t, h, p}` or nothing,
+  and `nextGoal()` takes the first that answers. Adding a goal is one entry, and the
+  order *is* the design — nearest actionable first, the rank as the floor.
+- **`ctaState()` and `ctaAct()` are separate** so the label and the press can never
+  disagree; `renderIdle()` sets the label, the colour class and `data-cta`, and the
+  click routes on the same state.
+- **`RAIL` ships empty.** The component and the render exist; every system that would
+  fill it is a later stage. `#rail:empty{display:none}` means a rail with nothing in it
+  is not a hole in the layout.
+- **The chip row is gone.** `#bandChip` and `#studioChip` keep their ids (ten suites
+  and the audit harness bind to them) but now live on the stage as its name and its
+  room. Picks moved into Shop, where it is the currency of the thing being sold.
+- **`BAL.studioStep`** — the studio x4 was written out three times in three places
+  (`studioMult`, the Band tab, and the new goal line). It is a balance number, so it is
+  in `BAL` now, per CONVENTIONS.
+
+Suites: the new `home` suite drives all six goal states, all four CTA states (including
+COLLECT actually banking a held payout and the label falling back afterwards), the demo
+line, the empty rail, the absent chip row, and WRITE A SONG still opening the genre
+pick. Thirteen suites pass, no console errors, frame time unchanged.
+
 **Removed along the way:** the tap-to-fill-tracks loop, Hook Moments, the Hype stat
 (Quality shifts chart odds instead), and weekly-seeded genre trends (replaced by the
 live heat cycle). Time-gated member unlocks are gone too —
@@ -801,7 +854,8 @@ base payout rate, levels, ownership, songs, time away) rather than discarded.
   (`/* ===== AUDIO ===== */` etc.) and add new systems as new banners.
 - Tunables live in the tables near the top of the script — `BAL`, `MEMBERS`,
   `RARITY`, `STUDIOS`, `TIERS`, `ODDS`, `GENRES`, `GCARDS`, `RANKS`, `CARDS`, `PATTERNS`. Never inline a balance
-  number in logic. Studio costs are on the *money* scale, which accrues roughly 10x
+  number in logic. `GOALS` and `RAIL` are the same idea for content rather than balance:
+  an ordered table you extend by adding an entry, never by adding a branch. Studio costs are on the *money* scale, which accrues roughly 10x
   slower than streams — rescale them if `payoutBase` ever changes.
 - Card vectors are the game's difficulty knob. `DSCALE` (2.2) is the distance at
   which a card scores zero; it is tuned to how far apart the real card vectors sit,
