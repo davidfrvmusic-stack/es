@@ -336,6 +336,123 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .conf{position:fixed;top:-14px;width:10px;height:15px;z-index:31;pointer-events:none;border-radius:2px}
 @keyframes fall{to{transform:translateY(108vh) rotate(720deg);opacity:.15}}
 
+/* ===== GIGS ===== */
+#gigs{position:fixed;inset:0;z-index:36;display:none;flex-direction:column;
+  padding:calc(var(--safe-t) + 12px) 0 calc(var(--safe-b) + 12px);background:var(--cream)}
+#gigs.on{display:flex}
+#gigs .gh{display:flex;align-items:center;gap:10px;padding:0 18px 10px;flex:0 0 auto}
+#gigs .gh h2{font-size:22px;font-weight:800;letter-spacing:-.3px;flex:1}
+#gigs .gh .x{width:34px;height:34px;border-radius:50%;background:var(--panel);
+  border:2px solid var(--line);display:grid;place-items:center;flex:0 0 auto}
+#gigBody{flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 18px 12px}
+#tix{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:11px 13px;border-radius:16px;
+  background:var(--panel);border:2px solid var(--line);margin-bottom:12px}
+#tix .ti{flex:0 0 auto;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;
+  background:var(--accent2)}
+#tix .tt{flex:1;min-width:0}
+#tix .tt b{display:block;font-size:14.5px;font-weight:800;white-space:nowrap}
+#tix .tt span{display:block;font-size:10.5px;font-weight:700;color:var(--dim);margin-top:2px}
+#tixAd{flex:1 0 100%;padding:12px;border-radius:12px;font-size:10.5px;font-weight:800;
+  letter-spacing:.05em;background:var(--cream2);border:2px solid var(--gold);color:var(--gold-dk);
+  display:flex;align-items:center;justify-content:center;gap:7px;min-height:44px}
+#tixAd:active{transform:translateY(2px)}
+#tixAd.no{border-color:var(--line);color:var(--dim2);opacity:.6}
+.venue{display:flex;gap:11px;align-items:center;padding:11px 12px;border-radius:18px;
+  background:var(--panel);border:2px solid var(--line);margin-bottom:9px;width:100%;text-align:left}
+.venue.locked{opacity:.55}
+.venue.done{border-color:var(--accent2)}
+.venue .vart{flex:0 0 auto;width:56px;height:56px;border-radius:15px;overflow:hidden;position:relative;
+  background:linear-gradient(180deg,var(--v1),var(--v2));display:grid;place-items:end center}
+.venue .vart i{display:block;width:100%;height:42%;
+  background:radial-gradient(circle at 12% 100%,var(--ink) 6px,transparent 7px),
+             radial-gradient(circle at 34% 100%,var(--ink) 8px,transparent 9px),
+             radial-gradient(circle at 58% 100%,var(--ink) 7px,transparent 8px),
+             radial-gradient(circle at 82% 100%,var(--ink) 9px,transparent 10px);opacity:.4}
+.venue .vi{flex:1;min-width:0}
+.venue .vn{font-size:14.5px;font-weight:800;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.venue .vd{font-size:10.5px;font-weight:700;color:var(--dim);margin-top:3px;line-height:1.45}
+.venue .vgo{flex:0 0 auto;font-size:10px;font-weight:800;letter-spacing:.08em;padding:9px 11px;
+  border-radius:11px;background:var(--accent);color:var(--onDark);box-shadow:0 3px 0 var(--accent-sh)}
+.venue.locked .vgo{background:var(--cream3);color:var(--dim2);box-shadow:none}
+.stars{font-size:10px;font-weight:800;letter-spacing:.1em;color:var(--gold-dk)}
+.tag{font-size:9px;font-weight:800;letter-spacing:.1em;padding:2px 7px;border-radius:99px;
+  background:var(--cream2);color:var(--dim);border:2px solid var(--line)}
+.tag.ok{background:var(--accent2-w);color:var(--accent2-dk);border-color:var(--accent2)}
+.tag.first{background:var(--gold-w);color:var(--gold-dk);border-color:var(--gold)}
+/* the brief + setlist */
+#gigBrief .vhead{padding:12px 13px;border-radius:18px;border:2px solid var(--line);margin-bottom:11px;
+  background:linear-gradient(180deg,var(--v1),var(--v2))}
+#gigBrief .vhead h3{font-size:21px;font-weight:800;letter-spacing:-.3px}
+#gigBrief .vhead .row{display:flex;gap:7px;flex-wrap:wrap;margin-top:7px}
+#gigBrief .rew{display:flex;gap:9px;margin-bottom:11px}
+#gigBrief .rew div{flex:1;padding:9px 11px;border-radius:14px;background:var(--panel);
+  border:2px solid var(--line)}
+#gigBrief .rew span{display:block;font-size:9px;letter-spacing:.14em;font-weight:800;color:var(--dim2)}
+#gigBrief .rew b{display:block;font-size:17px;font-weight:800;margin-top:2px}
+#gigBrief .rew .m b{color:var(--accent-dk)}
+#gigBrief .rew .f b{color:var(--accent2-dk)}
+.sect2{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim2);
+  font-weight:800;margin:4px 0 8px;display:flex;align-items:center;gap:8px}
+.sect2 button{margin-left:auto;font-size:9.5px;font-weight:800;letter-spacing:.08em;
+  padding:9px 11px;border-radius:11px;background:var(--panel);border:2px solid var(--line);
+  color:var(--dim);min-height:38px}
+#slots{display:flex;gap:7px;margin-bottom:11px}
+#slots .slot2{flex:1;min-width:0;height:62px;border-radius:14px;border:2px dashed var(--line2);
+  display:grid;place-items:center;padding:6px;text-align:center;font-size:10px;font-weight:800;
+  color:var(--dim2);background:var(--panel)}
+#slots .slot2.on{border-style:solid;border-color:var(--accent2);background:var(--accent2-w);
+  color:var(--ink)}
+.songpick{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:15px;
+  background:var(--panel);border:2px solid var(--line);margin-bottom:8px;width:100%;text-align:left}
+.songpick.sel{border-color:var(--accent2);background:var(--accent2-w)}
+.songpick .sc{flex:0 0 auto;width:40px;height:40px;border-radius:11px}
+.songpick .si{flex:1;min-width:0}
+.songpick .st{font-size:13px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.songpick .sd{font-size:10px;font-weight:700;color:var(--dim);margin-top:3px;
+  display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+#gigFoot{flex:0 0 auto;padding:10px 18px 0}
+#gigEmpty{padding:26px 8px;text-align:center;font-size:12.5px;font-weight:700;color:var(--dim);line-height:1.6}
+
+/* the show itself reuses the three-lane panel */
+#takefs.gig #takeauto{display:none}
+#takefs.gig #tkbar .who{font-size:11px}
+#tkmeter.hype #tkmfill{background:var(--gold)}
+#tkmeter.hot #tkmfill{background:var(--accent)}
+#hypeTag{position:absolute;left:0;right:0;top:44%;text-align:center;font-size:15px;font-weight:800;
+  letter-spacing:.16em;opacity:0;z-index:3;pointer-events:none;color:var(--accent-dk);
+  text-shadow:0 0 10px var(--panel)}
+#hypeTag.on{animation:jpop .8s ease-out}
+.crowd.lvl2{filter:saturate(1.2)}
+.crowd.lvl3{animation:crowdbob var(--beat) ease-in-out infinite}
+.crowd.lvl4{animation:crowdbob calc(var(--beat) / 2) ease-in-out infinite}
+@keyframes crowdbob{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+
+/* ===== GIG RESULT ===== */
+#gigres{position:fixed;inset:0;z-index:37;display:none;flex-direction:column;align-items:center;
+  justify-content:center;gap:9px;padding:calc(var(--safe-t) + 20px) 24px calc(var(--safe-b) + 20px);
+  background:radial-gradient(90% 60% at 50% 25%,#FFF9EC 0%,var(--cream2) 55%,#FFDDB0 100%)}
+#gigres.on{display:flex}
+#gigres .gt{font-size:10px;font-weight:800;letter-spacing:.22em;text-transform:uppercase;color:var(--dim2)}
+#grOut{font-size:31px;font-weight:800;letter-spacing:-.6px;text-align:center;
+  animation:rupop .5s cubic-bezier(.2,1.5,.4,1)}
+#grScore{font-size:56px;font-weight:800;letter-spacing:-2.5px;line-height:1;color:var(--ink)}
+#grBars{width:100%;max-width:320px;display:flex;flex-direction:column;gap:6px;margin:4px 0 2px}
+#grBars .b{display:flex;align-items:center;gap:9px;font-size:10.5px;font-weight:800;color:var(--dim)}
+#grBars .b span{width:88px;flex:0 0 auto;letter-spacing:.06em}
+#grBars .b i{flex:1;height:8px;border-radius:99px;background:var(--cream3);overflow:hidden;display:block}
+#grBars .b i u{display:block;height:100%;background:var(--accent2);border-radius:99px}
+#grBars .b b{width:34px;text-align:right;flex:0 0 auto;color:var(--ink);font-variant-numeric:tabular-nums}
+#grNote{font-size:11.5px;font-weight:700;color:var(--dim);text-align:center;max-width:320px;line-height:1.5}
+#grRew{display:flex;gap:9px;width:100%;max-width:320px}
+#grRew div{flex:1;padding:10px 12px;border-radius:15px;background:var(--panel);border:2px solid var(--line);
+  text-align:center}
+#grRew span{display:block;font-size:9px;letter-spacing:.14em;font-weight:800;color:var(--dim2)}
+#grRew b{display:block;font-size:19px;font-weight:800;margin-top:2px}
+#grRew .m b{color:var(--accent-dk)}
+#grRew .f b{color:var(--accent2-dk)}
+#grGo{margin-top:6px;padding:16px 46px;border-radius:18px;font-size:15px;font-weight:800;
+  letter-spacing:.1em;background:var(--ink);color:var(--cream);box-shadow:0 5px 0 #150C08}
+
 /* ===== RANK UP ===== */
 #rankup{position:fixed;inset:0;z-index:38;display:none;flex-direction:column;align-items:center;
   justify-content:center;gap:11px;padding:26px 24px;
@@ -429,10 +546,10 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .ncol{position:relative;flex:1}
 .tnote{position:absolute;left:10%;right:10%;top:0;height:36px;border-radius:18px;
   background:var(--lc);box-shadow:0 4px 0 var(--lcd);
-  animation-name:fall;animation-timing-function:linear;animation-fill-mode:forwards}
+  animation-name:notefall;animation-timing-function:linear;animation-fill-mode:forwards}
 .tnote::after{content:"";position:absolute;left:16%;right:16%;top:7px;height:5px;border-radius:3px;
   background:var(--panel);opacity:.55}
-@keyframes fall{from{transform:translateY(-46px)}to{transform:translateY(var(--fy,240px))}}
+@keyframes notefall{from{transform:translateY(-46px)}to{transform:translateY(var(--fy,240px))}}
 .tnote.hit{animation:none;transform:translateY(var(--fy,240px)) scale(1.45);opacity:0;
   transition:transform .14s ease,opacity .14s ease}
 .tnote.gone{background:var(--dim2);box-shadow:none;opacity:0;transition:opacity .3s ease .06s}
@@ -563,6 +680,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
         <div class="dsong" id="idleSong">—</div>
         <div class="writers" id="writers"></div>
         <button class="bigbtn pulse" id="writeBtn">WRITE A SONG</button>
+        <button class="ghost" id="gigBtn" style="margin-top:8px;min-height:44px">GIGS<span id="gigTix"></span></button>
       </div>
 
       <!-- GENRE PICK -->
@@ -628,7 +746,35 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
     <div id="notes"><i class="ncol l0"></i><i class="ncol l1"></i><i class="ncol l2"></i></div>
     <div id="takecombo"></div>
     <div id="takejudge"></div>
+    <div id="hypeTag"></div>
   </div>
+</div>
+
+<div id="gigs">
+  <div class="gh"><h2>Gigs</h2><button class="x" id="gigClose" aria-label="Close">✕</button></div>
+  <div id="gigBody">
+    <div id="tix">
+      <div class="ti" id="tixIco"></div>
+      <div class="tt"><b id="tixN">2 tickets</b><span id="tixSub">—</span></div>
+      <button id="tixAd">WATCH AD — GET 1 TICKET</button>
+    </div>
+    <div id="gigList"></div>
+    <div id="gigBrief" hidden></div>
+  </div>
+  <div id="gigFoot" hidden><button class="bigbtn" id="gigPlay">PLAY GIG</button></div>
+</div>
+
+<div id="gigres">
+  <div class="gt" id="grVenue">open mic</div>
+  <div id="grOut">GOOD SHOW</div>
+  <div id="grScore" class="num">0</div>
+  <div id="grBars"></div>
+  <div id="grNote">—</div>
+  <div id="grRew">
+    <div class="m"><span>MONEY</span><b id="grMoney">0</b></div>
+    <div class="f"><span>FANS</span><b id="grFans">0</b></div>
+  </div>
+  <button id="grGo">COLLECT</button>
 </div>
 
 <div id="rankup">
@@ -745,6 +891,22 @@ const BAL = {
   pocketStreak: 8,        // perfect hits in a row before you are "in the pocket"
   pocketHeat: 2,          // ...which nudges the genre, since Hype no longer exists
   approachBase: 1.15, approachPerLvl: 0.02, approachMax: 1.55,   // notes fly
+  // GIGS — a show is worth a slice of what the band already earns, so it can never
+  // outgrow the catalogue that feeds it.
+  gigFree: 2,             // free tickets a local day
+  gigAdMax: 3,            // ...plus this many from the rewarded-ad stub
+  gigPaySecs: 90,         // a show pays this many seconds of your own money rate...
+  gigPayFloor: 25,        // ...or this, whichever is more, times the venue multiplier
+  gigRough: 0.25,         // a rough show still pays this share of the normal reward
+  gigSoldBonus: 0.35,     // ...and a sold-out one pays this much extra
+  gigFirstMult: 3,        // the one-time first-clear reward
+  gigSecs: [45, 30, 25],  // seconds per section for a 1 / 2 / 3 song setlist
+  gigEncoreSecs: 10,      // ...plus an encore when the crowd is at boiling point
+  gigEncoreAt: 88,        // hype needed to earn it
+  hypeStart: 20, hypePerfect: 1.6, hypeGood: 0.8, hypeMiss: 1.2, hypeWrong: 0.8,
+  hypeDrift: 0.4,         // hype/sec bled off, so you have to keep playing
+  hypeSong: 0.9, hypeFit: 0.6, hypeBase: 0.25,   // hype/sec from the song, the fit, the room
+  gigWeights: { perf:0.40, song:0.25, fit:0.15, power:0.15, variety:0.05 },
   fanTier: [4, 25, 200, 1200, 6000],   // fans per release, flop -> #1
   fanQBoost: 1,           // ...times (1 + Quality/100), so a good song is worth more
   fanGig: 0.02,           // fans/sec from playing live, times the rank's venue size
@@ -840,6 +1002,20 @@ const GENRES = [
   { n:'REGGAETON',   v:[ .70, .20, .55], r:5, w:'square',   cut:2300, c:'#E0682B' },
   { n:'FOLK',        v:[-.45, .25,-.20], r:5, w:'triangle', cut:1500, c:'#7A8C4F' },
   { n:'K-POP',       v:[ .80,-.50,1.00], r:4, w:'square',   cut:3800, c:'#FF5A45' }
+];
+/* VENUES — the gig ladder. `pay` and `fans` are the normal reward; the first clear
+   pays BAL.gigFirstMult times that, once. `g` is the room's taste (an index into
+   GENRES, matched by vector so a near-miss still scores), `pw` the band multiplier
+   the room expects, `bg` its backdrop. */
+const VENUES = [
+  { n:'Open Mic',      d:1, pw:1.4,  g:0,  pay:1.0, fans:10,    bg:['#FFE7C4','#F3CE9E'] },
+  { n:'Tiny Bar',      d:2, pw:2.2,  g:4,  pay:1.4, fans:30,    bg:['#FFDCC4','#E8B393'] },
+  { n:'Local Club',    d:3, pw:3.5,  g:2,  pay:1.9, fans:90,    bg:['#E4DCF3','#BFB2DE'] },
+  { n:'Packed Club',   d:4, pw:5.5,  g:5,  pay:2.4, fans:260,   bg:['#DDE9F5','#B2C8E0'] },
+  { n:'Small Theater', d:5, pw:8.5,  g:8,  pay:2.9, fans:750,   bg:['#F5DEE6','#DCB0C1'] },
+  { n:'Festival Stage',d:6, pw:13,   g:9,  pay:3.4, fans:2000,  bg:['#DFEFD8','#B0D3A4'] },
+  { n:'Arena',         d:7, pw:20,   g:15, pay:3.9, fans:5500,  bg:['#FFE9C0','#F0C071'] },
+  { n:'Stadium',       d:8, pw:30,   g:10, pay:4.5, fans:15000, bg:['#E2E2EC','#B4B4C8'] }
 ];
 /* FANS AND RANKS — fans never fall, and the rank they buy is the long goal in the
    header. Each rank opens genres, makes the gigs bigger (money and the crowd on the
@@ -1698,6 +1874,8 @@ function newState(){
   return {
     v:3, streams:0, money:0, lifetime:0, picks:0, songs:[], released:0,
     fans:0, rank:0, home:null,
+    gig: { tickets:BAL.gigFree, day:dayNum(), ads:0, cleared:0, first:[],
+           active:null, payout:null, plays:0 },
     band:'', you:null, setup:false, payoutLvl:0,
     vip:false, cloud:{ on:false, email:null, at:0 }, capHit:false,
     heat: seedHeat(), heatVel: GENRES.map(() => (Math.random() - 0.4) * 1.5),
@@ -1740,6 +1918,8 @@ function load(){
       s.members = MEMBERS.map((m,i) => Object.assign(base.members[i], (d.members||[])[i] || {}));
       s.members.forEach(m => { if (!m.look) m.look = newLook(); });
       s.flags = Object.assign(base.flags, d.flags || {});
+      s.gig = Object.assign(base.gig, d.gig || {});          // older saves get gigs for free
+      if (!Array.isArray(s.gig.first)) s.gig.first = [];
       s.cloud = Object.assign(base.cloud, d.cloud || {});
       // new genres append, so pad an older save's heat rather than wiping what it had
       if (!Array.isArray(s.heat)){ s.heat = base.heat; s.heatVel = base.heatVel; s.heatT = Date.now(); }
@@ -1796,6 +1976,28 @@ const ownedCount = () => S.members.filter(m => m.owned).length;
 const boughtCount = () => S.members.filter((m,i) => m.owned && i !== S.you).length;
 const nextMemberPrice = () => BAL.memberPrices[Math.min(boughtCount(), BAL.memberPrices.length - 1)]
                               * (boughtCount() >= BAL.memberPrices.length ? 8 : 1);
+/* GIGS. Tickets refill on a local calendar day, and `gig.day` only ever moves
+   forward — winding the device clock back cannot buy another refill. */
+function dayNum(t){ const d = new Date(t || Date.now()); return Math.floor(
+  (d.getTime() - d.getTimezoneOffset() * 60000) / 86400000); }
+function rollTickets(){
+  const g = S.gig, d = dayNum();
+  if (d > g.day){ g.day = d; g.tickets = BAL.gigFree; g.ads = 0; return true; }
+  return false;
+}
+function msToRefill(){
+  const n = new Date(); n.setHours(24, 0, 0, 0);
+  return n.getTime() - Date.now();
+}
+const venueOpen = i => i <= S.gig.cleared;
+const venueFit = (vi, g) => fitOf(GENRES[g].v, GENRES[VENUES[vi].g].v);
+/* the reward is a slice of the band's own money rate, so a show is always worth
+   something and never worth more than the catalogue that pays for it */
+function gigReward(vi){
+  const V = VENUES[vi];
+  const money = Math.max(BAL.gigPayFloor, moneyRate() * BAL.gigPaySecs) * V.pay;
+  return { m: money, f: V.fans, first: !S.gig.first[vi] };
+}
 /* FANS AND RANKS. Fans never fall, so the rank only ever goes up — it is the one
    number in the game that cannot go backwards, which is why it carries the long goal. */
 function rankOf(fans){
@@ -1997,7 +2199,12 @@ function showDock(which){
   el.qualbox.hidden = which !== 'qual';
   el.band.classList.toggle('focus', which === 'write');
 }
+function renderGigBtn(){
+  const b = $('#gigTix');
+  if (b && S.gig) b.textContent = '  ·  ' + S.gig.tickets + '/' + BAL.gigFree;
+}
 function renderIdle(){
+  renderGigBtn();
   const n = S.songs.length;
   el.idleTitle.textContent = S.band || 'your band';
   el.idleSong.textContent = n ? n + (n === 1 ? ' song out' : ' songs out') : 'no songs — no streams yet';
@@ -2011,7 +2218,7 @@ function renderIdle(){
 }
 
 /* ===== LOOP ===== */
-let last = now(), uiClock = 0, trendClock = 0;
+let last = now(), uiClock = 0, trendClock = 0, gigClock = 0;
 function tick(){
   const t = now(), dt = Math.min(0.25, t - last); last = t;
   S.playtime += dt;
@@ -2031,6 +2238,11 @@ function tick(){
     }
   }
 
+  gigClock += dt;
+  if (gigClock >= 10){                       // midnight can land while the game is open
+    gigClock = 0;
+    if (rollTickets()){ renderGigBtn(); if ($('#gigs').classList.contains('on')) renderTix(); save(); }
+  }
   trendClock += dt;
   if (trendClock >= 60){ stepTrends(Math.floor(trendClock / 60)); trendClock %= 60;
     if (sheetTab === 'catalog') renderSheet('catalog'); }
@@ -2307,14 +2519,14 @@ function laneFor(step, fill, db){
   return fill % 3 === 2 ? 0 : 2;             // everything between leans right, and
 }                                            // every third one crosses back left
 /* note arrival times, in seconds from the start of the take */
-function takeNotes(card, bpm, approach){
+function takeNotes(card, bpm, approach, secs){
   const pat = PATTERNS[card.p] || PATTERNS.eighth;
   const step = 60 / bpm / 2;                       // one eighth note
   const out = [];
   let fill = 0, db = 0;
   for (let i = 0; ; i++){
     const t = approach + i * step;
-    if (t > approach + BAL.takeSecs) break;
+    if (t > approach + (secs || BAL.takeSecs)) break;
     if (pat[i % pat.length] !== 'x') continue;
     const b = i % 8, lane = laneFor(i, fill, db);
     if (b === 0) db++; else if (b !== 4) fill++;
@@ -2337,6 +2549,13 @@ function renderMult(){
   if (up){ void el.tkmult.offsetWidth; el.tkmult.classList.add('bump'); AU.tap(true); buzz([10, 30, 10]); }
 }
 function renderMeter(){
+  if (take.mode === 'gig'){
+    el.tkmfill.style.width = clamp(take.hype, 0, 100) + '%';
+    el.tkmeter.classList.toggle('low', take.hype < 25);
+    el.tkmeter.classList.toggle('hype', take.hype >= 25 && take.hype < 70);
+    el.tkmeter.classList.toggle('hot', take.hype >= 70);
+    return;
+  }
   el.tkmfill.style.width = clamp(take.meter, 0, 100) + '%';
   el.tkmeter.classList.toggle('low', take.meter < 30);
 }
@@ -2344,7 +2563,8 @@ function startTake(track, card){
   const lvl = S.members[track].lvl;
   const approach = approachFor(lvl);              // better members give you longer to read
   take = {
-    track, card, approach, notes: takeNotes(card, AU.bpm, approach),
+    mode:'take', secs: BAL.takeSecs,
+    track, card, approach, notes: takeNotes(card, AU.bpm, approach, BAL.takeSecs),
     t0: now(), pts: 0, streak: 0, best: 0, mult: 1, bestMult: 1, pocket: 0, ended: false, lastMiss: -9,
     meter: BAL.meterStart, yours: track === S.you, energy: (card.v[0] + 1) / 2
   };
@@ -2416,7 +2636,8 @@ function tapLane(L){
   const perfect = bestD <= BAL.perfectMs / 1000;
   best.node.classList.add('hit');
   take.pts += perfect ? 2 : 1;
-  take.meter = clamp(take.meter + BAL.meterHit, 0, 100);
+  if (take.mode === 'gig') hype(perfect ? BAL.hypePerfect : BAL.hypeGood);
+  else take.meter = clamp(take.meter + BAL.meterHit, 0, 100);
   AU.takeHit(take.yours, take.energy, perfect);
   buzz(perfect ? 12 : 8);
   take.streak++;
@@ -2430,14 +2651,15 @@ function tapLane(L){
 function missNote(wrongLane){
   const t = now() - take.t0;
   take.streak = 0;
-  take.meter -= wrongLane ? BAL.meterMiss / 2 : BAL.meterMiss;
+  if (take.mode === 'gig') hype(-(wrongLane ? BAL.hypeWrong : BAL.hypeMiss));
+  else take.meter -= wrongLane ? BAL.meterMiss / 2 : BAL.meterMiss;
   el.takecombo.textContent = '';
   if (t - take.lastMiss > 0.4){
     take.lastMiss = t;
     judgeText(wrongLane ? 'WRONG LANE' : 'MISS', JUDGE.miss);
   }
   renderMult(); renderMeter();
-  if (take.meter <= 0) endTake(false, true);
+  if (take.mode !== 'gig' && take.meter <= 0) endTake(false, true);
 }
 /* Hype was retired, so being in the pocket heats the genre instead — the live
    system that replaced it, and still real money. */
@@ -2452,7 +2674,8 @@ function pocket(){
     if (b){ b.textContent = 'in the pocket!'; b.classList.remove('on'); void b.offsetWidth; b.classList.add('on'); }
     m.classList.remove('nod'); void m.offsetWidth; m.classList.add('nod');
   }
-  if (S.session) S.heat[S.session.g] = clamp(S.heat[S.session.g] + BAL.pocketHeat, 0, 100);
+  if (take.mode === 'gig') hype(6);                       // the room feels a run of perfects
+  else if (S.session) S.heat[S.session.g] = clamp(S.heat[S.session.g] + BAL.pocketHeat, 0, 100);
   AU.fill(); buzz([14, 40, 14]);
 }
 function tickTake(){
@@ -2463,12 +2686,14 @@ function tickTake(){
     if (!n.done && t > n.t + late){ n.done = true; n.node.classList.add('gone'); laneBad(n.lane); missNote(false); }
     if (!take || take.ended) return;
   }
-  el.taketime.textContent = Math.max(0, BAL.takeSecs + take.approach - t).toFixed(1) + 's';
-  if (t > take.approach + BAL.takeSecs + 0.25) endTake(false);
+  el.taketime.textContent = Math.max(0, take.secs + take.approach - t).toFixed(1) + 's';
+  if (take.mode === 'gig') gigTick(t);
+  if (t > take.approach + take.secs + 0.25) endTake(false);
 }
 function endTake(auto, botched){
   if (!take || take.ended) return;
   take.ended = true;
+  if (take.mode === 'gig'){ endGigSection(); return; }
   const s = S.session;
   let got;
   if (botched){
@@ -2502,6 +2727,354 @@ function advanceSession(){
   renderStrip();
   if (s.step >= s.order.length) finishWriting();
   else { showDock('write'); dealStep(); }
+}
+
+
+/* ===== GIGS — the show =====
+   Two free tickets a local day, a ladder of rooms, a setlist of your own released
+   songs, and the same three-lane game played for a crowd instead of a Quality
+   score. Nothing is banked until COLLECT, and a show abandoned mid-song pays
+   nothing — the ticket is spent when the first note falls, not when the tab shuts. */
+let gsel = { v: -1, songs: [] }, gigRun = null, tixTimer = 0;
+
+function patternForSong(g){
+  const e = GENRES[g].v[0];
+  return e > 0.7 ? 'drive' : e > 0.45 ? 'doubles' : e > 0.15 ? 'eighth'
+       : e > -0.2 ? 'synco' : 'sparse';
+}
+function songNorm(s){ return clamp(s.q / 100 * 0.6 + (TIERS[s.t].mult / 20) * 0.4, 0, 1); }
+
+/* ---- the panel ---- */
+function openGigs(){
+  if (gigRun) return;
+  rollTickets();
+  gsel = { v: -1, songs: [] };
+  $('#gigBrief').hidden = true; $('#gigList').hidden = false; $('#gigFoot').hidden = true;
+  renderTix(); renderVenues();
+  $('#gigs').classList.add('on');
+  clearInterval(tixTimer);
+  tixTimer = setInterval(() => { if ($('#gigs').classList.contains('on')){ if (rollTickets()) save(); renderTix(); } }, 1000);
+  AU.init(); AU.resume();
+}
+function closeGigs(){
+  $('#gigs').classList.remove('on');
+  clearInterval(tixTimer); tixTimer = 0;
+  renderIdle();
+}
+function renderTix(){
+  const g = S.gig, left = BAL.gigAdMax - g.ads;
+  $('#tixIco').innerHTML = ico(ICON.pass, { c:'#FFF6E6', s:20 });
+  $('#tixN').textContent = g.tickets + (g.tickets === 1 ? ' ticket' : ' tickets');
+  $('#tixSub').textContent = g.tickets >= BAL.gigFree
+    ? 'Full for today · ' + BAL.gigFree + ' free every day'
+    : 'Refills to ' + BAL.gigFree + ' in ' + dur(msToRefill() / 1000);
+  const ad = $('#tixAd');
+  ad.innerHTML = ico(ICON.play, { s:13, w:2.4 }) +
+    '<span>' + (left > 0 ? 'WATCH AD — GET 1 TICKET' : 'NO AD TICKETS LEFT') +
+    '</span><span style="opacity:.7">' + left + '/' + BAL.gigAdMax + '</span>';
+  ad.classList.toggle('no', left <= 0);
+  const b = $('#gigTix');
+  if (b) b.textContent = '  ·  ' + S.gig.tickets + '/' + BAL.gigFree;
+}
+/* a labelled simulation — there is no ad, no network, and the ticket lands only
+   when the fake spot finishes */
+function watchGigAd(){
+  if (S.gig.ads >= BAL.gigAdMax) return;
+  let left = 5;
+  const body = n => `<h3>Rewarded ad (demo)</h3>
+    <p>No real ad and nothing leaves this device — this is a labelled stand-in for the
+    rewarded spot. The ticket lands when it finishes.</p>
+    <div class="big">${n}</div>`;
+  const m = $('#modal');
+  $('#mbox').innerHTML = body(left) + '<button id="mok" disabled style="opacity:.45">PLEASE WAIT</button>';
+  m.classList.add('on');
+  const iv = setInterval(() => {
+    left--;
+    if (left > 0){ $('#mbox').querySelector('.big').textContent = left; return; }
+    clearInterval(iv);
+    S.gig.ads++; S.gig.tickets++;
+    save(); renderTix();
+    $('#mbox').innerHTML = `<h3>Ticket added</h3><p>One gig ticket, on the house.</p>
+      <div class="big">+1</div><button id="mok">NICE</button>`;
+    $('#mok').onclick = () => m.classList.remove('on');
+    AU.chord('small'); buzz(18);
+  }, 1000);
+}
+function renderVenues(){
+  $('#gigList').innerHTML = VENUES.map((V, i) => {
+    const open = venueOpen(i), done = i < S.gig.cleared, r = gigReward(i);
+    const pw = bandMult() >= V.pw;
+    return `<button class="venue ${open ? '' : 'locked'} ${done ? 'done' : ''}" data-v="${i}"
+        style="--v1:${V.bg[0]};--v2:${V.bg[1]}">
+      <div class="vart"><i></i></div>
+      <div class="vi">
+        <div class="vn">${V.n}
+          <span class="stars">${'★'.repeat(V.d)}</span>
+          ${done ? '<span class="tag ok">CLEARED</span>' : ''}
+          ${open && r.first ? '<span class="tag first">FIRST CLEAR x' + BAL.gigFirstMult + '</span>' : ''}</div>
+        <div class="vd">${open
+          ? 'Wants ' + GENRES[V.g].n + ' · power x' + fmt(V.pw) +
+            ' <span class="tag' + (pw ? ' ok' : '') + '">' + (pw ? 'you are ready' : 'band is light') + '</span><br>' +
+            'Pays ' + fmt(r.m) + ' money · ' + fmt(r.f) + ' fans'
+          : 'Clear <b>' + VENUES[i-1].n + '</b> to open this room'}</div>
+      </div>
+      <span class="vgo">${open ? 'PLAY' : 'LOCKED'}</span>
+    </button>`;
+  }).join('');
+  [...$('#gigList').querySelectorAll('[data-v]')].forEach(b => {
+    b.onclick = () => { const i = +b.dataset.v; if (venueOpen(i)) pickVenue(i); else buzz(8); };
+  });
+}
+function pickVenue(i){
+  gsel = { v: i, songs: [] };
+  autoPick();
+  $('#gigList').hidden = true; $('#gigBrief').hidden = false; $('#gigFoot').hidden = false;
+  renderBrief();
+}
+function backToList(){
+  gsel = { v: -1, songs: [] };
+  $('#gigList').hidden = false; $('#gigBrief').hidden = true; $('#gigFoot').hidden = true;
+  renderVenues();
+}
+function autoPick(){
+  const V = VENUES[gsel.v];
+  gsel.songs = S.songs
+    .map((s, i) => ({ i, k: songSPS(s) * (0.5 + venueFit(gsel.v, s.g)) }))
+    .sort((a, b) => b.k - a.k).slice(0, 3).map(x => x.i);
+}
+function toggleSong(i){
+  const k = gsel.songs.indexOf(i);
+  if (k >= 0) gsel.songs.splice(k, 1);
+  else if (gsel.songs.length < 3) gsel.songs.push(i);
+  else return buzz(8);                                  // three slots, no duplicates
+  renderBrief(); buzz(10);
+}
+function renderBrief(){
+  const V = VENUES[gsel.v], r = gigReward(gsel.v), pw = bandMult() >= V.pw;
+  const n = gsel.songs.length;
+  let h = `<div class="vhead" style="--v1:${V.bg[0]};--v2:${V.bg[1]}">
+    <h3>${V.n}</h3>
+    <div class="row"><span class="stars">${'★'.repeat(V.d)}</span>
+      <span class="tag">WANTS ${GENRES[V.g].n}</span>
+      <span class="tag ${pw ? 'ok' : ''}">POWER x${fmt(V.pw)}${pw ? ' — ready' : ' — you are x' + fmt(bandMult()) + ''}</span>
+      ${r.first ? '<span class="tag first">FIRST CLEAR PAYS x' + BAL.gigFirstMult + '</span>' : ''}</div></div>
+  <div class="rew"><div class="m"><span>MONEY</span><b>${fmt(r.m * (r.first ? BAL.gigFirstMult : 1))}</b></div>
+    <div class="f"><span>FANS</span><b>${fmt(r.f * (r.first ? BAL.gigFirstMult : 1))}</b></div></div>`;
+  if (!S.songs.length){
+    h += `<div id="gigEmpty">You have nothing to play yet.<br>
+      Write and <b>release your first song</b>, then come back and put it in a setlist.</div>`;
+    $('#gigBrief').innerHTML = h;
+    $('#gigFoot').hidden = true;
+    return;
+  }
+  $('#gigFoot').hidden = false;
+  h += `<div class="sect2">Setlist — up to 3<button id="gigAuto">AUTO PICK</button></div>
+    <div id="slots">${[0,1,2].map(k => {
+      const si = gsel.songs[k];
+      return `<div class="slot2 ${si != null ? 'on' : ''}">${si != null
+        ? esc(S.songs[si].title.length > 16 ? S.songs[si].title.slice(0,15) + '…' : S.songs[si].title)
+        : 'empty'}</div>`;
+    }).join('')}</div>
+    <div class="sect2">Your releases</div>`;
+  S.songs.slice(0, 40).forEach((sg, i) => {
+    const fit = venueFit(gsel.v, sg.g), on = gsel.songs.includes(i);
+    h += `<button class="songpick ${on ? 'sel' : ''}" data-s="${i}">
+      <span class="sc" style="background:${coverCSS(sg.cover)}"></span>
+      <span class="si"><span class="st">${esc(sg.title)}</span>
+      <span class="sd">Q${sg.q} · <b style="color:${TIERS[sg.t].c}">${TIERS[sg.t].n}</b> · ${GENRES[sg.g].n}
+        · ${fmt(songSPS(sg))}/s
+        <span class="tag ${fit > 0.8 ? 'ok' : ''}">${fit > 0.8 ? 'MATCHES THE ROOM'
+          : fit > 0.55 ? 'CLOSE ENOUGH' : 'WRONG CROWD'}</span></span></span></button>`;
+  });
+  $('#gigBrief').innerHTML = h;
+  $('#gigAuto').onclick = () => { autoPick(); renderBrief(); buzz(12); };
+  [...$('#gigBrief').querySelectorAll('[data-s]')].forEach(b =>
+    b.onclick = () => toggleSong(+b.dataset.s));
+  $('#gigPlay').textContent = n ? 'PLAY GIG · 1 TICKET' : 'PICK AT LEAST ONE SONG';
+  $('#gigPlay').style.opacity = n && S.gig.tickets > 0 ? 1 : 0.5;
+}
+
+/* ---- the show ---- */
+function startGig(){
+  if (gigRun || gsel.v < 0 || !gsel.songs.length) return;
+  if (S.gig.tickets <= 0){ toast('🎟️ No tickets — watch the demo ad or come back tomorrow'); return; }
+  S.gig.tickets--;                                   // spent here, at the first note
+  S.gig.active = { v: gsel.v, at: Date.now() };
+  S.gig.plays++;
+  save();
+  closeGigs();
+  const V = VENUES[gsel.v], songs = gsel.songs.map(i => S.songs[i]).filter(Boolean);
+  const secs = BAL.gigSecs[Math.min(songs.length, 3) - 1];
+  gigRun = { v: gsel.v, songs, k: -1, secs, hype: BAL.hypeStart, pts: 0, max: 0,
+             best: 0, milestone: 0, encore: false, peak: BAL.hypeStart };
+  el.bg.style.background = `radial-gradient(125% 72% at 50% 0%, ${V.bg[0]}, ${V.bg[1]} 48%, var(--bg0) 100%)`;
+  el.takefs.classList.add('gig');
+  toast('🎤 ' + V.n + ' — ' + songs.length + (songs.length === 1 ? ' song' : ' songs'));
+  nextGigSection();
+}
+function nextGigSection(){
+  gigRun.k++;
+  const g = gigRun;
+  if (g.k >= g.songs.length){
+    if (!g.encore && g.hype >= BAL.gigEncoreAt){ g.encore = true; return gigSection(g.songs[0], BAL.gigEncoreSecs, true); }
+    return finishGig();
+  }
+  gigSection(g.songs[g.k], g.secs, false);
+}
+function gigSection(song, secs, encore){
+  const g = gigRun, track = S.you != null ? S.you : 0;
+  const card = { n: song.title, p: patternForSong(song.g), v: GENRES[song.g].v };
+  AU.setGenre(song.g);
+  AU.root = 40 + (song.g * 3) % 12;                  // the song keeps its own key
+  AU.setBPM(Math.round(88 + (GENRES[song.g].v[0] + 1) * 22));
+  AU.reset(); AU.layerOn(track, (card.v[0] + 1) / 2);
+  const approach = approachFor(S.members[track].lvl);
+  take = {
+    mode:'gig', secs, track, card, approach,
+    notes: takeNotes(card, AU.bpm, approach, secs),
+    t0: now(), pts: 0, streak: 0, best: 0, mult: 1, bestMult: 1, pocket: 0,
+    ended: false, lastMiss: -9, meter: 100, hype: g.hype,
+    yours: true, energy: (card.v[0] + 1) / 2,
+    song, encore, fit: venueFit(g.v, song.g), norm: songNorm(song), lastSec: 0
+  };
+  g.max += take.notes.length * 2;
+  el.tkTrack.textContent = encore ? 'ENCORE' : 'SONG ' + (g.k + 1) + '/' + g.songs.length;
+  el.tkWho.textContent = song.title;
+  el.takecombo.textContent = ''; el.takejudge.textContent = '';
+  el.hwy.classList.remove('pocket');
+  LANE_NAMES[track].forEach((n, i) => { const l = el.lanes[i].querySelector('.lbl'); if (l) l.textContent = n; });
+  el.ncols.forEach(c => c.innerHTML = '');
+  memEls.forEach((m, i) => m.classList.toggle('up', i === track));
+  el.takefs.classList.add('on');
+  renderMult(); renderMeter();
+  const h = el.hwy.clientHeight || 260, fy = Math.max(90, h - 55);
+  take.notes.forEach(n => {
+    const d = document.createElement('i');
+    d.className = 'tnote';
+    d.style.setProperty('--fy', fy + 'px');
+    d.style.animationDuration = approach + 's';
+    d.style.animationDelay = (n.t - approach) + 's';
+    el.ncols[n.lane].appendChild(d);
+    n.node = d;
+  });
+  if (encore){ hypeTag('ENCORE!'); confetti(2); AU.chord('big'); }
+}
+function hype(n){
+  if (!take || take.mode !== 'gig') return;
+  take.hype = clamp(take.hype + n, 0, 100);
+  gigRun.hype = take.hype;
+  gigRun.peak = Math.max(gigRun.peak, take.hype);
+  const m = take.hype >= 90 ? 3 : take.hype >= 70 ? 2 : take.hype >= 40 ? 1 : 0;
+  if (m > gigRun.milestone){
+    gigRun.milestone = m;
+    hypeTag(['', 'THE ROOM IS WITH YOU', "THEY'RE SINGING IT BACK", 'THIS PLACE IS GOING OFF'][m]);
+    confetti(m >= 3 ? 3 : 2); buzz(m >= 3 ? [18, 40, 18] : 14);
+  }
+  crowdLevel(take.hype);
+}
+function hypeTag(txt){
+  const n = $('#hypeTag');
+  n.textContent = txt;
+  n.classList.remove('on'); void n.offsetWidth; n.classList.add('on');
+}
+function crowdLevel(h){
+  const c = $('.crowd');
+  if (!c) return;
+  const lvl = h >= 85 ? 4 : h >= 55 ? 3 : h >= 25 ? 2 : 1;
+  c.classList.remove('lvl2', 'lvl3', 'lvl4');
+  if (lvl > 1) c.classList.add('lvl' + lvl);
+  c.style.setProperty('--crowd', Math.max(rank().crowd, 0.25 + 0.75 * h / 100));
+}
+/* the crowd cools between hits, so a show has to be played rather than survived */
+function gigTick(t){
+  const dt = t - take.lastSec;
+  if (dt < 0.25) return;
+  take.lastSec = t;
+  const gain = BAL.hypeBase + BAL.hypeSong * take.norm + BAL.hypeFit * take.fit;
+  hype((gain - BAL.hypeDrift) * dt);
+  el.tkWho.textContent = take.song.title + ' · HYPE ' + Math.round(take.hype);
+}
+function endGigSection(){
+  const g = gigRun;
+  g.pts += take.pts;
+  g.best = Math.max(g.best, take.best);
+  g.hype = take.hype;
+  [...document.querySelectorAll('#notes .tnote')].forEach(n => n.remove());
+  el.ncols.forEach(c => c.innerHTML = '');
+  take = null;
+  if (g.encore && g.k >= g.songs.length) return finishGig();
+  nextGigSection();
+}
+function finishGig(){
+  const g = gigRun, V = VENUES[g.v], W = BAL.gigWeights;
+  const acc = g.max ? g.pts / g.max : 0;
+  const perf = clamp(0.6 * acc + 0.4 * (g.peak / 100), 0, 1);
+  const song = g.songs.reduce((a, s) => a + songNorm(s), 0) / g.songs.length;
+  const fit = g.songs.reduce((a, s) => a + venueFit(g.v, s.g), 0) / g.songs.length;
+  const power = clamp(bandMult() / V.pw, 0, 1);
+  const variety = g.songs.length === 1 ? 0.6
+    : new Set(g.songs.map(s => s.g)).size / g.songs.length;
+  const score = Math.round(100 * (W.perf * perf + W.song * song + W.fit * fit +
+                                  W.power * power + W.variety * variety));
+  const out = score >= 80 ? 2 : score >= 45 ? 1 : 0;
+  const r = gigReward(g.v);
+  const first = out > 0 && !S.gig.first[g.v];
+  let mult = out === 2 ? 1 + BAL.gigSoldBonus : out === 1 ? 1 : BAL.gigRough;
+  if (first) mult *= BAL.gigFirstMult;
+  const parts = { perf, song, fit, power, variety };
+  const pay = { m: r.m * mult, f: Math.round(r.f * mult), v: g.v, out, score, first,
+                cleared: out > 0 && g.v >= S.gig.cleared, parts };
+  S.gig.payout = pay;
+  S.gig.active = null;
+  save();
+  el.takefs.classList.remove('on', 'gig');
+  memEls.forEach(m => m.classList.remove('up'));
+  applyStudio();
+  showGigResult(pay, parts);
+  gigRun = null;
+}
+function showGigResult(pay, parts, quiet){
+  const V = VENUES[pay.v];
+  const names = [['ROUGH SHOW', 'var(--dim2)'], ['GOOD SHOW', 'var(--accent2-dk)'], ['SOLD OUT', 'var(--accent-dk)']][pay.out];
+  $('#grVenue').textContent = V.n + (pay.first ? ' · first clear' : '');
+  $('#grOut').textContent = names[0];
+  $('#grOut').style.color = names[1];
+  $('#grScore').textContent = pay.score;
+  const rows = [['PERFORMANCE', parts.perf, 40], ['SONGS', parts.song, 25],
+                ['CROWD FIT', parts.fit, 15], ['BAND POWER', parts.power, 15],
+                ['SETLIST', parts.variety, 5]];
+  $('#grBars').innerHTML = rows.map(([n, v, w]) =>
+    `<div class="b"><span>${n}</span><i><u style="width:${(v * 100).toFixed(0)}%"></u></i>
+     <b>${Math.round(v * w)}/${w}</b></div>`).join('');
+  const worst = rows.slice().sort((a, b) => a[1] - b[1])[0];
+  const best = rows.slice().sort((a, b) => b[1] - a[1])[0];
+  const cap = t => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase();
+  $('#grNote').innerHTML = pay.out === 0
+    ? `The room did not come with you. <b>${cap(best[0])}</b> carried what there was — work on <b>${worst[0].toLowerCase()}</b> before you try again.`
+    : `<b>${cap(best[0])}</b> carried the night. The weak spot was <b>${worst[0].toLowerCase()}</b>.` +
+      (pay.cleared ? ' <b>' + (VENUES[pay.v + 1] ? VENUES[pay.v + 1].n + ' is open.' : 'You have played every room.') + '</b>' : '');
+  $('#grMoney').textContent = '+' + fmt(pay.m);
+  $('#grFans').textContent = '+' + fmt(pay.f);
+  $('#gigres').classList.add('on');
+  if (quiet) return;                        // re-offered on boot: no sound before a tap
+  if (pay.out === 2){ confetti(3); AU.chord('big'); buzz([20, 50, 20, 50, 40]); }
+  else if (pay.out === 1){ confetti(2); AU.chord('small'); buzz(30); }
+  else buzz(14);
+}
+/* the money only moves on the press, like a release */
+function collectGig(){
+  const p = S.gig.payout;
+  $('#gigres').classList.remove('on');
+  if (!p) return;
+  S.money += p.m;
+  addFans(p.f);
+  if (p.first) S.gig.first[p.v] = true;
+  if (p.cleared) S.gig.cleared = Math.min(VENUES.length - 1, p.v + 1);
+  S.gig.payout = null;
+  dispM = S.money;
+  save(); renderTop(); renderIdle();
+  toast('💰 +' + fmt(p.m) + ' from the show');
+  if (p.cleared && VENUES[p.v + 1]) toast('🎪 ' + VENUES[p.v + 1].n + ' is open');
 }
 
 /* ===== RELEASE: the slot machine ===== */
@@ -3039,6 +3612,11 @@ function boot(){
 
   // what happened while you were gone: the band kept writing, the catalogue kept streaming
   if (S.payout) bankPayout();          // they closed the tab on the reveal
+  rollTickets();
+  if (S.gig.active){                   // the tab shut mid-song: the ticket is gone, the show is not
+    S.gig.active = null;
+    toast('🎤 Last show was cut short — that one does not count');
+  }
   const away = (Date.now() - (S.lastSeen || Date.now())) / 1000;
   if (S.setup && away > 60){
     const cap = offlineCap(), capped = Math.min(away, cap);
@@ -3067,6 +3645,8 @@ function boot(){
   }
   if (S.pending) showDock('qual'); else showDock('idle');
   renderIdle();
+  if (S.gig.payout) showGigResult(S.gig.payout, S.gig.payout.parts ||
+    { perf:0, song:0, fit:0, power:0, variety:0 }, true);  // collect it before anything else
   dispM = S.money; dispF = S.fans;
   if (!S.setup) showSetup();
 
@@ -3105,6 +3685,11 @@ function boot(){
   $('#setBtn').addEventListener('click', e => { e.stopPropagation(); openTab('settings'); });
   $('#setBtn').innerHTML = ico(ICON.cog, {s:17});
   $('#ruGo').addEventListener('click', closeRankUp);
+  $('#gigBtn').addEventListener('click', e => { e.stopPropagation(); openGigs(); });
+  $('#gigClose').addEventListener('click', () => { if (gsel.v >= 0) backToList(); else closeGigs(); });
+  $('#tixAd').addEventListener('click', e => { e.stopPropagation(); watchGigAd(); });
+  $('#gigPlay').addEventListener('click', e => { e.stopPropagation(); startGig(); });
+  $('#grGo').addEventListener('click', collectGig);
   el.rankbar.addEventListener('click', () => openTab('band'));
   $('#goneGo').addEventListener('click', collectGone);
   $('#goneAd').addEventListener('click', () => {

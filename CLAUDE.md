@@ -54,7 +54,9 @@ is not that.
    unlocks better writing cards. Crates become real drops.
 3. **Crates + rarity** — member drops, Merge 3-same-rarity → +1 rarity, rarity
    passives. Rarity already changes the character's outfit style.
-4. **Retention** — Daily Gig, streaks + streak save, notification triggers.
+4. **Retention** — the *Daily* Gig (a guaranteed special show, distinct from the
+   regular gig ladder in §4d, which is built), streaks + streak save, notification
+   triggers.
 5. **Prestige** — "Break Up The Band", Legacy = `sqrt(lifetimeStreams / 1e6)`,
    +2% everything per point, audio strips to solo acoustic and rebuilds.
 6. **Events + League** — Weekend Event genres, 50-player League by Legacy tier.
@@ -254,6 +256,60 @@ National 100K → Global 1M → Legend 10M. Each one buys four things, all live:
   queues behind the release reveal and the offline panel rather than stacking on them.
 - **The header carries the goal**: badge, rank name, "N to <next rank>" and a progress
   bar, on screen every second. Tapping it opens the Band tab.
+
+## 4d. GIGS — playing the songs you already made
+
+A gig is the same three-lane game played for a room instead of for a Quality score.
+It is a **sink for the catalogue, never a replacement for it**: the reward is a slice
+of the money the band already earns, so a show can never outgrow the songs that pay
+for it.
+
+**Tickets.** `BAL.gigFree` (2) a **local calendar day**, refilled — not accumulated —
+when `dayNum()` moves forward. `gig.day` only ever increases, so winding the device
+clock back buys nothing. Out of tickets → **WATCH AD — GET 1 TICKET**, a labelled
+simulation in the same spirit as the other ad stubs: a five-second countdown, no
+network, and the ticket lands **only when it finishes**, capped at `BAL.gigAdMax` (3)
+a day with the remaining count on the button. A `gigClock` in the tick re-rolls every
+10s, so midnight while the game is open refills without a reload.
+
+**The ladder.** `VENUES`: Open Mic → Tiny Bar → Local Club → Packed Club → Small
+Theater → Festival Stage → Arena → Stadium. Each carries a difficulty (1–8 stars), a
+recommended band power `pw`, the genre the room wants `g`, a reward multiplier `pay`,
+a fan payout, and its own backdrop `bg` (a CSS gradient plus a silhouette crowd, no
+images). `gig.cleared` is the highest open index — clearing a room opens the next one,
+permanently. Replaying pays the normal reward; **the first-clear bonus
+(`BAL.gigFirstMult`, x3) is flagged per venue in `gig.first` and never repeats.**
+
+**Setlist.** Up to three of your *released* songs, no duplicates, one is enough to
+play. Each row shows title, Quality, tier, genre, live streams/sec, and whether it
+matches the room (`venueFit` compares genre vectors, so a near-miss still scores).
+AUTO PICK takes the three strongest by `songSPS × (0.5 + fit)`. With nothing released,
+the panel says so and PLAY GIG is hidden.
+
+**The show.** One section per song at `BAL.gigSecs` (45s / 30s / 25s for a 1 / 2 / 3
+song setlist — 45–75s in total), each using that song's genre for BPM, key, wave,
+filter and note pattern. It reuses the take engine wholesale: `take.mode = 'gig'`
+switches the meter to **CROWD HYPE**, routes hits and misses into `hype()` instead of
+the take meter, and never fails you out. Hype rises with hits, perfect streaks, song
+strength and genre fit, and bleeds `BAL.hypeDrift` a second, so a show has to be
+played rather than survived. The crowd behind the band grows and bobs through four
+states, and milestones fire at 40 / 70 / 90. Finish above `BAL.gigEncoreAt` (88) and
+you get an **encore** section on the opening song.
+
+**The result** is the brief's weighting exactly — `BAL.gigWeights`: 40% performance
+(itself 60% hit accuracy + 40% peak hype, so the meter is worth watching), 25% song
+Quality and tier, 15% crowd fit, 15% band power against the room's `pw`, 5% setlist
+variety. ROUGH SHOW below 45, GOOD SHOW to 79, SOLD OUT at 80. Good or better clears
+the room; a rough show still pays `BAL.gigRough` (25%) so the ticket is never wasted,
+and sold out adds `BAL.gigSoldBonus` (35%). The panel breaks the five parts out as
+bars and names what carried the night and what to fix.
+
+**Nothing is banked until COLLECT**, the same protected pattern as a release:
+`gig.payout` holds `{m, f, out, score, first, cleared, parts}` in the save, and `boot()`
+re-shows the panel (silently — no sound before a tap) if the tab closed first.
+`gig.active` is set the moment the first note falls and the ticket is spent there;
+if the tab closes mid-show `boot()` clears it, says so, and pays nothing. Reopening
+never costs a ticket, and collecting twice does nothing.
 
 ## 5. RELEASE
 Slot-machine chart reveal: title → procedural cover → chart-position reel → tier.
@@ -466,6 +522,8 @@ hear which part is yours. `AU.takeHit(yours, energy, good)`.
 - **Streams** — reach. Accumulates from the rate above; drives Legacy at prestige.
 - **Money** — the spend currency. Members, levels, royalties, studios.
 - **Fans** — the rank currency, and the only number that never falls. See §4c.
+- **Gig tickets** — 2 a local day, up to 3 more from the ad stub. Not a currency you
+  can buy or bank; see §4d.
 - **Picks** (premium) — crates, skips, streak saves.
 - **Legacy** (prestige) — permanent multipliers.
 - **VIP** — `S.vip` only raises the offline cap to 24h today. Nothing grants it yet;
@@ -481,6 +539,10 @@ Middle: the stage — 4 SVG characters, the active one stepped forward.
 The **Band tab is a full-page screen** (`#sheet.full`), not a bottom panel: band
 identity, royalty rate, studio, every member with level and upgrade, and empty slots
 with prices. The other tabs remain bottom sheets.
+The idle dock also carries **GIGS** (with the ticket count), which opens `#gigs`, a
+full-screen panel: tickets and next refill, the venue ladder, then the venue brief and
+setlist. The show itself reuses `#takefs` with `.gig` on it — same lanes, hype instead
+of the take meter, no AUTO-TAKE. `#gigres` is the result card.
 Bottom dock, one of four states: **idle** (solo-demo progress + WRITE A SONG),
 **genre** pick, **writing** (timer, song-sheet strip, 3 cards), **quality** (score +
 RELEASE IT). The **take is not a dock state** — it is `#takefs`, a fixed panel over
@@ -524,6 +586,19 @@ M0.2), Gold 150 (Epic+), Mythic 500 (Legendary). Battle Pass ₪35/mo. VIP ₪19
   card with the right unlock list, then opening 2 genres and lifting gig money 2.5 → 4;
   the header rank bar tracking fans (Local Act, 35.6% to Regional) and the crowd
   growing with it. Suite t1/t2/t4/e1/f1/sv all pass, no console errors.
+- Gigs verified in headless mobile Chromium, two suites: the happy path (8 venues with
+  1 open, the no-songs message, auto-pick, no duplicate slots, a hard cap of 3, the
+  ticket spent on start, a 3-song show reaching SOLD OUT 82 with the breakdown, COLLECT
+  moving money and fans exactly once, the next venue opening, the first-clear tag not
+  coming back) and the edges (the ad granting only when the countdown ends, the 3/day
+  cap disabling the button, a new day refilling to 2, a clock wound backwards refilling
+  nothing, a one-song setlist running as SONG 1/1, a ROUGH SHOW at 44 paying 227 and
+  unlocking nothing, a reload mid-show clearing `gig.active` and paying nothing while
+  re-offering an uncollected payout, a second COLLECT adding nothing, and reopening not
+  costing a ticket). Frame time during a gig: median 16.7ms, p95 16.7ms.
+- Fixed along the way: the take lane's `@keyframes fall` had silently overridden the
+  confetti's own `fall`, so every confetti burst in the game had been freezing 240px
+  down the screen. The lane's is now `notefall`.
 - COLLECT verified: the reveal holds `S.payout` (a Q63 Viral = 3.97K streams / 1.27K
   money), the money counter does not move until the button is pressed, and it then
   jumps by exactly the held amount. Suite t1–t4/e1/f1/sv all pass, no console errors,
@@ -543,8 +618,8 @@ M0.2), Gold 150 (Epic+), Mythic 500 (Legendary). Battle Pass ₪35/mo. VIP ₪19
 
 **Known gaps (deliberate, deferred):** gear, crates as real drops (and with them the
 rank's `crate` bonus, which is stored but unread), rarity/merge,
-daily gig (so fans come from releases and from gigging passively, not from a gig
-*event*), six-cards-per-track-per-genre (128 signature cards ship, 384 do not),
+the *Daily* Gig and rival/multiplayer gigs (the regular ladder in §4d is built),
+six-cards-per-track-per-genre (128 signature cards ship, 384 do not),
 streaks, prestige, league, weekend events, real shop, LLM content,
 `sw.js` offline (and with it, true background storage-full notifications), a real
 cloud-save backend, any way to actually grant VIP.
