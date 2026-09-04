@@ -13,14 +13,32 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{
-  --cream:#FFF3E2; --cream2:#FFE7C4; --cream3:#FFDCAE;
+  /* ---- surfaces ---- */
+  --cream:#FFF3E2; --cream2:#FFE7C4; --cream3:#FFDCAE; --cream4:#FFCE95;
   --panel:#FFFAF0; --line:#EBD9BE; --line2:#D9BE99;
-  --ink:#2C1D16; --dim:#8A6F5E; --dim2:#A9856B; --onDark:#FFF6E6;
+  --mute:#EFE2CE;              /* disabled / secondary control fill */
+  --switch-off:#E4D3B8;
+  --panel-top:#FFF9EC; --panel-bot:#FFDDB0;   /* full-screen moment gradient */
+  /* ---- text ---- */
+  --ink:#2C1D16; --dim:#8A6F5E; --dim2:#A9856B; --dim3:#CBB49A; --onDark:#FFF6E6;
+  --ink-sh:#150C08;            /* the dark button's press shadow */
+  /* ---- accents ---- */
   --accent:#FF5A45; --accent-dk:#D93A26; --accent-sh:#C0331F;
   --gold:#FFC22E; --gold-dk:#E39A00;
   --accent2:#12A79C; --accent2-dk:#0B7A72;
-  --accent-w:#FFE3DC; --accent2-w:#DDF1EF; --gold-w:#FFF0C9;   /* lane washes */
-  --bad:#D93A26;
+  --violet:#8C6CFF; --violet-dk:#6247C4;
+  --blue:#3D6FA8; --onGold:#5A3F00;
+  --ok:#0B7A72; --bad:#D93A26;
+  /* ---- washes (a tinted ground, one per accent) ---- */
+  --accent-w:#FFE3DC; --accent2-w:#DDF1EF; --gold-w:#FFF0C9;
+  --bad-w:#FBE3DE; --sel-w:#E6F5F3; --now-w:#FFF1CE;
+  /* ---- scene ---- */
+  --crowd-c:#C98F5B; --cover-sh:#E9C89B;
+  /* ---- scales: spacing, radius, type, weight, motion ---- */
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px;
+  --r1:8px; --r2:12px; --r3:18px; --r4:26px;
+  --t1:10px; --t2:12px; --t3:14px; --t4:17px; --t5:23px; --t6:34px;
+  --m1:120ms; --m2:200ms; --m3:340ms;
   --safe-b:env(safe-area-inset-bottom,0px); --safe-t:env(safe-area-inset-top,0px);
   --beat:.577s;
 }
@@ -78,19 +96,19 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 /* ===== STAGE ===== */
 #stage{flex:1 1 auto;position:relative;overflow:hidden;display:flex;flex-direction:column;min-height:0}
 #bg{position:absolute;inset:0;z-index:0;transition:background 1.4s ease,filter .14s ease;
-  background:radial-gradient(120% 78% at 50% 6%,var(--cream2) 0%,var(--cream3) 48%,#FFCE95 100%)}
+  background:radial-gradient(120% 78% at 50% 6%,var(--cream2) 0%,var(--cream3) 48%,var(--cream4) 100%)}
 #bg::after{content:"";position:absolute;inset:0;
   background:radial-gradient(58% 46% at 50% 2%,rgba(255,255,255,.72),transparent 72%);
   animation:breathe 5s ease-in-out infinite}
 @keyframes breathe{0%,100%{opacity:.55}50%{opacity:1}}
 .crowd{position:absolute;left:0;right:0;bottom:0;height:calc(11% + 9% * var(--crowd,.3));z-index:1;
   opacity:calc(.22 + .5 * var(--crowd,.3));transition:height .6s ease,opacity .6s ease;
-  background:radial-gradient(circle at 8% 100%,#C98F5B 13px,transparent 14px),
-             radial-gradient(circle at 24% 100%,#C98F5B 16px,transparent 17px),
-             radial-gradient(circle at 40% 100%,#C98F5B 12px,transparent 13px),
-             radial-gradient(circle at 57% 100%,#C98F5B 17px,transparent 18px),
-             radial-gradient(circle at 73% 100%,#C98F5B 13px,transparent 14px),
-             radial-gradient(circle at 90% 100%,#C98F5B 15px,transparent 16px)}
+  background:radial-gradient(circle at 8% 100%,var(--crowd-c) 13px,transparent 14px),
+             radial-gradient(circle at 24% 100%,var(--crowd-c) 16px,transparent 17px),
+             radial-gradient(circle at 40% 100%,var(--crowd-c) 12px,transparent 13px),
+             radial-gradient(circle at 57% 100%,var(--crowd-c) 17px,transparent 18px),
+             radial-gradient(circle at 73% 100%,var(--crowd-c) 13px,transparent 14px),
+             radial-gradient(circle at 90% 100%,var(--crowd-c) 15px,transparent 16px)}
 #flash{position:absolute;inset:0;z-index:4;pointer-events:none;background:#fff;opacity:0}
 #flash.on{animation:flash .2s ease-out}
 @keyframes flash{0%{opacity:.5}100%{opacity:0}}
@@ -186,21 +204,21 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .card2 .d{font-size:10.5px;color:var(--dim);font-weight:600;margin-top:1px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .react{flex:0 0 auto;font-size:9px;font-weight:800;letter-spacing:.08em;padding:5px 9px;border-radius:9px;
-  background:#EFE2CE;color:var(--dim);opacity:0;transition:opacity .25s ease}
+  background:var(--mute);color:var(--dim);opacity:0;transition:opacity .25s ease}
 .react.show{opacity:1}
 .react.good{background:var(--accent2);color:var(--onDark)}
-.react.bad{background:#FBE3DE;color:var(--accent-dk)}
-.react.meh{background:#EFE2CE;color:var(--dim)}
-.card2.chosen{border-color:var(--accent2);background:#E6F5F3}
+.react.bad{background:var(--bad-w);color:var(--accent-dk)}
+.react.meh{background:var(--mute);color:var(--dim)}
+.card2.chosen{border-color:var(--accent2);background:var(--sel-w)}
 #sheetstrip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-bottom:2px}
 .slot{min-width:0;padding:7px 8px;border-radius:11px;background:var(--panel);border:2px solid var(--line)}
 .slot .sl{font-size:7.5px;font-weight:800;letter-spacing:.1em;color:var(--dim2)}
 .slot .sv{font-size:9.5px;font-weight:800;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  color:#CBB49A}
-.slot.done{background:#E6F5F3;border-color:var(--accent2)}
+  color:var(--dim3)}
+.slot.done{background:var(--sel-w);border-color:var(--accent2)}
 .slot.done .sl{color:var(--accent2-dk)}
 .slot.done .sv{color:var(--ink)}
-.slot.now{border-color:var(--gold);background:#FFF1CE}
+.slot.now{border-color:var(--gold);background:var(--now-w)}
 .slot.now .sl{color:var(--gold-dk)}
 .gpick{display:flex;flex-direction:column;gap:7px;margin-bottom:9px}
 .gbtn{display:flex;align-items:center;gap:9px;padding:12px;border-radius:15px;text-align:left;
@@ -267,11 +285,11 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .card .d{font-size:11px;color:var(--dim);margin-top:2px;font-weight:600;
   display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .rar{font-size:8.5px;font-weight:800;letter-spacing:.09em;padding:3px 7px;border-radius:6px;
-  background:#EFE2CE;color:var(--dim)}
+  background:var(--mute);color:var(--dim)}
 .buy{flex:0 0 auto;min-width:80px;padding:9px 11px;border-radius:12px;text-align:center;
   font-size:11.5px;font-weight:800;background:var(--accent2);color:var(--onDark);box-shadow:0 3px 0 var(--accent2-dk)}
-.buy.no{background:#EFE2CE;color:var(--dim2);box-shadow:none}
-.buy.alt{background:#EFE2CE;color:var(--dim);min-width:0;padding:9px 12px;box-shadow:none}
+.buy.no{background:var(--mute);color:var(--dim2);box-shadow:none}
+.buy.alt{background:var(--mute);color:var(--dim);min-width:0;padding:9px 12px;box-shadow:none}
 .buy small{display:block;font-size:10px;font-weight:700;opacity:.9}
 .buy:active{transform:translateY(2px);box-shadow:none}
 .locked{opacity:.72;border-style:dashed;border-color:var(--line2)}
@@ -297,13 +315,13 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 /* ===== REVEAL ===== */
 #reveal{position:fixed;inset:0;z-index:30;display:none;flex-direction:column;align-items:center;
   justify-content:center;gap:13px;padding:26px 24px;
-  background:radial-gradient(90% 62% at 50% 30%,#FFF9EC 0%,var(--cream2) 55%,#FFDDB0 100%)}
+  background:radial-gradient(90% 62% at 50% 30%,var(--panel-top) 0%,var(--cream2) 55%,var(--panel-bot) 100%)}
 #reveal.on{display:flex}
 #rvTitle{font-size:29px;font-weight:800;text-align:center;letter-spacing:-.6px;opacity:0;line-height:1.1;
   text-wrap:pretty}
 #rvGenre{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--dim);opacity:0;font-weight:800}
 #rvCover{width:186px;height:186px;border-radius:24px;opacity:0;position:relative;overflow:hidden;
-  display:grid;place-items:center;box-shadow:0 12px 0 #E9C89B,0 22px 40px rgba(120,70,30,.28)}
+  display:grid;place-items:center;box-shadow:0 12px 0 var(--cover-sh),0 22px 40px rgba(120,70,30,.28)}
 #rvCover span{font-size:15px;font-weight:800;text-align:center;padding:14px;line-height:1.12;color:#fff;
   text-shadow:0 2px 10px rgba(0,0,0,.45)}
 .pop{animation:pop .45s cubic-bezier(.2,1.4,.4,1) forwards}
@@ -330,7 +348,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 #rvQuote{font-size:12px;color:var(--dim);font-style:italic;text-align:center;max-width:300px;opacity:0;
   line-height:1.5;text-wrap:pretty}
 #rvGo{margin-top:4px;padding:16px 44px;border-radius:18px;font-size:16px;font-weight:800;
-  letter-spacing:.1em;background:var(--ink);color:var(--cream);opacity:0;box-shadow:0 5px 0 #150C08}
+  letter-spacing:.1em;background:var(--ink);color:var(--cream);opacity:0;box-shadow:0 5px 0 var(--ink-sh)}
 #rvSkip{position:absolute;top:calc(var(--safe-t) + 18px);right:18px;font-size:11px;color:var(--dim);
   letter-spacing:.1em;padding:8px 14px;border-radius:999px;background:var(--panel);border:2px solid var(--line);
   opacity:0;font-weight:800}
@@ -431,7 +449,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 /* ===== GIG RESULT ===== */
 #gigres{position:fixed;inset:0;z-index:37;display:none;flex-direction:column;align-items:center;
   justify-content:center;gap:9px;padding:calc(var(--safe-t) + 20px) 24px calc(var(--safe-b) + 20px);
-  background:radial-gradient(90% 60% at 50% 25%,#FFF9EC 0%,var(--cream2) 55%,#FFDDB0 100%)}
+  background:radial-gradient(90% 60% at 50% 25%,var(--panel-top) 0%,var(--cream2) 55%,var(--panel-bot) 100%)}
 #gigres.on{display:flex}
 #gigres .gt{font-size:10px;font-weight:800;letter-spacing:.22em;text-transform:uppercase;color:var(--dim2)}
 #grOut{font-size:31px;font-weight:800;letter-spacing:-.6px;text-align:center;
@@ -452,12 +470,12 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 #grRew .m b{color:var(--accent-dk)}
 #grRew .f b{color:var(--accent2-dk)}
 #grGo{margin-top:6px;padding:16px 46px;border-radius:18px;font-size:15px;font-weight:800;
-  letter-spacing:.1em;background:var(--ink);color:var(--cream);box-shadow:0 5px 0 #150C08}
+  letter-spacing:.1em;background:var(--ink);color:var(--cream);box-shadow:0 5px 0 var(--ink-sh)}
 
 /* ===== RANK UP ===== */
 #rankup{position:fixed;inset:0;z-index:38;display:none;flex-direction:column;align-items:center;
   justify-content:center;gap:11px;padding:26px 24px;
-  background:radial-gradient(90% 60% at 50% 28%,#FFF9EC 0%,var(--cream2) 55%,#FFDDB0 100%)}
+  background:radial-gradient(90% 60% at 50% 28%,var(--panel-top) 0%,var(--cream2) 55%,var(--panel-bot) 100%)}
 #rankup.on{display:flex}
 #rankup .rt{font-size:10.5px;font-weight:800;letter-spacing:.24em;text-transform:uppercase;color:var(--dim2)}
 #ruBadge{width:112px;height:112px;border-radius:32px;display:grid;place-items:center;
@@ -472,7 +490,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 #ruList div b{font-weight:800}
 #ruList div i{flex:0 0 auto;width:8px;height:8px;border-radius:50%;background:var(--rc,var(--accent2))}
 #ruGo{margin-top:8px;padding:16px 46px;border-radius:18px;font-size:15px;font-weight:800;
-  letter-spacing:.1em;background:var(--ink);color:var(--cream);box-shadow:0 5px 0 #150C08}
+  letter-spacing:.1em;background:var(--ink);color:var(--cream);box-shadow:0 5px 0 var(--ink-sh)}
 
 /* ===== SETUP / NAME ===== */
 #setup{position:fixed;inset:0;z-index:45;display:none;flex-direction:column;
@@ -489,7 +507,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .frow{display:flex;gap:8px}
 .roles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
 .rolebtn{padding:10px;border-radius:14px;background:var(--panel);border:2px solid var(--line);text-align:left}
-.rolebtn.sel{border-color:var(--accent2);background:#E6F5F3}
+.rolebtn.sel{border-color:var(--accent2);background:var(--sel-w)}
 .rolebtn .rn{font-size:13.5px;font-weight:800}
 .rolebtn .rd{font-size:10px;color:var(--dim);font-weight:700;margin-top:2px}
 #setPrev{height:140px;display:grid;place-items:center;margin:6px 0}
@@ -567,13 +585,13 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 /* ===== WHILE YOU WERE GONE ===== */
 #gone{position:fixed;inset:0;z-index:42;display:none;flex-direction:column;align-items:center;
   justify-content:center;gap:6px;padding:calc(var(--safe-t) + 26px) 24px calc(var(--safe-b) + 26px);
-  background:radial-gradient(92% 62% at 50% 22%,#FFF9EC 0%,var(--cream2) 56%,#FFDDB0 100%)}
+  background:radial-gradient(92% 62% at 50% 22%,var(--panel-top) 0%,var(--cream2) 56%,var(--panel-bot) 100%)}
 #gone.on{display:flex}
 #gone .gt{font-size:10px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--dim2)}
 #gone h3{font-size:27px;font-weight:800;letter-spacing:-.5px;text-align:center;margin-bottom:2px}
 #gone .gaway{font-size:12.5px;font-weight:700;color:var(--dim);margin-bottom:14px}
 .gcap{font-size:10.5px;font-weight:800;letter-spacing:.06em;color:var(--accent-dk);
-  background:#FBE3DE;border:2px solid var(--accent);border-radius:10px;padding:6px 12px;margin-bottom:14px}
+  background:var(--bad-w);border:2px solid var(--accent);border-radius:10px;padding:6px 12px;margin-bottom:14px}
 .grow{display:flex;align-items:baseline;gap:10px;width:100%;max-width:300px;
   padding:11px 14px;border-radius:16px;background:var(--panel);border:2px solid var(--line);margin-bottom:8px}
 .grow .gl{flex:1;font-size:11.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--dim2)}
@@ -596,7 +614,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .srow .st{flex:1;min-width:0}
 .srow .st b{display:block;font-size:14px;font-weight:800}
 .srow .st span{display:block;font-size:11px;font-weight:600;color:var(--dim);margin-top:2px}
-.sw{flex:0 0 auto;width:50px;height:29px;border-radius:15px;background:#E4D3B8;position:relative;
+.sw{flex:0 0 auto;width:50px;height:29px;border-radius:15px;background:var(--switch-off);position:relative;
   transition:background .2s ease}
 .sw::after{content:"";position:absolute;top:3px;left:3px;width:23px;height:23px;border-radius:50%;
   background:var(--panel);transition:transform .2s ease;box-shadow:0 1px 3px rgba(80,45,20,.35)}
@@ -605,7 +623,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .sbtn{flex:0 0 auto;padding:10px 14px;border-radius:12px;font-size:11.5px;font-weight:800;
   background:var(--accent2);color:var(--onDark);box-shadow:0 3px 0 var(--accent2-dk)}
 .sbtn:active{transform:translateY(2px);box-shadow:none}
-.sbtn.ghosty{background:#EFE2CE;color:var(--dim);box-shadow:none}
+.sbtn.ghosty{background:var(--mute);color:var(--dim);box-shadow:none}
 .sbtn.danger{background:var(--accent);color:var(--onDark);box-shadow:0 3px 0 var(--accent-sh)}
 .synced{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:800;color:var(--accent2-dk)}
 
@@ -873,6 +891,29 @@ function mulberry32(a){ return function(){ a |= 0; a = a + 0x6D2B79F5 | 0;
 function buzz(ms){ try { if (navigator.vibrate) navigator.vibrate(ms); } catch(e){} }
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
+/* ===== PALETTE =====
+   One source of truth: the tokens live in :root, and JS reads them once at start-up.
+   Nothing below this line may write a colour literal — repoint the token instead. */
+const PAL = (() => {
+  const cs = getComputedStyle(document.documentElement);
+  const t = n => cs.getPropertyValue('--' + n).trim();
+  return {
+    cream:t('cream'), cream2:t('cream2'), cream3:t('cream3'), cream4:t('cream4'),
+    panel:t('panel'), line:t('line'), line2:t('line2'), mute:t('mute'),
+    ink:t('ink'), dim:t('dim'), dim2:t('dim2'), dim3:t('dim3'),
+    onDark:t('onDark'), onGold:t('onGold'), inkSh:t('ink-sh'),
+    accent:t('accent'), accentDk:t('accent-dk'), accentSh:t('accent-sh'),
+    gold:t('gold'), goldDk:t('gold-dk'),
+    accent2:t('accent2'), accent2Dk:t('accent2-dk'),
+    violet:t('violet'), violetDk:t('violet-dk'),
+    blue:t('blue'), ok:t('ok'), bad:t('bad'),
+    accentW:t('accent-w'), accent2W:t('accent2-w'), goldW:t('gold-w'),
+    badW:t('bad-w'), selW:t('sel-w'), nowW:t('now-w')
+  };
+})();
+/* the release burst — its own table so it moves with the palette */
+const CONFETTI = { big:['#ffc23d','#fff3c4','#ff2e83','#fff'], small:['#3ddc84','#00e6c3','#fff','#7a5cff'] };
+
 /* ===== BALANCE (tune here, never inline) ===== */
 const BAL = {
   sessionSecs: 20,        // whole writing session
@@ -938,32 +979,32 @@ const BAL = {
    the role you take free at setup should be a flavour choice (which cards you
    start with), not an economic one. */
 const MEMBERS = [
-  { id:'drums',  role:'Drummer',   track:'DRUMS',  sps:0.90, lvlCost:14, c1:'#12A79C', c2:'#0B7A72' },
-  { id:'bass',   role:'Bassist',   track:'BASS',   sps:1.00, lvlCost:22, c1:'#FF5A45', c2:'#D93A26' },
-  { id:'guitar', role:'Guitarist', track:'GUITAR', sps:1.10, lvlCost:34, c1:'#FFC22E', c2:'#E39A00' },
-  { id:'vocals', role:'Vocalist',  track:'VOCALS', sps:1.20, lvlCost:50, c1:'#2C1D16', c2:'#554034' }
+  { id:'drums',  role:'Drummer',   track:'DRUMS',  sps:0.90, lvlCost:14, c1:PAL.accent2, c2:PAL.accent2Dk },
+  { id:'bass',   role:'Bassist',   track:'BASS',   sps:1.00, lvlCost:22, c1:PAL.accent, c2:PAL.accentDk },
+  { id:'guitar', role:'Guitarist', track:'GUITAR', sps:1.10, lvlCost:34, c1:PAL.gold, c2:PAL.goldDk },
+  { id:'vocals', role:'Vocalist',  track:'VOCALS', sps:1.20, lvlCost:50, c1:PAL.ink, c2:'#554034' }
 ];
 const RARITY = [
-  { n:'COMMON', m:1,   c:'#8A6F5E' }, { n:'RARE', m:1.6, c:'#3D6FA8' },
-  { n:'EPIC',   m:2.6, c:'#0B7A72' }, { n:'LEGENDARY', m:4.5, c:'#E39A00' },
-  { n:'MYTHIC', m:8,   c:'#D93A26' }
+  { n:'COMMON', m:1,   c:PAL.dim }, { n:'RARE', m:1.6, c:PAL.blue },
+  { n:'EPIC',   m:2.6, c:PAL.accent2Dk }, { n:'LEGENDARY', m:4.5, c:PAL.goldDk },
+  { n:'MYTHIC', m:8,   c:PAL.accentDk }
 ];
 const STUDIOS = [
-  { n:'Garage',          cost:0,      bg:['#FFE7C4','#FFCE95'] },
+  { n:'Garage',          cost:0,      bg:[PAL.cream2,PAL.cream4] },
   { n:'Bedroom Studio',  cost:8e3,    bg:['#E8F1DE','#C9DDBE'] },
   { n:'Rehearsal Space', cost:3e5,    bg:['#FFE0D6','#FFC0AC'] },
   { n:'Pro Studio',      cost:1.2e7,  bg:['#DCF0EE','#B4DFDA'] },
   { n:'Label HQ',        cost:6e8,    bg:['#FDE6F0','#F6C2D8'] },
-  { n:'Tour Bus',        cost:4e10,   bg:['#FFF0C9','#FFD98A'] },
+  { n:'Tour Bus',        cost:4e10,   bg:[PAL.goldW,'#FFD98A'] },
   { n:'Stadium',         cost:3e12,   bg:['#E4EAF7','#BFCDEB'] },
   { n:'Space',           cost:2.5e14, bg:['#EDE4F7','#CFBCEA'] }
 ];
 const TIERS = [
-  { id:'flop',  n:'FLOP',  mult:0.35, c:'#A9856B', lo:200, hi:960 },
-  { id:'solid', n:'SOLID', mult:1,    c:'#3D6FA8', lo:41,  hi:199 },
-  { id:'hit',   n:'HIT',   mult:3,    c:'#0B7A72', lo:11,  hi:40  },
-  { id:'viral', n:'VIRAL', mult:8,    c:'#E39A00', lo:2,   hi:10  },
-  { id:'one',   n:'#1',    mult:20,   c:'#D93A26', lo:1,   hi:1   }
+  { id:'flop',  n:'FLOP',  mult:0.35, c:PAL.dim2, lo:200, hi:960 },
+  { id:'solid', n:'SOLID', mult:1,    c:PAL.blue, lo:41,  hi:199 },
+  { id:'hit',   n:'HIT',   mult:3,    c:PAL.accent2Dk, lo:11,  hi:40  },
+  { id:'viral', n:'VIRAL', mult:8,    c:PAL.goldDk, lo:2,   hi:10  },
+  { id:'one',   n:'#1',    mult:20,   c:PAL.accentDk, lo:1,   hi:1   }
 ];
 /* Quality -> chart odds. At Q90 hit+viral+#1 = 40%, as specified. */
 const ODDS = [
@@ -987,29 +1028,29 @@ function oddsFor(q){
    lines up; the six new ones are appended. `r` is the rank that opens the genre,
    `w`/`cut` are the take and loop flavour, `c` is its badge colour. */
 const GENRES = [
-  { n:'INDIE ROCK',  v:[ .30, .40, .30], r:0, w:'triangle', cut:1700, c:'#D93A26' },
+  { n:'INDIE ROCK',  v:[ .30, .40, .30], r:0, w:'triangle', cut:1700, c:PAL.accentDk },
   { n:'HYPERPOP',    v:[ .95,-.30, .90], r:2, w:'square',   cut:3600, c:'#E85CA0' },
   { n:'TRAP',        v:[ .50, .50, .70], r:0, w:'square',   cut:2400, c:'#6B4CC4' },
-  { n:'SYNTHWAVE',   v:[ .20,-.40, .80], r:1, w:'sawtooth', cut:2000, c:'#3D6FA8' },
-  { n:'GARAGE PUNK', v:[ .90, .95,-.60], r:1, w:'sawtooth', cut:1400, c:'#C0331F' },
+  { n:'SYNTHWAVE',   v:[ .20,-.40, .80], r:1, w:'sawtooth', cut:2000, c:PAL.blue },
+  { n:'GARAGE PUNK', v:[ .90, .95,-.60], r:1, w:'sawtooth', cut:1400, c:PAL.accentSh },
   { n:'DREAM POP',   v:[-.50,-.50, .50], r:0, w:'sine',     cut:1200, c:'#8E7CC8' },
   { n:'DRILL',       v:[ .60, .80, .40], r:2, w:'square',   cut:2100, c:'#4A5A6B' },
-  { n:'DISCO',       v:[ .70,-.20, .70], r:3, w:'sawtooth', cut:2800, c:'#E39A00' },
+  { n:'DISCO',       v:[ .70,-.20, .70], r:3, w:'sawtooth', cut:2800, c:PAL.goldDk },
   { n:'SHOEGAZE',    v:[ .10, .60,-.20], r:3, w:'sawtooth', cut: 900, c:'#7C8FA8' },
-  { n:'AFROBEATS',   v:[ .60,-.10, .60], r:4, w:'triangle', cut:2600, c:'#12A79C' },
-  { n:'METAL',       v:[ .95,1.00,-.30], r:4, w:'sawtooth', cut:1100, c:'#2C1D16' },
-  { n:'LO-FI',       v:[-.60, .30,-.40], r:2, w:'sine',     cut: 800, c:'#A9856B' },
-  { n:'HOUSE',       v:[ .65,-.35, .75], r:3, w:'sawtooth', cut:3000, c:'#0B7A72' },
+  { n:'AFROBEATS',   v:[ .60,-.10, .60], r:4, w:'triangle', cut:2600, c:PAL.accent2 },
+  { n:'METAL',       v:[ .95,1.00,-.30], r:4, w:'sawtooth', cut:1100, c:PAL.ink },
+  { n:'LO-FI',       v:[-.60, .30,-.40], r:2, w:'sine',     cut: 800, c:PAL.dim2 },
+  { n:'HOUSE',       v:[ .65,-.35, .75], r:3, w:'sawtooth', cut:3000, c:PAL.accent2Dk },
   { n:'REGGAETON',   v:[ .70, .20, .55], r:5, w:'square',   cut:2300, c:'#E0682B' },
   { n:'FOLK',        v:[-.45, .25,-.20], r:5, w:'triangle', cut:1500, c:'#7A8C4F' },
-  { n:'K-POP',       v:[ .80,-.50,1.00], r:4, w:'square',   cut:3800, c:'#FF5A45' }
+  { n:'K-POP',       v:[ .80,-.50,1.00], r:4, w:'square',   cut:3800, c:PAL.accent }
 ];
 /* VENUES — the gig ladder. `pay` and `fans` are the normal reward; the first clear
    pays BAL.gigFirstMult times that, once. `g` is the room's taste (an index into
    GENRES, matched by vector so a near-miss still scores), `pw` the band multiplier
    the room expects, `bg` its backdrop. */
 const VENUES = [
-  { n:'Open Mic',      d:1, pw:1.4,  g:0,  pay:1.0, fans:10,    bg:['#FFE7C4','#F3CE9E'] },
+  { n:'Open Mic',      d:1, pw:1.4,  g:0,  pay:1.0, fans:10,    bg:[PAL.cream2,'#F3CE9E'] },
   { n:'Tiny Bar',      d:2, pw:2.2,  g:4,  pay:1.4, fans:30,    bg:['#FFDCC4','#E8B393'] },
   { n:'Local Club',    d:3, pw:3.5,  g:2,  pay:1.9, fans:90,    bg:['#E4DCF3','#BFB2DE'] },
   { n:'Packed Club',   d:4, pw:5.5,  g:5,  pay:2.4, fans:260,   bg:['#DDE9F5','#B2C8E0'] },
@@ -1022,12 +1063,12 @@ const VENUES = [
    header. Each rank opens genres, makes the gigs bigger (money and the crowd on the
    stage), and lifts the ceiling on the royalty rate. */
 const RANKS = [
-  { n:'Garage Band', at:0,   gig:1,   payCap:0.09, crate:0, crowd:0.30, c:'#A9856B', i:'house' },
-  { n:'Local Act',   at:1e3, gig:1.6, payCap:0.14, crate:1, crowd:0.46, c:'#0B7A72', i:'pin' },
-  { n:'Regional',    at:1e4, gig:2.4, payCap:0.20, crate:2, crowd:0.62, c:'#3D6FA8', i:'map' },
-  { n:'National',    at:1e5, gig:3.5, payCap:0.30, crate:3, crowd:0.78, c:'#E39A00', i:'flag' },
-  { n:'Global',      at:1e6, gig:5,   payCap:0.45, crate:4, crowd:0.92, c:'#D93A26', i:'globe' },
-  { n:'Legend',      at:1e7, gig:8,   payCap:1.00, crate:5, crowd:1.00, c:'#C0331F', i:'crown' }
+  { n:'Garage Band', at:0,   gig:1,   payCap:0.09, crate:0, crowd:0.30, c:PAL.dim2, i:'house' },
+  { n:'Local Act',   at:1e3, gig:1.6, payCap:0.14, crate:1, crowd:0.46, c:PAL.accent2Dk, i:'pin' },
+  { n:'Regional',    at:1e4, gig:2.4, payCap:0.20, crate:2, crowd:0.62, c:PAL.blue, i:'map' },
+  { n:'National',    at:1e5, gig:3.5, payCap:0.30, crate:3, crowd:0.78, c:PAL.goldDk, i:'flag' },
+  { n:'Global',      at:1e6, gig:5,   payCap:0.45, crate:4, crowd:0.92, c:PAL.accentDk, i:'globe' },
+  { n:'Legend',      at:1e7, gig:8,   payCap:1.00, crate:5, crowd:1.00, c:PAL.accentSh, i:'crown' }
 ];
 /* A take's rhythm comes from the card, so the decision and the playing connect.
    16 steps = 2 bars of eighths at the song's BPM. */
@@ -1402,10 +1443,10 @@ GCARDS.forEach((tracks, gi) => tracks.forEach((cards, tr) =>
    Status is heat plus direction, so the same heat reads RISING on the way up and
    FADING on the way down. */
 const TRENDS = [
-  { n:'COLD',   m:0.60, c:'#3D6FA8' },
-  { n:'FADING', m:0.90, c:'#8A6F5E' },
-  { n:'RISING', m:1.35, c:'#E39A00' },
-  { n:'HOT',    m:2.20, c:'#D93A26' }
+  { n:'COLD',   m:0.60, c:PAL.blue },
+  { n:'FADING', m:0.90, c:PAL.dim },
+  { n:'RISING', m:1.35, c:PAL.goldDk },
+  { n:'HOT',    m:2.20, c:PAL.accentDk }
 ];
 function trendOf(gi){
   const h = S.heat[gi], v = S.heatVel[gi];
@@ -1546,7 +1587,7 @@ const SKIN = ['#F6C99E','#E0A276','#C98A55','#9B6033','#7E4A2B'];
 const HAIRC = ['#2A1C14','#6B3A1F','#C97A2C','#EBD9A8','#1B1310','#8A4E18','#D9534F'];
 /* rarity is a treatment on top of the member's own colour, not a recolour:
    plain -> jacket panels -> shoulder studs -> trim + glow -> aura */
-const RARITY_TRIM = ['#EBD9BE','#3D6FA8','#0B7A72','#FFC22E','#FF5A45'];
+const RARITY_TRIM = [PAL.line,PAL.blue,PAL.accent2Dk,PAL.gold,PAL.accent];
 
 function hairSVG(style, col){
   switch(style){
@@ -1562,7 +1603,7 @@ function accSVG(acc, col){
     case 1: return `<path d="M32 30a18 18 0 0 1 36 0z" fill="#1b1630"/><rect x="30" y="28" width="40" height="5" rx="2.5" fill="#2a2450"/>`;
     case 2: return `<rect x="35" y="36" width="30" height="8" rx="3" fill="#15111f"/><rect x="48" y="38" width="4" height="3" fill="#2c2547"/>`;
     case 3: return `<path d="M31 40v-6a19 19 0 0 1 38 0v6" stroke="#2f2a52" stroke-width="4" fill="none"/><rect x="26" y="36" width="8" height="13" rx="4" fill="${col}"/><rect x="66" y="36" width="8" height="13" rx="4" fill="${col}"/>`;
-    case 4: return `<path d="M42 58q8 9 16 0" stroke="#ffc23d" stroke-width="3" fill="none"/>`;
+    case 4: return `<path d="M42 58q8 9 16 0" stroke="${PAL.gold}" stroke-width="3" fill="none"/>`;
     default: return '';
   }
 }
@@ -1581,8 +1622,8 @@ function charSVG(role, look, rarity, locked){
         <path d="M50 52 q14 1 17 14 l4 32 h-42 l4 -32 q3 -13 17 -14z"></path>
         <circle cx="50" cy="38" r="17"></circle>
       </g>
-      <path d="M45 40v-5a5 5 0 0 1 10 0v5" stroke="#A9856B" stroke-width="2.6" fill="none" stroke-linecap="round"></path>
-      <rect x="42" y="40" width="16" height="12" rx="3" fill="#A9856B"></rect>
+      <path d="M45 40v-5a5 5 0 0 1 10 0v5" stroke="${PAL.dim2}" stroke-width="2.6" fill="none" stroke-linecap="round"></path>
+      <rect x="42" y="40" width="16" height="12" rx="3" fill="${PAL.dim2}"></rect>
     </svg>`;
   }
   const sk = SKIN[look.sk], hc = HAIRC[look.hc];
@@ -1591,14 +1632,14 @@ function charSVG(role, look, rarity, locked){
   const glow = rarity >= 3 ? ` filter="drop-shadow(0 0 5px ${trim})"` : '';
   const aura = rarity >= 4 ? `<circle cx="50" cy="70" r="46" fill="none" stroke="${trim}" stroke-width="2" opacity=".4"></circle>` : '';
   const panels = rarity >= 1 ? `<path d="M33 58 l-2 40 h7 l1 -40z" fill="${trim}"></path><path d="M67 58 l2 40 h-7 l-1 -40z" fill="${trim}"></path>` : '';
-  const studs = rarity >= 2 ? `<circle cx="38" cy="60" r="1.8" fill="#FFF6E6"></circle><circle cx="62" cy="60" r="1.8" fill="#FFF6E6"></circle>` : '';
+  const studs = rarity >= 2 ? `<circle cx="38" cy="60" r="1.8" fill="${PAL.onDark}"></circle><circle cx="62" cy="60" r="1.8" fill="${PAL.onDark}"></circle>` : '';
   const stripe = rarity >= 3 ? `<rect x="47" y="56" width="6" height="42" rx="2" fill="${trim}" opacity=".9"></rect>` : '';
 
   const mouth = role === 3
     ? `<ellipse class="ch-sing" cx="50" cy="46" rx="3.6" ry="3.4" fill="#5A2018"></ellipse>`
-    : `<path d="M45 46q5 4 10 0" stroke="#2C1D16" stroke-width="2" fill="none" stroke-linecap="round"></path>`;
+    : `<path d="M45 46q5 4 10 0" stroke="${PAL.ink}" stroke-width="2" fill="none" stroke-linecap="round"></path>`;
   const head = `<g class="ch-head"><circle cx="50" cy="38" r="17" fill="${sk}"></circle>
-      <circle cx="44" cy="38" r="2.1" fill="#2C1D16"></circle><circle cx="56" cy="38" r="2.1" fill="#2C1D16"></circle>
+      <circle cx="44" cy="38" r="2.1" fill="${PAL.ink}"></circle><circle cx="56" cy="38" r="2.1" fill="${PAL.ink}"></circle>
       <circle cx="44.7" cy="37.3" r=".8" fill="#FFF3E2"></circle><circle cx="56.7" cy="37.3" r=".8" fill="#FFF3E2"></circle>
       ${mouth}${hairSVG(look.hs, hc)}${accSVG(look.ac, trim)}</g>`;
   const legs = `<path d="M39 92 h22 l4 32 h-11 l-3 -20 l-3 20 h-11z" fill="#3A2A20"></path>
@@ -1612,24 +1653,24 @@ function charSVG(role, look, rarity, locked){
     return `<svg viewBox="0 0 100 130" aria-hidden="true"${glow}>${aura}${shadow}
       <path d="M10 68 v42 M4 118 l6 -8 M16 118 l-6 -8" stroke="#B9AFA0" stroke-width="1.6" stroke-linecap="round"></path>
       <ellipse cx="10" cy="66" rx="10" ry="2.2" fill="#E0A72E"></ellipse>
-      <ellipse cx="10" cy="63.5" rx="10" ry="2.2" fill="#FFC22E"></ellipse>
+      <ellipse cx="10" cy="63.5" rx="10" ry="2.2" fill="${PAL.gold}"></ellipse>
       <path d="M90 62 v48 M84 118 l6 -8 M96 118 l-6 -8" stroke="#B9AFA0" stroke-width="1.6" stroke-linecap="round"></path>
-      <ellipse cx="90" cy="60" rx="12" ry="2.6" fill="#FFC22E"></ellipse>
+      <ellipse cx="90" cy="60" rx="12" ry="2.6" fill="${PAL.gold}"></ellipse>
       <ellipse cx="90" cy="59.6" rx="6" ry="1.4" fill="none" stroke="#E0A72E" stroke-width=".8"></ellipse>
       <g class="ch-bob">${legs}${torso}${head}</g>
-      <ellipse cx="33" cy="78" rx="12" ry="7.5" fill="#FFF6E6" stroke="${c2}" stroke-width="2.4"></ellipse>
+      <ellipse cx="33" cy="78" rx="12" ry="7.5" fill="${PAL.onDark}" stroke="${c2}" stroke-width="2.4"></ellipse>
       <path d="M21 78 v7 a12 7.5 0 0 0 24 0 v-7" fill="${c2}"></path>
-      <ellipse cx="67" cy="76" rx="11" ry="7" fill="#FFF6E6" stroke="${c2}" stroke-width="2.4"></ellipse>
+      <ellipse cx="67" cy="76" rx="11" ry="7" fill="${PAL.onDark}" stroke="${c2}" stroke-width="2.4"></ellipse>
       <path d="M56 76 v6 a11 7 0 0 0 22 0 v-6" fill="${c2}"></path>
-      <ellipse cx="18" cy="92" rx="12" ry="7" fill="#FFF6E6" stroke="#B9AFA0" stroke-width="2.2"></ellipse>
+      <ellipse cx="18" cy="92" rx="12" ry="7" fill="${PAL.onDark}" stroke="#B9AFA0" stroke-width="2.2"></ellipse>
       <path d="M6 92 v7 a12 7 0 0 0 24 0 v-7" fill="#D9CFC0"></path>
-      <ellipse cx="50" cy="102" rx="29" ry="24" fill="#FFF6E6"></ellipse>
+      <ellipse cx="50" cy="102" rx="29" ry="24" fill="${PAL.onDark}"></ellipse>
       <ellipse cx="50" cy="102" rx="29" ry="24" fill="none" stroke="${c2}" stroke-width="3.6"></ellipse>
       <ellipse cx="50" cy="102" rx="24" ry="19.5" fill="none" stroke="#F0DCBC" stroke-width="1"></ellipse>
       <circle cx="50" cy="78" r="2" fill="${c2}"></circle><circle cx="50" cy="126" r="2" fill="${c2}"></circle>
       <circle cx="21" cy="102" r="2" fill="${c2}"></circle><circle cx="79" cy="102" r="2" fill="${c2}"></circle>
       <circle cx="71" cy="85" r="2" fill="${c2}"></circle><circle cx="29" cy="119" r="2" fill="${c2}"></circle>
-      <circle cx="50" cy="102" r="11" fill="none" stroke="#FFC22E" stroke-width="2"></circle>
+      <circle cx="50" cy="102" r="11" fill="none" stroke="${PAL.gold}" stroke-width="2"></circle>
       <path d="M47 96 l-2 7h3l-1 6 5 -8h-3l2 -5z" fill="${c2}"></path>
       <g class="pl-l">${limb(sk, '31 61 L22 74 L35 85', 7)}<circle cx="35" cy="85" r="4.4" fill="${sk}"></circle>
         <path d="M31 81 L52 97" stroke="#EFDCB8" stroke-width="2.4" stroke-linecap="round"></path></g>
@@ -1655,7 +1696,7 @@ function charSVG(role, look, rarity, locked){
   }
   // BASSIST (1) / GUITARIST (2)
   const big = role === 1;
-  const bodyC = big ? '#0E9186' : '#C0331F', bodyHi = big ? '#12A79C' : '#D93A26';
+  const bodyC = big ? '#0E9186' : PAL.accentSh, bodyHi = big ? PAL.accent2 : PAL.accentDk;
   const strings = big
     ? `<path d="M-16 -3 H60M-16 -1 H60M-16 1 H60M-16 3 H60" stroke="#F4E7CC" stroke-width=".7"></path>`
     : `<path d="M-16 -3.4 H60M-16 -2 H60M-16 -.7 H60M-16 .7 H60M-16 2 H60M-16 3.4 H60" stroke="#F4E7CC" stroke-width=".55"></path>`;
@@ -1667,7 +1708,7 @@ function charSVG(role, look, rarity, locked){
        <circle cx="59.5" cy="8" r="1.5" fill="#D8CBB2"></circle><circle cx="64" cy="8" r="1.5" fill="#D8CBB2"></circle>`;
   return `<svg viewBox="0 0 100 130" aria-hidden="true"${glow}>${aura}${shadow}
     <g class="ch-bob">${legs}${torso}${head}
-      <path d="M36 58 L64 90" stroke="#2C1D16" stroke-width="3.4" stroke-linecap="round" opacity=".85"></path>
+      <path d="M36 58 L64 90" stroke="${PAL.ink}" stroke-width="3.4" stroke-linecap="round" opacity=".85"></path>
       <g transform="translate(64 94) rotate(-133)">
         <ellipse cx="-5" cy="0" rx="15" ry="12" fill="${bodyC}"></ellipse>
         <ellipse cx="8" cy="0" rx="11" ry="9" fill="${bodyC}"></ellipse>
@@ -2142,7 +2183,7 @@ function renderTop(){
 function renderRank(){
   const r = rank(), nx = nextRank();
   el.rankbar.style.setProperty('--rc', r.c);
-  el.rankBadge.innerHTML = ico(ICON[r.i], { s:17, c:'#FFF6E6', w:2.1 });
+  el.rankBadge.innerHTML = ico(ICON[r.i], { s:17, c:PAL.onDark, w:2.1 });
   el.rankName.textContent = r.n;
   el.rankNext.textContent = nx ? fmt(Math.max(0, nx.at - S.fans)) + ' to ' + nx.n : 'the top of the game';
   el.rankFill.style.width = (rankProgress() * 100).toFixed(1) + '%';
@@ -2168,7 +2209,7 @@ function rankUp(r){
   rows.push('<b>Royalty ceiling</b> — the rate can now reach ' + (R.payCap * 100).toFixed(0) + '%');
   if (R.crate > prev.crate) rows.push('<b>Better crate odds</b> — banked until crates land with Gear');
   $('#rankup').style.setProperty('--rc', R.c);
-  $('#ruBadge').innerHTML = ico(ICON[R.i], { s:56, c:'#FFF6E6', w:1.9 });
+  $('#ruBadge').innerHTML = ico(ICON[R.i], { s:56, c:PAL.onDark, w:1.9 });
   $('#ruName').textContent = R.n;
   $('#ruFans').textContent = fmt(R.at) + ' fans';
   $('#ruList').innerHTML = rows.map(t => '<div><i></i><span>' + t + '</span></div>').join('');
@@ -2509,7 +2550,7 @@ const LANE_NAMES = [
   ['SNARE','KICK','HAT'], ['SLIDE','ROOT','WALK'],
   ['CHUG','CHORD','LEAD'], ['LOW','HOOK','HIGH']
 ];
-const JUDGE = { perfect:'#0B7A72', good:'#E39A00', miss:'#A9856B', pocket:'#D93A26' };
+const JUDGE = { perfect:PAL.accent2Dk, good:PAL.goldDk, miss:PAL.dim2, pocket:PAL.accentDk };
 /* Downbeat in the middle, backbeat on the left, everything between on the right:
    for the drummer that is literally kick / snare / hi-hat, and it still reads as
    a part for the other three. */
@@ -2764,7 +2805,7 @@ function closeGigs(){
 }
 function renderTix(){
   const g = S.gig, left = BAL.gigAdMax - g.ads;
-  $('#tixIco').innerHTML = ico(ICON.pass, { c:'#FFF6E6', s:20 });
+  $('#tixIco').innerHTML = ico(ICON.pass, { c:PAL.onDark, s:20 });
   $('#tixN').textContent = g.tickets + (g.tickets === 1 ? ' ticket' : ' tickets');
   $('#tixSub').textContent = g.tickets >= BAL.gigFree
     ? 'Full for today · ' + BAL.gigFree + ' free every day'
@@ -3183,7 +3224,7 @@ function endReveal(){
   save();
 }
 function confetti(tier){
-  const cols = tier >= 3 ? ['#ffc23d','#fff3c4','#ff2e83','#fff'] : ['#3ddc84','#00e6c3','#fff','#7a5cff'];
+  const cols = tier >= 3 ? CONFETTI.big : CONFETTI.small;
   const n = tier >= 4 ? 90 : tier >= 3 ? 60 : 34;
   for (let i = 0; i < n; i++){
     const d = document.createElement('i');
@@ -3242,20 +3283,20 @@ function renderSheet(t, soft){
 function htmlBand(){
   const nx = STUDIOS[S.studio + 1];
   let h = `<div class="sect">Your band</div>
-    <div class="card"><div class="av" style="--c1:#FF5A45">${ico(ICON.mic, {c:'#FFF6E6', s:24})}</div>
+    <div class="card"><div class="av" style="--c1:${PAL.accent}">${ico(ICON.mic, {c:PAL.onDark, s:24})}</div>
       <div class="info"><div class="t">${esc(S.band || 'Your Band')}</div>
       <div class="d">${ownedCount()} of 4 slots filled · band multiplier x${fmt(bandMult())}
         · ${fmt(catalogSPS())}/s from ${S.songs.length} songs · ${fmt(gigMoney())} money/s from gigs</div></div>
       <button class="buy alt" data-act="rename" data-i="-1">RENAME</button></div>`;
   const R = rank(), NX = nextRank();
   h += `<div class="sect">Rank</div>
-    <div class="card"><div class="av" style="--c1:${R.c}">${ico(ICON[R.i], {c:'#FFF6E6', s:24})}</div>
+    <div class="card"><div class="av" style="--c1:${R.c}">${ico(ICON[R.i], {c:PAL.onDark, s:24})}</div>
       <div class="info"><div class="t">${R.n}</div>
       <div class="d">${fmt(S.fans)} fans · gigs x${R.gig} · royalty ceiling ${(R.payCap*100).toFixed(0)}%<br>
         ${NX ? fmt(Math.max(0, NX.at - S.fans)) + ' more fans for <b>' + NX.n + '</b>'
              : 'Nothing above this one.'}</div></div></div>`;
   h += `<div class="sect">Royalty rate</div>
-    <div class="card"><div class="av" style="--c1:#FFC22E">${ico(ICON.money, {c:'#5A3F00', s:24})}</div>
+    <div class="card"><div class="av" style="--c1:${PAL.gold}">${ico(ICON.money, {c:PAL.onGold, s:24})}</div>
       <div class="info"><div class="t">${(payoutRate()*100).toFixed(0)}% payout</div>
       <div class="d">Every stream/sec pays ${payoutRate().toFixed(2)} money/sec.
         ${payoutCapped() ? '<b>Capped by your rank</b> — ' + R.n + ' tops out at ' + (R.payCap*100).toFixed(0) + '%'
@@ -3263,7 +3304,7 @@ function htmlBand(){
       <button class="buy ${S.money >= payoutUpCost() && !payoutCapped() ? '' : 'no'}" data-act="payout" data-i="-1">
         BETTER DEAL<small>${fmt(payoutUpCost())}</small></button></div>`;
   h += '<div class="sect">Studio</div>';
-  h += `<div class="card"><div class="av" style="--c1:#12A79C">${ico(ICON.house, {c:'#FFF6E6', s:24})}</div>
+  h += `<div class="card"><div class="av" style="--c1:${PAL.accent2}">${ico(ICON.house, {c:PAL.onDark, s:24})}</div>
     <div class="info"><div class="t">${STUDIOS[S.studio].n}</div>
     <div class="d">All song streams x${fmt(studioMult())}${nx ? ' · next: ' + nx.n + ' (x4)' : ' · maxed'}</div></div>
     ${nx ? `<button class="buy ${S.money >= nx.cost ? '' : 'no'}" data-act="studio">MOVE IN<small>${fmt(nx.cost)}</small></button>`
@@ -3315,7 +3356,7 @@ function htmlGenres(){
   open.sort((a, b) => (b === S.home) - (a === S.home) || S.heat[b] - S.heat[a]).forEach(gi => {
     const g = GENRES[gi], tr = trendOf(gi), home = S.home === gi;
     h += `<div class="card${home ? ' home' : ''}">
-      <div class="av" style="--c1:${g.c}">${ico(ICON.catalog, {c:'#FFF6E6', s:20})}</div>
+      <div class="av" style="--c1:${g.c}">${ico(ICON.catalog, {c:PAL.onDark, s:20})}</div>
       <div class="info"><div class="t">${g.n}
         ${home ? '<span class="tag ok">HOME · x' + BAL.homeMult + ' STREAMS</span>' : ''}</div>
       <div class="d"><b style="color:${tr.c}">${tr.n}</b> ${Math.round(S.heat[gi])} · x${tr.m} streams${
@@ -3340,7 +3381,7 @@ function htmlCatalog(){
   });
   h += `</div><div class="hint" style="padding:2px 0 12px">Trends drift on their own — and a strong
     release heats its genre up. Your back catalogue follows whatever is hot.</div>`;
-  if (!S.songs.length) return h + '<div class="empty">' + ico(ICON.catalog, {s:44, c:'#A9856B', w:1.6}) +
+  if (!S.songs.length) return h + '<div class="empty">' + ico(ICON.catalog, {s:44, c:PAL.dim2, w:1.6}) +
     'No songs yet.<br>Write one, or let the band finish a demo.</div>';
   h += `<div class="hint" style="padding-top:0">${S.songs.length} songs · ${fmt(totalSPS())}/s</div>`;
   S.songs.slice(0, 60).forEach(s => {
@@ -3356,8 +3397,8 @@ function htmlCatalog(){
   return h;
 }
 function htmlGear(){
-  if (!S.flags.gear) return '<div class="empty">' + ico(ICON.gear, {s:44, c:'#A9856B', w:1.6}) + 'Gear unlocks after 12 minutes of play.</div>';
-  return `<div class="empty">${ico(ICON.gear, {s:44, c:'#A9856B', w:1.6})}Crates are dropping — the rack is not built yet.<br>
+  if (!S.flags.gear) return '<div class="empty">' + ico(ICON.gear, {s:44, c:PAL.dim2, w:1.6}) + 'Gear unlocks after 12 minutes of play.</div>';
+  return `<div class="empty">${ico(ICON.gear, {s:44, c:PAL.dim2, w:1.6})}Crates are dropping — the rack is not built yet.<br>
     Guitars, pedals, amps and mics land next: worn by the characters,<br>and each one unlocks better writing cards.
     <br><br>Your ${fmt(S.picks)} Picks are safe until then.</div>`;
 }
@@ -3366,18 +3407,18 @@ function htmlShop(){
   const crates = [['Bronze Crate','50 Picks','C60 R30 E8 L1.8 M0.2'],['Gold Crate','150 Picks','Epic or better guaranteed'],
                   ['Mythic Crate','500 Picks','Legendary guaranteed']];
   let h = '<div class="hint" style="padding-top:0">Storefront preview — nothing is purchasable in this build.</div><div class="sect">Picks</div>';
-  packs.forEach(p => h += `<div class="card locked"><div class="av" style="--c1:#FFC22E">${ico(ICON.pick, {c:'#5A3F00', s:22})}</div>
-    <div class="info"><div class="t">${p[0]} ${p[2] ? '<span class="rar" style="color:#ffc23d">' + p[2] + '</span>' : ''}</div>
+  packs.forEach(p => h += `<div class="card locked"><div class="av" style="--c1:${PAL.gold}">${ico(ICON.pick, {c:PAL.onGold, s:22})}</div>
+    <div class="info"><div class="t">${p[0]} ${p[2] ? '<span class="rar" style="color:${PAL.gold}">' + p[2] + '</span>' : ''}</div>
     <div class="d">Premium currency</div></div><button class="buy no">${p[1]}</button></div>`);
   h += '<div class="sect">Crates</div>';
-  crates.forEach(c => h += `<div class="card locked"><div class="av" style="--c1:#0B7A72">${ico(ICON.crate, {c:'#FFF6E6', s:22})}</div>
+  crates.forEach(c => h += `<div class="card locked"><div class="av" style="--c1:${PAL.accent2Dk}">${ico(ICON.crate, {c:PAL.onDark, s:22})}</div>
     <div class="info"><div class="t">${c[0]}</div><div class="d">${c[2]}</div></div>
     <button class="buy no">${c[1]}</button></div>`);
   h += `<div class="sect">Subscriptions</div>
-    <div class="card locked"><div class="av" style="--c1:#12A79C">${ico(ICON.pass, {c:'#FFF6E6', s:22})}</div>
+    <div class="card locked"><div class="av" style="--c1:${PAL.accent2}">${ico(ICON.pass, {c:PAL.onDark, s:22})}</div>
       <div class="info"><div class="t">Backstage Pass (VIP)</div><div class="d">x2 income · 24h offline · no ads · daily Gold Crate</div></div>
       <button class="buy no">₪19/mo</button></div>
-    <div class="card locked"><div class="av" style="--c1:#FF5A45">${ico(ICON.globe, {c:'#FFF6E6', s:22})}</div>
+    <div class="card locked"><div class="av" style="--c1:${PAL.accent}">${ico(ICON.globe, {c:PAL.onDark, s:22})}</div>
       <div class="info"><div class="t">World Tour Battle Pass</div><div class="d">Seasonal reward track</div></div>
       <button class="buy no">₪35/mo</button></div>`;
   return h;
@@ -3386,10 +3427,10 @@ function htmlSettings(){
   const c = S.cloud || {}, perm = (window.Notification && Notification.permission) || 'default';
   const ago = c.at ? dur((Date.now() - c.at) / 1000) + ' ago' : 'never';
   let h = '<div class="sect">Game</div>';
-  h += `<div class="srow"><div class="si" style="--c1:#12A79C">${ico(ICON.sound, {c:'#FFF6E6', s:20})}</div>
+  h += `<div class="srow"><div class="si" style="--c1:${PAL.accent2}">${ico(ICON.sound, {c:PAL.onDark, s:20})}</div>
     <div class="st"><b>Sound</b><span>Taps, layers and the release chord</span></div>
     <button class="sw ${S.mute ? '' : 'on'}" data-set="sound"></button></div>`;
-  h += `<div class="srow"><div class="si" style="--c1:#FFC22E">${ico(ICON.bell, {c:'#5A3F00', s:20})}</div>
+  h += `<div class="srow"><div class="si" style="--c1:${PAL.gold}">${ico(ICON.bell, {c:PAL.onGold, s:20})}</div>
     <div class="st"><b>Storage-full reminder</b><span>${
       perm === 'granted' ? 'On — you will be told when offline storage fills up'
       : perm === 'denied' ? 'Blocked in your browser settings'
@@ -3399,12 +3440,12 @@ function htmlSettings(){
 
   const since = Math.max(0, Math.round((Date.now() - (S.lastSeen || Date.now())) / 1000));
   h += '<div class="sect">Save</div>';
-  h += `<div class="srow"><div class="si" style="--c1:#E6F5F3">${ico(ICON.save, {c:'#0B7A72', s:20})}</div>
+  h += `<div class="srow"><div class="si" style="--c1:${PAL.selW}">${ico(ICON.save, {c:PAL.accent2Dk, s:20})}</div>
     <div class="st"><b>Last saved ${since < 2 ? 'just now' : since + 's ago'}</b>
       <span>Autosaves every 5s, and on every purchase, release and rename</span></div>
     <button class="sbtn" data-set="savenow">SAVE NOW</button></div>`;
   h += '<div class="sect">Cloud save</div>';
-  h += `<div class="srow"><div class="si" style="--c1:#EFE2CE">${ico(ICON.cloud, {c:'#8A6F5E', s:20})}</div>
+  h += `<div class="srow"><div class="si" style="--c1:${PAL.mute}">${ico(ICON.cloud, {c:PAL.dim, s:20})}</div>
     <div class="st"><b>${c.on ? esc(c.email) : 'Not signed in'}</b>
       <span>${c.on ? 'Synced ' + ago : 'Your save lives only on this device'}</span></div>
     ${c.on ? `<button class="sbtn ghosty" data-set="signout">SIGN OUT</button>`
@@ -3413,7 +3454,7 @@ function htmlSettings(){
     account on this device and syncs nothing. A real backend comes later.</div>`;
 
   h += '<div class="sect">Danger</div>';
-  h += `<div class="srow"><div class="si" style="--c1:#FBE3DE">${ico(ICON.trash, {c:'#D93A26', s:20})}</div>
+  h += `<div class="srow"><div class="si" style="--c1:${PAL.badW}">${ico(ICON.trash, {c:PAL.accentDk, s:20})}</div>
     <div class="st"><b>Reset game</b><span>Deletes this save for good — band, catalogue, money</span></div>
     <button class="sbtn danger" data-set="reset">RESET</button></div>`;
   h += `<div class="hint">Save v${S.v} · ${(JSON.stringify(S).length / 1024).toFixed(1)} KB in this browser.<br>
@@ -3421,7 +3462,7 @@ function htmlSettings(){
   return h;
 }
 function htmlLeague(){
-  return `<div class="empty">${ico(ICON.league, {s:44, c:'#A9856B', w:1.6})}Leagues open after your first Break Up The Band.<br>
+  return `<div class="empty">${ico(ICON.league, {s:44, c:PAL.dim2, w:1.6})}Leagues open after your first Break Up The Band.<br>
     50 managers, ranked by Legacy.<br><br>
     Lifetime streams: <b>${fmt(S.lifetime)}</b><br>
     Legacy at prestige: <b>${Math.sqrt(S.lifetime/1e6).toFixed(2)}</b></div>`;
@@ -3618,8 +3659,8 @@ function settingsAct(what){
 
 function modal(html, btn, onOk, danger){
   const m = $('#modal');
-  $('#mbox').innerHTML = html + `<button id="mok"${danger ? ' style="background:#FF5A45;color:#FFF6E6;box-shadow:0 4px 0 #C0331F"' : ''}>${btn}</button>` +
-    (danger ? '<button id="mno" style="margin-top:8px;background:#EFE2CE;color:#8A6F5E;box-shadow:none">CANCEL</button>' : '');
+  $('#mbox').innerHTML = html + `<button id="mok"${danger ? ' style="background:${PAL.accent};color:${PAL.onDark};box-shadow:0 4px 0 ${PAL.accentSh}"' : ''}>${btn}</button>` +
+    (danger ? '<button id="mno" style="margin-top:8px;background:${PAL.mute};color:${PAL.dim};box-shadow:none">CANCEL</button>' : '');
   m.classList.add('on');
   $('#mok').onclick = () => { m.classList.remove('on'); if (onOk) onOk(); };
   if (danger) $('#mno').onclick = () => m.classList.remove('on');

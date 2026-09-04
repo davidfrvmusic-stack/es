@@ -640,12 +640,22 @@ base payout rate, levels, ownership, songs, time away) rather than discarded.
 
 ## CONVENTIONS
 
-- Palette tokens live in `:root`. Never write a raw hex in a rule — if a colour is
-  missing, add a token. The JS colour tables (`MEMBERS.c1/c2`, `RARITY`, `TIERS`,
-  `TRENDS`, `STUDIOS.bg`, `SKIN`, `HAIRC`, `RARITY_TRIM`, `GENRES.c`, `RANKS.c`) carry
-  the same palette and must move with it. `GENRES.c` is the one table that needs more
-  hues than the palette has — sixteen genres have to be told apart at a glance — so it
-  extends into the same warm/teal/blue family rather than inventing a second style.
+- **Palette tokens live in `:root`, and JS reads them from there.** `PAL` is built once
+  at start-up from `getComputedStyle(document.documentElement)`, so `:root` is the single
+  source of truth for the whole game — there is no second list to keep in sync. Never
+  write a colour literal below the `PALETTE` banner; repoint a token instead.
+  As of Phase Two stage 0 the stylesheet holds **zero** raw hex outside `:root` (the
+  `theme-color` meta is the one attribute exception), and every scattered literal in the
+  script — 73 quoted, 32 inside template strings — became a `PAL.*` reference.
+- The remaining literals are all **content, not palette**: `SKIN` and `HAIRC` (skin and
+  hair are not theme colours), the instrument and kit materials inside `charSVG`, and the
+  one-off scene colours in `STUDIOS.bg`, `VENUES.bg` and `GENRES.c`. Those tables carry
+  their own worlds and move as a unit. `GENRES.c` needs more hues than the palette has —
+  sixteen genres have to be told apart at a glance — so it extends the same family rather
+  than inventing a second style.
+- **Scales, not magic numbers.** `--s1…s6` (4/8/12/16/24/32) for every gap and pad,
+  `--r1…r4` (8/12/18/26) for radius, `--t1…t6` (10/12/14/17/23/34) for type,
+  `--m1…m3` (120/200/340ms) for motion.
 - A member's own colour is their shirt; **rarity is a treatment on top** (jacket
   panels → studs → trim + glow → aura), not a recolour. That keeps the four members
   distinguishable at every rarity.
