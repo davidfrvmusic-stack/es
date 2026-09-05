@@ -568,7 +568,8 @@ earns.** The only thing that multiplies income is the royalty rate, and fans cap
 - **Gear** — 2 slots per member, visible on the character, and 28 archetypes that are
   builds rather than skins. See §8b.
 - **Studios** — Garage → Bedroom → Rehearsal → Pro Studio → Label HQ → Tour Bus →
-  Stadium → Space. Each adds `BAL.craftStudio` (1.8) craft and repaints the stage.
+  Stadium → Space. Each adds `BAL.craftStudio` (1.8) craft, and each one is a **room you
+  can see** — see §8c.
 
 ## 8b. GEAR — 28 archetypes, and the anchor contract
 
@@ -635,6 +636,38 @@ starter (Common, Level 0) on hire, at setup, and on load for an older save — i
 reward, it is what holding an instrument means, and it is why the stage never draws an
 empty pair of hands. **Nothing else drops until crates ship**, so a Stage-2 player owns
 exactly four items and zero Parts. That is the sequencing, not an oversight.
+
+## 8c. THE ROOM — what a studio upgrade looks like
+
+A studio used to be a number and a gradient. Now each of the eight repaints the wall
+behind the band: `ROOM` is an ordered table, one builder per studio, drawn into `#room`
+— a layer between the backdrop (`#bg`, z 0) and the band (z 2), under the dock (z 3),
+`pointer-events: none` so a tap on the stage is still a jam.
+
+| studio | what appears |
+|---|---|
+| Garage | segmented door, one bulb on a wire, unpacked boxes |
+| Bedroom Studio | poster, desk, two little monitors, a rug |
+| Rehearsal Space | foam wedges, a PA stack, mic stands waiting |
+| Pro Studio | glass to the control room, a desk of faders, boom arms |
+| Label HQ | five framed gold records, plants, light thrown up the wall |
+| Tour Bus | bunks, curtained windows, road cases |
+| Stadium | rigging truss with X bracing, four lights and their beams, a riser |
+| Space | starfield, racks with nothing holding them up, a cable adrift |
+
+**Two rules keep it a backdrop rather than a competitor.**
+- **Everything lives above y=50.** The box is `0 0 100 100` stretched with
+  `preserveAspectRatio="none"` (about 10% distortion at a phone's aspect, so rectangles
+  and lines only — nothing that has to stay round). The dock owns everything below the
+  floor line, and the band's feet land at about y=40. The suite asserts no solid shape
+  hangs past it.
+- **It is never brighter than the band.** Colours come from the studio's own `r` triple
+  (wall / prop / highlight) in the same dark family as its `bg`, and the whole layer sits
+  at 82% opacity. The first cut of Label HQ had gold records the size of the band's heads;
+  they are five small framed ones now.
+
+**A show is not your studio.** `startGig()` puts `.away` on the stage and the room fades
+out with the venue backdrop taking over; `finishGig()` brings it back.
 
 ## 9. PACING — why the curve is shaped the way it is
 
@@ -789,8 +822,9 @@ progress bar; tap it for the Band tab). The toast rail sits below that. There is
 chip row any more: the band's name and the studio it plays in are printed on the stage
 itself, above and below the band, and Picks moved to the Shop where it is spent.
 
-Middle: the stage — 4 SVG characters, the active one stepped forward — with the SAVED
-pill floating top-right and `#rail` under it. **The rail draws one icon per system that
+Middle: the stage — 4 SVG characters, the active one stepped forward, in front of the
+**room their studio buys** (§8c) — with the SAVED pill floating top-right and `#rail`
+under it. **The rail draws one icon per system that
 has something waiting** (daily, event, inbox); none of those exist, so it renders
 nothing at all. That is the rule working, not a gap — nothing inactive is drawn.
 
@@ -1387,6 +1421,35 @@ their own sites, and the two screens including a scrap confirm that takes nothin
 is confirmed. Thirty assertions. Twenty-three suites pass, no console errors, frame time
 median 16.7ms / p95 17.3ms.
 
+**Phase Two, stage 3 — the studio became a room.** §8c is the result. A studio had been
+a craft number, a name on the stage and a two-stop gradient; eight of them looked like
+eight gradients. Now each one draws its own wall behind the band.
+
+- **`ROOM` is one builder per studio**, the same shape as `INSTR` and `RIG` — an entry,
+  never a branch. `applyStudio()` calls `renderRoom()`, so every path that changes the
+  studio (buying one, loading a save, finishing a gig) repaints it with no new call site.
+- **`#room` is a layer, not a component**: between `#bg` and `#band`, under the dock,
+  `pointer-events: none`. Tapping the stage is still a jam and still opens a character
+  sheet; the suite asserts the z-order and the pointer rule rather than trusting it.
+- **The two rules that keep a backdrop a backdrop** are in §8c: nothing solid below the
+  floor line (asserted by measuring every shape's `getBBox`), and colours from the
+  studio's own palette at 82% opacity. The first Label HQ pass failed the second rule
+  visibly — gold records the size of the band's heads — and became five small framed ones.
+- **A show is not your studio**: `.away` on the stage fades the room out for a gig.
+
+One real crash, found by the suite rather than by play: `gigTick()` read
+`gigRun.hypeMul` and the suite ended a show under a live take, exactly the path that made
+`hype()` grow its own guard in Concert Neon stage 5. `gigTick` has the same guard now — a
+crash in the rhythm loop is never worth the word it saves.
+
+Suites: the new `rm` suite drives all eight rooms (one per studio, all distinct, each in
+its own palette, nothing below the floor line), the layering and the pointer rule, MOVE IN
+repainting on the spot, the room surviving a reload, and it stepping aside for a gig and
+coming back after. Twenty-four suites pass, no console errors, frame time median 16.7ms /
+p95 17.1ms. `sv2` moved one assertion: it read the *player's* gear slot, which now
+legitimately holds a starter instrument, so it reads the stripped member's instead and
+asserts the saved instrument survives alongside.
+
 **Removed along the way:** the tap-to-fill-tracks loop, Hook Moments, the Hype stat
 (Quality shifts chart odds instead), and weekly-seeded genre trends (replaced by the
 live heat cycle). Time-gated member unlocks are gone too —
@@ -1404,7 +1467,7 @@ base payout rate, levels, ownership, songs, time away) rather than discarded.
   script — 73 quoted, 32 inside template strings — became a `PAL.*` reference.
 - The remaining literals are all **content, not palette**: `SKIN` and `HAIRC` (skin and
   hair are not theme colours), the instrument and kit materials inside `charSVG`, and the
-  one-off scene colours in `STUDIOS.bg`, `VENUES.bg` and `GENRES.c`. Those tables carry
+  one-off scene colours in `STUDIOS.bg`, `STUDIOS.r`, `VENUES.bg` and `GENRES.c`. Those tables carry
   their own worlds and move as a unit. `GENRES.c` needs more hues than the palette has —
   sixteen genres have to be told apart at a glance — so it extends the same family rather
   than inventing a second style.
@@ -1418,7 +1481,8 @@ base payout rate, levels, ownership, songs, time away) rather than discarded.
   (`/* ===== AUDIO ===== */` etc.) and add new systems as new banners.
 - Tunables live in the tables near the top of the script — `BAL`, `MEMBERS`,
   `RARITY`, `STATS`, `STUDIOS`, `TIERS`, `ODDS`, `GENRES`, `GCARDS`, `RANKS`, `CARDS`, `PATTERNS`. Never inline a balance
-  number in logic. The craft knobs (`craftFloor`, `craftMember`, `craftLvl`, `craftExp`,
+  number in logic. `INSTR`, `RIG`, `ROOM`, `GEAR` and `PASSIVE` are content tables of the
+  same kind — one entry per thing, never a branch. The craft knobs (`craftFloor`, `craftMember`, `craftLvl`, `craftExp`,
   `craftStudio`) and `qNudge` are the two levers that shape the whole curve — moving either
   means re-running the simulation (§9). `GOALS`, `RAIL` and `HYPE_TIERS` are the same idea for content rather
   than balance: an ordered table you extend by adding an entry, never by adding a branch. Studio costs are on the *money* scale, which accrues roughly 10x

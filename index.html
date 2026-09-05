@@ -172,6 +172,12 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
              radial-gradient(circle at 57% 100%,var(--crowd-c) 17px,transparent 18px),
              radial-gradient(circle at 73% 100%,var(--crowd-c) 13px,transparent 14px),
              radial-gradient(circle at 90% 100%,var(--crowd-c) 15px,transparent 16px)}
+/* the studio, drawn behind the band. It fades out for a gig, because a show does not
+   happen in your rehearsal room. */
+#room{position:absolute;inset:0;z-index:1;pointer-events:none;opacity:.82;
+  transition:opacity var(--m3) ease}
+#room svg{width:100%;height:100%;display:block}
+#stage.away #room{opacity:0}
 #flash{position:absolute;inset:0;z-index:4;pointer-events:none;background:var(--ink);opacity:0}
 #flash.on{animation:flash .2s ease-out}
 @keyframes flash{0%{opacity:.22}100%{opacity:0}}
@@ -865,6 +871,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 
   <main id="stage">
     <div id="bg"></div>
+    <div id="room"></div>
     <div class="crowd"></div>
     <div id="flash"></div>
     <div id="savedTag"><i></i>SAVED</div>
@@ -1220,15 +1227,17 @@ const RARITY = [
   { n:'EPIC',   c:PAL.violet }, { n:'LEGENDARY', c:PAL.gold },
   { n:'MYTHIC', c:PAL.accent }
 ];
+/* `bg` is the stage gradient; `r` is the room drawn on it (§8c) — wall, prop,
+   highlight, all inside that studio's own dark family so the band always wins. */
 const STUDIOS = [
-  { n:'Garage',          cost:0,      bg:['#1A1712','#0E0C09'] },
-  { n:'Bedroom Studio',  cost:6e3,    bg:['#161D18','#0A100C'] },
-  { n:'Rehearsal Space', cost:9e4,    bg:['#1F1614','#110B0A'] },
-  { n:'Pro Studio',      cost:1.4e6,  bg:['#121D1E','#080F10'] },
-  { n:'Label HQ',        cost:2.2e7,  bg:['#1E1420','#100A12'] },
-  { n:'Tour Bus',        cost:3.5e8,  bg:['#1F1A10','#110E08'] },
-  { n:'Stadium',         cost:6e9,    bg:['#141824','#080B12'] },
-  { n:'Space',           cost:1e11,   bg:['#181428','#0B0817'] }
+  { n:'Garage',          cost:0,      bg:['#1A1712','#0E0C09'], r:['#2A241B','#3A3226','#C9A468'] },
+  { n:'Bedroom Studio',  cost:6e3,    bg:['#161D18','#0A100C'], r:['#222E26','#33413A','#8FD6B0'] },
+  { n:'Rehearsal Space', cost:9e4,    bg:['#1F1614','#110B0A'], r:['#332320','#45302B','#D89A72'] },
+  { n:'Pro Studio',      cost:1.4e6,  bg:['#121D1E','#080F10'], r:['#1D3033','#2B4448','#67D8E0'] },
+  { n:'Label HQ',        cost:2.2e7,  bg:['#1E1420','#100A12'], r:['#2E2036','#3F2C49','#F0C46A'] },
+  { n:'Tour Bus',        cost:3.5e8,  bg:['#1F1A10','#110E08'], r:['#33291A','#453824','#E0B96A'] },
+  { n:'Stadium',         cost:6e9,    bg:['#141824','#080B12'], r:['#222941','#333C5C','#9FB6FF'] },
+  { n:'Space',           cost:1e11,   bg:['#181428','#0B0817'], r:['#252045','#342C5E','#C6BBFF'] }
 ];
 const TIERS = [
   { id:'flop',  n:'FLOP',  mult:0.35, c:PAL.dim2, lo:200, hi:960 },
@@ -2952,7 +2961,7 @@ const el = {
   studioChip:$('#studioChip'), bandChip:$('#bandChip'), rail:$('#rail'),
   fans:$('#fans'), fps:$('#fps'), rankbar:$('#rankbar'), rankBadge:$('#rankBadge'),
   rankName:$('#rankName'), rankNext:$('#rankNext'), rankFill:$('#rankFill'),
-  band:$('#band'), stage:$('#stage'), bg:$('#bg'), dock:$('#dock'),
+  band:$('#band'), stage:$('#stage'), bg:$('#bg'), room:$('#room'), dock:$('#dock'),
   idlebox:$('#idlebox'), genrebox:$('#genrebox'), writebox:$('#writebox'), qualbox:$('#qualbox'),
   takefs:$('#takefs'), hwy:$('#hwy'), feed:$('#feed'),
   taketime:$('#taketime'), tkTrack:$('#tkTrack'), tkWho:$('#tkWho'), tkmult:$('#tkmult'),
@@ -2993,10 +3002,110 @@ function react(i, kind){
   b.textContent = kind === 'good' ? 'nods' : kind === 'bad' ? 'winces' : 'shrugs';
   b.classList.remove('on'); void b.offsetWidth; b.classList.add('on');
 }
+/* ===== THE ROOM — what a studio upgrade actually looks like =====
+   Every studio repaints the wall behind the band. One entry per studio, an ordered
+   table like every other content table: `ROOM[i]` draws into a 100x100 box stretched
+   over the stage (`preserveAspectRatio="none"`, so ~10% distortion at a phone's
+   aspect — rectangles and lines only, nothing that needs to stay round).
+
+   Two rules keep it a backdrop rather than a competitor:
+   - **Everything lives above y=50.** The dock covers the bottom half, and the band's
+     feet land at about y=40 — so the floor line sits there and nothing is drawn under it.
+   - **It is never brighter than the band.** Colours come from the studio's own `r`
+     triple (wall / prop / highlight), which sits in the same dark family as its `bg`. */
+const ROOM = [
+  // GARAGE — a bare wall, one bulb on a wire, and boxes nobody has unpacked
+  r => `<path d="M0 40 H100" stroke="${r[0]}" stroke-width="1.2"/>
+    <rect x="8" y="10" width="84" height="30" fill="none" stroke="${r[0]}" stroke-width="1"/>
+    <path d="M8 18 H92 M8 26 H92 M8 34 H92" stroke="${r[0]}" stroke-width=".8"/>
+    <path d="M50 0 V12" stroke="${r[1]}" stroke-width=".7"/>
+    <ellipse cx="50" cy="14" rx="2.6" ry="3" fill="${r[2]}" opacity=".9"/>
+    <ellipse cx="50" cy="16" rx="13" ry="9" fill="${r[2]}" opacity=".10"/>
+    <rect x="4" y="30" width="12" height="10" fill="${r[1]}"/>
+    <path d="M4 34 H16 M10 30 V40" stroke="${r[0]}" stroke-width=".7"/>
+    <rect x="84" y="33" width="10" height="7" fill="${r[1]}"/>`,
+  // BEDROOM STUDIO — a poster, a desk, two little monitors and a rug
+  r => `<path d="M0 40 H100" stroke="${r[0]}" stroke-width="1.2"/>
+    <rect x="62" y="8" width="20" height="15" fill="${r[1]}"/>
+    <rect x="65" y="11" width="14" height="6" fill="${r[2]}" opacity=".5"/>
+    <path d="M65 20 H79" stroke="${r[2]}" stroke-width="1" opacity=".7"/>
+    <rect x="6" y="28" width="30" height="2.4" fill="${r[1]}"/>
+    <path d="M8 30 V40 M34 30 V40" stroke="${r[1]}" stroke-width="1.4"/>
+    <rect x="10" y="22" width="6" height="6" fill="${r[1]}"/>
+    <rect x="26" y="22" width="6" height="6" fill="${r[1]}"/>
+    <ellipse cx="13" cy="25" rx="1.8" ry="1.8" fill="${r[2]}" opacity=".6"/>
+    <ellipse cx="29" cy="25" rx="1.8" ry="1.8" fill="${r[2]}" opacity=".6"/>
+    <ellipse cx="55" cy="42" rx="34" ry="5" fill="${r[1]}" opacity=".55"/>`,
+  // REHEARSAL SPACE — foam on the wall, a PA stack, stands waiting
+  r => `<path d="M0 40 H100" stroke="${r[0]}" stroke-width="1.2"/>
+    ${[0,1,2,3,4,5,6,7].map(i => [0,1,2].map(j =>
+      `<rect x="${2 + i * 9}" y="${6 + j * 9}" width="7" height="7" fill="${r[0]}"
+        opacity="${(i + j) % 2 ? .85 : .5}"/>`).join('')).join('')}
+    <rect x="78" y="16" width="16" height="24" fill="${r[1]}"/>
+    <rect x="81" y="19" width="10" height="8" fill="${r[2]}" opacity=".35"/>
+    <rect x="81" y="29" width="10" height="8" fill="${r[2]}" opacity=".25"/>
+    <path d="M10 40 V18 M6 40 h8 M26 40 V20 M22 40 h8" stroke="${r[1]}" stroke-width="1"/>
+    <path d="M10 18 h6 M26 20 h-6" stroke="${r[1]}" stroke-width="1"/>`,
+  // PRO STUDIO — glass to the control room, a desk of faders, boom arms
+  r => `<path d="M0 40 H100" stroke="${r[0]}" stroke-width="1.2"/>
+    <rect x="14" y="6" width="72" height="20" fill="${r[2]}" opacity=".13"/>
+    <rect x="14" y="6" width="72" height="20" fill="none" stroke="${r[1]}" stroke-width="1.4"/>
+    <path d="M20 26 L34 6" stroke="${r[2]}" stroke-width="2" opacity=".22"/>
+    <rect x="26" y="30" width="48" height="8" fill="${r[1]}"/>
+    ${[0,1,2,3,4,5,6,7,8,9].map(i =>
+      `<path d="M${30 + i * 4.6} 32 v4" stroke="${r[2]}" stroke-width=".8" opacity=".7"/>`).join('')}
+    <path d="M4 8 q10 10 16 12 M96 8 q-10 10 -16 12" stroke="${r[1]}" stroke-width="1" fill="none"/>
+    <rect x="18" y="19" width="4" height="3" fill="${r[1]}"/><rect x="78" y="19" width="4" height="3" fill="${r[1]}"/>`,
+  // LABEL HQ — records on the wall, plants, and light thrown up it
+  r => `<path d="M0 40 H100" stroke="${r[0]}" stroke-width="1.2"/>
+    <ellipse cx="50" cy="40" rx="46" ry="26" fill="${r[2]}" opacity=".09"/>
+    ${[20, 35, 50, 65, 80].map(x => `<rect x="${x - 5}" y="6" width="10" height="10" fill="${r[1]}"/>
+      <ellipse cx="${x}" cy="11" rx="3.4" ry="3.4" fill="${r[2]}" opacity=".42"/>
+      <ellipse cx="${x}" cy="11" rx=".9" ry=".9" fill="${r[1]}"/>`).join('')}
+    <path d="M8 40 V32 q-4 -6 0 -10 q5 5 3 10 q5 -4 6 2 q-3 5 -9 4z" fill="${r[1]}"/>
+    <path d="M92 40 V32 q4 -6 0 -10 q-5 5 -3 10 q-5 -4 -6 2 q3 5 9 4z" fill="${r[1]}"/>`,
+  // TOUR BUS — bunks, curtains, and cases with the tour still on them
+  r => `<path d="M0 40 H100" stroke="${r[0]}" stroke-width="1.2"/>
+    <rect x="4" y="8" width="26" height="10" fill="${r[1]}"/>
+    <rect x="4" y="20" width="26" height="10" fill="${r[1]}"/>
+    <path d="M4 13 H30 M4 25 H30" stroke="${r[0]}" stroke-width=".8"/>
+    <rect x="40" y="8" width="22" height="16" fill="${r[2]}" opacity=".16"/>
+    <rect x="40" y="8" width="22" height="16" fill="none" stroke="${r[1]}" stroke-width="1.2"/>
+    <path d="M40 8 h6 v16 h-6z M56 8 h6 v16 h-6z" fill="${r[1]}" opacity=".8"/>
+    <rect x="70" y="26" width="24" height="14" fill="${r[1]}"/>
+    <path d="M70 33 H94" stroke="${r[0]}" stroke-width=".8"/>
+    <rect x="73" y="28" width="3" height="3" fill="${r[2]}" opacity=".8"/>
+    <rect x="88" y="28" width="3" height="3" fill="${r[2]}" opacity=".8"/>`,
+  // STADIUM — truss overhead, lights with real beams, a riser to stand on
+  r => `<path d="M0 40 H100" stroke="${r[0]}" stroke-width="1.2"/>
+    <path d="M0 8 H100 M0 14 H100" stroke="${r[1]}" stroke-width="1.4"/>
+    ${[0,1,2,3,4,5,6,7,8,9].map(i =>
+      `<path d="M${i * 10} 8 L${i * 10 + 10} 14 M${i * 10 + 10} 8 L${i * 10} 14" stroke="${r[1]}" stroke-width=".7"/>`).join('')}
+    ${[18, 40, 60, 82].map((x, i) => `<rect x="${x - 3}" y="14" width="6" height="5" fill="${r[1]}"/>
+      <path d="M${x - 3} 19 L${x - 14 + i * 3} 40 L${x + 14 - i * 3} 40 L${x + 3} 19z" fill="${r[2]}" opacity=".13"/>`).join('')}
+    <rect x="20" y="36" width="60" height="4" fill="${r[1]}" opacity=".8"/>`,
+  // SPACE — a starfield, racks with nothing holding them up, cable adrift
+  r => `${[[9,7],[21,15],[33,5],[46,12],[58,6],[70,17],[83,9],[93,14],[15,26],[38,30],
+           [62,27],[88,31],[27,20],[52,21],[76,24]].map(([x, y], i) =>
+      `<rect x="${x}" y="${y}" width="${i % 3 ? .8 : 1.2}" height="${i % 3 ? .8 : 1.2}" fill="${r[2]}"
+        opacity="${.35 + (i % 4) * .18}"/>`).join('')}
+    <ellipse cx="50" cy="34" rx="44" ry="14" fill="${r[2]}" opacity=".07"/>
+    <rect x="10" y="20" width="18" height="16" fill="${r[1]}" transform="rotate(-9 19 28)"/>
+    <path d="M12 25 h14 M12 30 h14" stroke="${r[0]}" stroke-width=".9" transform="rotate(-9 19 28)"/>
+    <rect x="72" y="16" width="16" height="14" fill="${r[1]}" transform="rotate(7 80 23)"/>
+    <path d="M74 21 h12" stroke="${r[0]}" stroke-width=".9" transform="rotate(7 80 23)"/>
+    <path d="M28 30 q16 12 30 -2 q10 -9 16 -6" stroke="${r[1]}" stroke-width="1" fill="none"/>`
+];
+function renderRoom(){
+  const st = STUDIOS[S.studio];
+  el.room.innerHTML = `<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+    ${(ROOM[S.studio] || ROOM[0])(st.r)}</svg>`;
+}
 function applyStudio(){
   const st = STUDIOS[S.studio];
   el.bg.style.background = `radial-gradient(125% 72% at 50% 0%, ${st.bg[0]}, ${st.bg[1]} 48%, var(--bg0) 100%)`;
   el.studioChip.textContent = st.n;
+  renderRoom();
   AU.setStudio(S.studio);
 }
 /* The header is the economy, and the economy is not what you are doing while you play:
@@ -3954,6 +4063,7 @@ function startGig(){
              best: 0, milestone: 0, encore: false, peak: hype0, hypeMul: 1 };
   el.bg.style.background = `radial-gradient(125% 72% at 50% 0%, ${V.bg[0]}, ${V.bg[1]} 48%, var(--bg0) 100%)`;
   el.takefs.classList.add('gig');
+  el.stage.classList.add('away');     // you are not in your studio tonight
   el.gtVenue.textContent = V.n;
   hudMode();
   toast('🎤 ' + V.n + ' — ' + songs.length + (songs.length === 1 ? ' song' : ' songs'));
@@ -4056,6 +4166,7 @@ function crowdLevel(h){
 }
 /* the crowd cools between hits, so a show has to be played rather than survived */
 function gigTick(t){
+  if (!gigRun) return;      // a show can end under a live take; the loop must not crash
   const dt = t - take.lastSec;
   if (dt < 0.25) return;
   take.lastSec = t;
@@ -4102,6 +4213,7 @@ function finishGig(){
   S.gig.active = null;
   save();
   el.takefs.classList.remove('on', 'gig');
+  el.stage.classList.remove('away');   // home, and the room comes back with the backdrop
   hudMode();
   memEls.forEach(m => m.classList.remove('up'));
   applyStudio();
