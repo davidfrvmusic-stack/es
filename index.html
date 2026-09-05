@@ -419,9 +419,15 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
    number the game cannot actually justify */
 .statrail{display:flex;align-items:center;gap:10px;margin-bottom:7px}
 .statrail .sn{width:74px;flex:0 0 auto;font-size:9.5px;font-weight:800;letter-spacing:.13em;color:var(--dim2)}
-.statrail .sb{flex:1;height:7px;border-radius:99px;background:var(--elev);
+.statrail .sb{flex:1;height:7px;border-radius:99px;background:var(--elev);overflow:hidden;
   background-image:repeating-linear-gradient(115deg,var(--line) 0 6px,transparent 6px 12px)}
-.statrail .sv{flex:0 0 auto;font-size:9px;font-weight:800;letter-spacing:.12em;color:var(--dim3)}
+.statrail .sb i{display:block;height:100%;border-radius:99px;background:var(--accent2)}
+.statrail .sv{flex:0 0 auto;min-width:22px;text-align:right;font-size:9px;font-weight:800;
+  letter-spacing:.12em;color:var(--dim3);font-variant-numeric:tabular-nums}
+.statrail .sadd{flex:0 0 auto;width:26px;height:26px;border-radius:8px;border:2px solid var(--line2);
+  background:var(--elev);color:var(--ink);font-weight:900;font-size:15px;line-height:1}
+.statrail .sadd:active{transform:translateY(2px)}
+.stathint{font-size:9.5px;color:var(--dim3);margin:-3px 0 9px 84px}
 .gearrow{display:flex;gap:var(--s2)}
 .gearslot{flex:1;min-height:76px;border-radius:var(--r2);background:var(--panel);
   border:2px dashed var(--line2);display:grid;place-items:center;gap:3px;color:var(--dim3);
@@ -1041,6 +1047,8 @@ function fmt(n){
   while (n >= 1000 && t < UNITS.length - 1){ n /= 1000; t++; }
   return (n < 10 ? n.toFixed(2) : n < 100 ? n.toFixed(1) : Math.floor(n).toString()) + UNITS[t];
 }
+/* one decimal, and no trailing .0 — a take is worth 5, or 5.3 once SKILL is in it */
+const fmt1 = n => (Math.round(n * 10) / 10).toString();
 const fmtRate = n => n < 10 ? (Math.round(n*100)/100).toFixed(2).replace(/\.?0+$/,'') || '0' : fmt(n);
 function dur(s){
   s = Math.max(0, Math.floor(s));
@@ -1128,10 +1136,32 @@ const BAL = {
   // CRAFT — what every upgrade actually buys. See PACING: upgrades raise the Quality this
   // band can reach, and never touch what a song already released earns.
   catalogCap: 200,        // songs kept; at the cap the weakest earner loses its slot
-  craftFloor: 40,         // a brand-new band's Quality ceiling
-  craftMember: 2,         // just having someone on the track
-  craftLvl: 1.1, craftExp: 0.5,   // their level, with diminishing returns
-  craftStudio: 3.5,       // each studio step
+  craftFloor: 33,         // a brand-new band's Quality ceiling
+  craftMember: 1.73,      // just having someone on the track
+  craftLvl: 1.27, craftExp: 0.35,  // their level, with diminishing returns
+  craftStudio: 1.8,       // each studio step
+  craftK: 46,             // the ceiling approaches 100 asymptotically at this rate, so
+                          // craft alone can never reach Q100 — see flaw* below
+  starCraft: [0, 2.0, 3.5, 4.5, 5.0],   // craft per Star Rank, additive (build step 4)
+  // A FLAWLESS SESSION is the only way past the ceiling: three conditions, each worth
+  // this much, and you need craft AND the playing. A week-one band cannot reach Q100
+  // under any performance; a maxed one can, and only by very nearly not missing.
+  flawAcc: 0.90,          // every take graded at least this accurate
+  flawBonus: 2,           // ...and the same again for all-x4 and all-pocket
+  // STATS — four jobs. None of them multiplies streams or touches a released song.
+  statWriteCraft: 0.10,   // WRITING: craft per point...
+  statWriteHint: 0.004,   // ...and the floor under this member's hint accuracy
+  statSkillTake: 0.006,   // SKILL: what a played take is worth in Quality
+  statSkillWin: 0.0012, statSkillWinMax: 0.12,   // ...and the hit windows, accessibility only
+  statStageHype: 0.005,   // STAGE: hype gain...
+  statStageFit: 0.003, statStageFitMax: 0.35,    // ...and the floor under a room's genre fit
+  statStamFat: 0.006, statStamFatMax: 0.85,      // STAMINA: how much show fatigue it answers
+  // FATIGUE lives in gigs and nowhere else. A one-song Open Mic is exactly 0, so a
+  // normal songwriting take is never punished by it.
+  fatSection: 0.18,       // per song after the first
+  fatHard: 0.10, fatHardFrom: 4,   // per difficulty star above this
+  fatEncore: 0.25,
+  fatHypeCut: 0.35,       // full fatigue costs this share of the section's hype gain
   qNudge: 0.5,            // Quality's SMALL direct effect on streams: x0.75 at Q0, x1.25 at Q100
   gigBase: 1.0,           // money/sec from playing live, before any release exists
   gigPerMember: 0.5,      // each extra member makes the gigs pay better
@@ -1157,10 +1187,13 @@ const MEMBERS = [
   { id:'guitar', role:'Guitarist', track:'GUITAR', sps:1.10, lvlCost:34, c1:PAL.gold,    c2:PAL.goldDk },
   { id:'vocals', role:'Vocalist',  track:'VOCALS', sps:1.20, lvlCost:50, c1:PAL.violet,  c2:PAL.violetDk }
 ];
+/* Rarity is a name and a colour. It used to carry `m`, a 1->8 multiplier on craft and
+   on member power, which is exactly the unlimited multiplier the economy cannot have —
+   Star Rank replaces it with additive `BAL.starCraft`. */
 const RARITY = [
-  { n:'COMMON', m:1,   c:PAL.dim }, { n:'RARE', m:1.6, c:PAL.blue },
-  { n:'EPIC',   m:2.6, c:PAL.violet }, { n:'LEGENDARY', m:4.5, c:PAL.gold },
-  { n:'MYTHIC', m:8,   c:PAL.accent }
+  { n:'COMMON', c:PAL.dim }, { n:'RARE', c:PAL.blue },
+  { n:'EPIC',   c:PAL.violet }, { n:'LEGENDARY', c:PAL.gold },
+  { n:'MYTHIC', c:PAL.accent }
 ];
 const STUDIOS = [
   { n:'Garage',          cost:0,      bg:['#1A1712','#0E0C09'] },
@@ -2218,22 +2251,65 @@ function load(){
 /* ===== DERIVED ===== */
 /* level^0.55, not level: the multiplier applies to every song at once, so a linear
    gain here beats an exponential cost curve and the game finishes in an hour. */
-const memberSPS = i => MEMBERS[i].sps * Math.pow(S.members[i].lvl, BAL.lvlExp) * RARITY[S.members[i].rarity].m;
+const memberSPS = i => MEMBERS[i].sps * Math.pow(S.members[i].lvl, BAL.lvlExp);
+/* ===== STATS — four jobs, and not one of them is "more streams" =====
+   WRITING  raises craft, and puts a floor under how often this member reads a card right.
+   SKILL    turns a played take into Quality, and buys a little timing window.
+   STAGE    is the room: hype gain, and how forgiving a venue is about your genre.
+   STAMINA  is long shows only — see gigFatigue(). It never touches songwriting.
+   Points come from Star Rank (build step 4), gear (step 2) and skills (step 5); until
+   those land every stat is 0 and every formula below is a no-op. */
+const STATS = [
+  { k:'w', n:'WRITING', d:'Craft, and how often they read a card right' },
+  { k:'s', n:'SKILL',   d:'What a played take is worth in Quality' },
+  { k:'t', n:'STAGE',   d:'Crowd hype, and how forgiving a room is' },
+  { k:'m', n:'STAMINA', d:'Holds a long show together — nothing else' }
+];
+function statOf(i, k){
+  const sp = S.spend && S.spend[i];
+  return (sp && sp[k] || 0) + gearStat(i, k) + skillStat(i, k);
+}
+/* gear and skills are later build steps; declared here so statOf has one shape */
+const gearStat = () => 0;
+const skillStat = () => 0;
+/* the two stage stats belong to the band, not to whoever is holding the pick */
+function bandStat(k){
+  let n = 0, c = 0;
+  for (let i = 0; i < 4; i++) if (S.members[i].owned){ n += statOf(i, k); c++; }
+  return c ? n / c : 0;
+}
+/* a low-level member is an unreliable narrator — WRITING is what makes them reliable
+   before their level does */
+const hintAcc = i => clamp(Math.max(0.5 + 0.035 * S.members[i].lvl,
+                                    0.5 + BAL.statWriteHint * statOf(i, 'w')), 0.5, 0.97);
+/* SKILL widens the hit windows a little. Capped hard: this is accessibility, not a
+   difficulty setting, and the grade is still accuracy. */
+const winScale = i => 1 + Math.min(BAL.statSkillWinMax, BAL.statSkillWin * statOf(i, 's'));
+/* STAGE never makes a wrong room right, it just stops it being hopeless */
+const fitFloor = () => Math.min(BAL.statStageFitMax, BAL.statStageFit * bandStat('t'));
+
 /* ===== CRAFT — the one thing upgrades buy =====
    Levels, the studio, and later gear and skills all feed ONE number: how good a song this
    band is capable of making. Craft never touches what a released song earns; it raises the
    ceiling on the next one. That is the whole progression — you do not get richer per song,
    you get *better*, and better songs chart higher. */
 const memberCraft = i => BAL.craftMember +
-  BAL.craftLvl * Math.pow(S.members[i].lvl, BAL.craftExp) * RARITY[S.members[i].rarity].m;
+  BAL.craftLvl * Math.pow(S.members[i].lvl, BAL.craftExp) +
+  BAL.starCraft[clamp((S.star[i] || 1) - 1, 0, BAL.starCraft.length - 1)] +
+  BAL.statWriteCraft * statOf(i, 'w');
 function craft(){
   let c = 0;
   for (let i = 0; i < 4; i++) if (S.members[i].owned) c += memberCraft(i);
   c += BAL.craftStudio * S.studio;
-  return c;                        // gear (build step 2) and skills (step 6) add here
+  return c;                        // gear (build step 2) and skills (step 5) add here
 }
-/* the best song this band could make if you played the session perfectly */
-const craftCap = () => clamp(BAL.craftFloor + craft(), BAL.craftFloor, 100);
+/* The best song this band could make if you played the session perfectly — and it
+   APPROACHES 100 rather than reaching it. Craft alone tops out just short of the top of
+   the scale; the last few points are the flawless-session bonus in finishWriting(), so a
+   Q100 record is a maxed band that also very nearly did not miss. */
+const craftCap = () => clamp(
+  BAL.craftFloor + (100 - BAL.craftFloor) * (1 - Math.exp(-craft() / BAL.craftK)),
+  BAL.craftFloor, 100);
 /* an unattended demo is graded by the same ceiling — the band cannot exceed itself */
 const soloQ = () => clamp(Math.round(rndi(BAL.soloQ[0], BAL.soloQ[1]) * craftCap() / 100), 1, 100);
 const upCost = i => Math.floor(MEMBERS[i].lvlCost * Math.pow(BAL.costGrow, S.members[i].lvl - 1));
@@ -2258,7 +2334,17 @@ function msToRefill(){
   return n.getTime() - Date.now();
 }
 const venueOpen = i => i <= S.gig.cleared;
-const venueFit = (vi, g) => fitOf(GENRES[g].v, GENRES[VENUES[vi].g].v);
+const venueFit = (vi, g) => Math.max(fitOf(GENRES[g].v, GENRES[VENUES[vi].g].v), fitFloor());
+/* What a long night costs the room's energy — and the ONLY thing STAMINA answers.
+   Section 0 of a one-song show in a room of difficulty <= fatHardFrom is exactly 0, so a
+   normal writing take can never be touched by it. */
+function gigFatigue(vi, section, encore){
+  const raw = BAL.fatSection * Math.max(0, section) +
+              BAL.fatHard * Math.max(0, VENUES[vi].d - BAL.fatHardFrom) +
+              (encore ? BAL.fatEncore : 0);
+  const held = Math.min(BAL.statStamFatMax, BAL.statStamFat * bandStat('m'));
+  return clamp(raw * (1 - held), 0, 1);
+}
 /* the reward is a slice of the band's own money rate, so a show is always worth
    something and never worth more than the catalogue that pays for it */
 function gigReward(vi){
@@ -2790,7 +2876,7 @@ function dealStep(){
   labels[rank[0].k] = 'good';
   labels[rank[rank.length-1].k] = 'bad';
   for (let k = 0; k < s.offers.length; k++) if (!labels[k]) labels[k] = 'meh';
-  const acc = clamp(0.5 + 0.035 * lvl, 0.5, 0.97);          // clearer hints at higher level
+  const acc = hintAcc(track);                 // clearer hints at higher level, floored by WRITING
   s.reacts = labels.map(l => Math.random() < acc ? l : pick(['good','meh','bad']));
 
   el.whTrack.textContent = MEMBERS[track].track;
@@ -2860,6 +2946,19 @@ function autoPickRest(){
     autoTake();                    // no take UI when the band is finishing for you
   }
 }
+/* THE ONLY WAY PAST THE CEILING. Craft approaches 100 and never arrives; these three
+   conditions — every take accurate, every take finished on the top multiplier, every
+   track in the pocket — are worth flawBonus each on top of it. A week-one band still
+   cannot reach 100; a maxed one can, and only by very nearly not missing. */
+function flawBonus(s){
+  const fl = s.flaw || [];
+  if (!fl.length || fl.length !== s.picks.length) return 0;
+  let b = 0;
+  if (fl.every(f => f.acc >= BAL.flawAcc)) b += BAL.flawBonus;
+  if (fl.every(f => f.top)) b += BAL.flawBonus;
+  if (fl.every(f => f.pocket)) b += BAL.flawBonus;
+  return b;
+}
 function finishWriting(){
   const s = S.session, genre = GENRES[s.g];
   let pts = 0;
@@ -2871,7 +2970,8 @@ function finishWriting(){
   // how well you played, then what this band is actually capable of: a garage band playing
   // a perfect session still makes a garage-band record
   const raw = clamp(norm + jam + takes, 0, 100);
-  const q = clamp(Math.round(raw * craftCap() / 100), 0, 100);
+  const flaw = flawBonus(s);
+  const q = clamp(Math.round(raw * craftCap() / 100) + flaw, 0, 100);
   S.pending = { title:s.title, g:s.g, cover:s.cover, q, power:bandPower(),
                 takes, cards:s.picks.map(p => CARDS[p.track][p.ci].n) };
   S.session = null;
@@ -2881,7 +2981,8 @@ function finishWriting(){
   el.qfill.style.transform = 'scaleX(0)';
   el.qlabel.textContent = qLabel(q);
   el.qnote.textContent = GENRES[S.pending.g].n + ' · ' + S.pending.cards.join(' · ') +
-    (takes ? ' · takes +' + Math.round(takes) : '');
+    (takes ? ' · takes +' + Math.round(takes) : '') +
+    (flaw ? ' · flawless +' + flaw : '');
   AU.chord('small');
   let shown = 0;
   const iv = setInterval(() => {
@@ -2963,7 +3064,8 @@ function startTake(track, card){
     mode:'take', secs: BAL.takeSecs,
     track, card, approach, notes: takeNotes(card, AU.bpm, approach, BAL.takeSecs),
     t0: now(), pts: 0, streak: 0, best: 0, mult: 1, bestMult: 1, pocket: 0, ended: false, lastMiss: -9,
-    meter: BAL.meterStart, yours: track === S.you, energy: (card.v[0] + 1) / 2
+    meter: BAL.meterStart, yours: track === S.you, energy: (card.v[0] + 1) / 2,
+    perfW: BAL.perfectMs / 1000 * winScale(track), goodW: BAL.goodMs / 1000 * winScale(track)
   };
   const ss = S.session;
   el.tkTrack.textContent = MEMBERS[track].track;
@@ -3028,7 +3130,7 @@ function laneBad(L){
 }
 function tapLane(L){
   if (!take || take.ended) return;
-  const t = now() - take.t0, win = BAL.goodMs / 1000;
+  const t = now() - take.t0, win = take.goodW;
   let best = null, bestD = 1e9, near = false;
   for (const n of take.notes){
     if (n.done) continue;
@@ -3045,10 +3147,10 @@ function tapLane(L){
   }
   laneFire(L);
   best.done = true;
-  const perfect = bestD <= BAL.perfectMs / 1000;
+  const perfect = bestD <= take.perfW;
   best.node.classList.add('hit');
   take.pts += perfect ? 2 : 1;
-  if (take.mode === 'gig') hype(perfect ? BAL.hypePerfect : BAL.hypeGood);
+  if (take.mode === 'gig') hypeGain(perfect ? BAL.hypePerfect : BAL.hypeGood);
   else take.meter = clamp(take.meter + BAL.meterHit, 0, 100);
   AU.takeHit(take.yours, take.energy, perfect);
   buzz(perfect ? 12 : 8);
@@ -3086,14 +3188,14 @@ function pocket(){
     if (b){ b.textContent = 'in the pocket!'; b.classList.remove('on'); void b.offsetWidth; b.classList.add('on'); }
     m.classList.remove('nod'); void m.offsetWidth; m.classList.add('nod');
   }
-  if (take.mode === 'gig') hype(6);                       // the room feels a run of perfects
+  if (take.mode === 'gig') hypeGain(6);                   // the room feels a run of perfects
   else if (S.session) S.heat[S.session.g] = clamp(S.heat[S.session.g] + BAL.pocketHeat, 0, 100);
   AU.fill(); buzz([14, 40, 14]);
 }
 function tickTake(){
   if (!take || take.ended) return;
   const t = now() - take.t0;
-  const late = BAL.goodMs / 1000;
+  const late = take.goodW;
   for (const n of take.notes){
     if (!n.done && t > n.t + late){ n.done = true; n.node.classList.add('gone'); laneBad(n.lane); missNote(false); }
     if (!take || take.ended) return;
@@ -3107,7 +3209,7 @@ function endTake(auto, botched){
   take.ended = true;
   if (take.mode === 'gig'){ endGigSection(); return; }
   const s = S.session;
-  let got;
+  let got, ratio = 0;
   if (botched){
     got = 0;
     const m = memEls[take.track];
@@ -3117,13 +3219,19 @@ function endTake(auto, botched){
     got = BAL.takeAuto / Math.max(1, s.order.length);      // auto every track = takeAuto total
   } else {
     const max = take.notes.length * 2;
-    const ratio = max ? take.pts / max : 0;
+    ratio = max ? take.pts / max : 0;
     got = ratio >= 0.80 ? BAL.takePerfect : ratio >= 0.45 ? BAL.takeGood : 0;
     if (got && take.bestMult >= BAL.multSteps.length + 1) got += BAL.multBonus;
-    toast(got >= BAL.takePerfect ? '🎙️ Perfect take — +' + got + ' Quality'
-        : got ? '🎙️ Good take — +' + got + ' Quality'
+    got *= 1 + BAL.statSkillTake * statOf(take.track, 's');   // SKILL: the conversion, not the notes
+    toast(got >= BAL.takePerfect ? '🎙️ Perfect take — +' + fmt1(got) + ' Quality'
+        : got ? '🎙️ Good take — +' + fmt1(got) + ' Quality'
         : '🎙️ That take did not make it');
   }
+  // the flawless-session conditions, recorded per take: an auto or a botched one fails
+  // all three, which is why AUTO-TAKE can never be part of a Q100 record
+  (s.flaw = s.flaw || []).push({ acc: auto || botched ? 0 : ratio,
+                                 top: !auto && !botched && take.bestMult >= BAL.multSteps.length + 1,
+                                 pocket: !auto && !botched && take.pocket > 0 });
   s.takePts = (s.takePts || 0) + got;
   el.takefs.classList.remove('on');
   hudMode();
@@ -3274,6 +3382,11 @@ function renderBrief(){
       ${r.first ? '<span class="tag first">FIRST CLEAR PAYS x' + BAL.gigFirstMult + '</span>' : ''}</div></div>
   <div class="rew"><div class="m"><span>MONEY</span><b>${fmt(r.m * (r.first ? BAL.gigFirstMult : 1))}</b></div>
     <div class="f"><span>FANS</span><b>${fmt(r.f * (r.first ? BAL.gigFirstMult : 1))}</b></div></div>`;
+  // the long-night warning: what the last song of THIS setlist would cost the room
+  const fatEnd = gigFatigue(gsel.v, Math.max(0, gsel.songs.length - 1), false);
+  if (fatEnd > 0.001) h += `<div class="hint" style="text-align:left;padding:2px 2px 8px">
+    A long night here: by the last song the room gains <b>${Math.round(BAL.fatHypeCut * fatEnd * 100)}% less hype</b>.
+    Stamina is what answers that.</div>`;
   if (!S.songs.length){
     h += `<div id="gigEmpty">You have nothing to play yet.<br>
       Write and <b>release your first song</b>, then come back and put it in a setlist.</div>`;
@@ -3351,8 +3464,13 @@ function gigSection(song, secs, encore){
     t0: now(), pts: 0, streak: 0, best: 0, mult: 1, bestMult: 1, pocket: 0,
     ended: false, lastMiss: -9, meter: 100, hype: g.hype,
     yours: true, energy: (card.v[0] + 1) / 2,
+    perfW: BAL.perfectMs / 1000 * winScale(track), goodW: BAL.goodMs / 1000 * winScale(track),
     song, encore, fit: venueFit(g.v, song.g), norm: songNorm(song), lastSec: 0
   };
+  // FATIGUE: later songs, harder rooms and the encore, minus whatever the band's
+  // STAMINA answers. A one-song Open Mic is exactly 0 — see gigFatigue().
+  g.fat = gigFatigue(g.v, encore ? g.songs.length - 1 : g.k, encore);
+  g.hypeMul = (1 + BAL.statStageHype * bandStat('t')) * (1 - BAL.fatHypeCut * g.fat);
   g.max += take.notes.length * 2;
   el.tkTrack.textContent = encore ? 'ENCORE' : 'SONG ' + (g.k + 1) + '/' + g.songs.length;
   el.tkWho.textContent = GENRES[song.g].n;
@@ -3393,6 +3511,9 @@ function hypeTier(h){
   HYPE_TIERS.forEach((t, k) => { if (h >= t.at) i = k; });
   return i;
 }
+/* every POSITIVE hype move goes through the room multiplier — STAGE lifts it, fatigue
+   cuts it. Losses are never scaled: a miss costs what a miss costs. */
+const hypeGain = n => hype(n * (gigRun ? gigRun.hypeMul : 1));
 function hype(n){
   if (!take || take.mode !== 'gig' || !gigRun) return;   // the run can end under a live take
   take.hype = clamp(take.hype + n, 0, 100);
@@ -3419,7 +3540,7 @@ function gigTick(t){
   const dt = t - take.lastSec;
   if (dt < 0.25) return;
   take.lastSec = t;
-  const gain = BAL.hypeBase + BAL.hypeSong * take.norm + BAL.hypeFit * take.fit;
+  const gain = (BAL.hypeBase + BAL.hypeSong * take.norm + BAL.hypeFit * take.fit) * gigRun.hypeMul;
   hype((gain - BAL.hypeDrift) * dt);
   renderHype();
 }
@@ -3770,16 +3891,16 @@ function htmlReserved(r){
    Everything about one member in one place. The four stat rails and the two gear slots
    are drawn and labelled but empty: they are what the next two build steps fill, and a
    rail with an invented number in it would be a lie the player cannot check. */
-const STAT_RAILS = ['Skill', 'Writing', 'Stage', 'Stamina'];
-const hintPct = lvl => Math.round(clamp(0.5 + 0.035 * lvl, 0.5, 0.97) * 100);
+const hintPct = i => Math.round(hintAcc(i) * 100);
 function htmlMember(i){
   const m = MEMBERS[i], st = S.members[i], c = upCost(i), ok = S.money >= c;
   const nCards = CARDS[i].filter(x => x.lvl <= st.lvl).length;
   const nextCard = CARDS[i].filter(x => x.lvl > st.lvl).sort((a,b) => a.lvl - b.lvl)[0];
   // what the next level actually buys, measured with the real formulas
-  const was = memberCraft(i), capWas = craftCap(), lvlWas = st.lvl;
+  const was = memberCraft(i), capWas = craftCap(), lvlWas = st.lvl, hintWas = hintPct(i);
   st.lvl++;
-  const now = memberCraft(i), capNow = craftCap(), cardsNext = CARDS[i].filter(x => x.lvl <= st.lvl).length;
+  const now = memberCraft(i), capNow = craftCap(), hintNow = hintPct(i),
+        cardsNext = CARDS[i].filter(x => x.lvl <= st.lvl).length;
   st.lvl = lvlWas;
   let h = `<div class="chead">
     <div class="por" id="cPor">${charSVG(i, st.look, st.rarity, false)}</div>
@@ -3798,13 +3919,27 @@ function htmlMember(i){
       <div class="d">Craft is the ceiling on the next song, not a multiplier on the last one.
         This band tops out at <b>Q${Math.round(craftCap())}</b> however well you play it.</div></div></div>
     <div class="card"><div class="av" style="--c1:${PAL.gold}">${ico(ICON.band, {c:PAL.onGold, s:22})}</div>
-      <div class="info"><div class="t">${nCards} writing cards · hints ${hintPct(st.lvl)}% clear</div>
+      <div class="info"><div class="t">${nCards} writing cards · hints ${hintWas}% clear</div>
       <div class="d">${nextCard ? 'Lv ' + nextCard.lvl + ' unlocks &ldquo;' + esc(nextCard.n) + '&rdquo;'
                                 : 'Every card on this track is unlocked'}</div></div></div>`;
 
-  h += `<div class="sect">Stats <span style="color:var(--dim3);font-weight:700">arrive with Gear</span></div>`;
-  STAT_RAILS.forEach(n => h += `<div class="statrail"><span class="sn">${n.toUpperCase()}</span>
-    <span class="sb"></span><span class="sv">SOON</span></div>`);
+  const pts = (S.pts && S.pts[i]) || 0;
+  const sp = (S.spend && S.spend[i]) || {};
+  const spent = STATS.reduce((a, x) => a + (sp[x.k] || 0), 0);
+  h += `<div class="sect">Stats ${pts ? `<span style="color:var(--gold);font-weight:700">${pts} TO SPEND</span>`
+                                      : '<span style="color:var(--dim3);font-weight:700">from star rank</span>'}</div>`;
+  STATS.forEach(x => {
+    const v = statOf(i, x.k);
+    h += `<div class="statrail"><span class="sn">${x.n}</span>
+      <span class="sb"><i style="width:${Math.min(100, v)}%"></i></span>
+      <span class="sv">${v}</span>
+      ${pts ? `<button class="sadd" data-act="stat" data-i="${i}" data-k="${x.k}">+</button>` : ''}</div>
+      <div class="stathint">${x.d}</div>`;
+  });
+  h += spent ? `<button class="ghost" data-act="respec" data-i="${i}" style="min-height:40px">
+      RESPEC · FREE</button>`
+    : `<div class="hint" style="text-align:left;padding:0 2px 4px">Points arrive with Star Rank —
+      duplicate member cards from crates. Spending them is always free to undo.</div>`;
 
   h += `<div class="sect">Gear <span style="color:var(--dim3);font-weight:700">2 slots</span></div>
     <div class="gearrow">
@@ -3821,8 +3956,8 @@ function htmlMember(i){
       <span class="bn">Q${Math.round(capWas)}</span><span class="ar">→</span>
       <span class="bv">Q${Math.round(capNow)}</span></div>
     <div class="ba"><span class="bl">Hint accuracy</span>
-      <span class="bn">${hintPct(st.lvl)}%</span><span class="ar">→</span>
-      <span class="bv">${hintPct(st.lvl + 1)}%</span></div>
+      <span class="bn">${hintWas}%</span><span class="ar">→</span>
+      <span class="bv">${hintNow}%</span></div>
     <div class="ba"><span class="bl">Writing cards</span>
       <span class="bn">${nCards}</span><span class="ar">→</span><span class="bv">${cardsNext}</span></div>
     <button class="bigbtn ${ok ? 'teal' : 'no'}" data-act="lvl" data-i="${i}" id="cLvl"
@@ -3882,7 +4017,7 @@ function htmlBand(){
       <div class="info">
         <div class="t">${esc(st.name)} <span class="rar" style="color:${RARITY[st.rarity].c}">${RARITY[st.rarity].n}</span></div>
         <div class="d">${m.role}${i === S.you ? ' · you' : ''} · Lv ${st.lvl} · +${fmt(memberCraft(i))} craft
-          · ${nCards} cards · hints ${Math.round(clamp(0.5+0.035*st.lvl,0.5,0.97)*100)}% clear</div>
+          · ${nCards} cards · hints ${hintPct(i)}% clear</div>
         <div class="d" style="opacity:.75">${nextCard ? 'Lv ' + nextCard.lvl + ' unlocks "' + esc(nextCard.n) + '"' : esc(st.bio)}</div>
       </div>
       <button class="buy ${ok ? '' : 'no'}" data-act="lvl" data-i="${i}">LEVEL UP<small>${fmt(c)}</small></button>
@@ -4026,7 +4161,7 @@ function htmlSettings(){
     Offline earnings cap at ${offlineCap()/3600}h${S.vip ? ' (VIP)' : ''}.</div>`;
   return h;
 }
-function buy(act, i){
+function buy(act, i, node){
   if (act === 'hire'){
     const price = nextMemberPrice();
     if (S.money < price || S.members[i].owned) return;
@@ -4067,6 +4202,20 @@ function buy(act, i){
   } else if (act === 'gear'){
     toast('🎸 Gear arrives in the next build — the slot is already yours');
     buzz(10); return;
+  } else if (act === 'stat'){
+    // a stat point is never spent on the player's behalf, and never costs money
+    const k = node && node.dataset.k;
+    if (!k || !(S.pts[i] > 0)) return;
+    S.pts[i]--; S.spend[i][k] = (S.spend[i][k] || 0) + 1;
+    buzz(10); AU.chord('small');
+  } else if (act === 'respec'){
+    // free, always, in both directions — a stat you cannot undo is a trap
+    let back = 0;
+    STATS.forEach(x => { back += S.spend[i][x.k] || 0; S.spend[i][x.k] = 0; });
+    if (!back) return;
+    S.pts[i] += back;
+    toast('↩️ ' + back + ' point' + (back === 1 ? '' : 's') + ' back — spend them again');
+    buzz(12);
   } else if (act === 'lvl'){
     const c = upCost(i);
     if (S.money < c) return;
@@ -4362,7 +4511,7 @@ function boot(){
     const st = e.target.closest('[data-set]');
     if (st){ settingsAct(st.dataset.set); return; }
     const t = e.target.closest('[data-act]');
-    if (t) buy(t.dataset.act, +t.dataset.i);
+    if (t) buy(t.dataset.act, +t.dataset.i, t);
   });
   $('#rvGo').addEventListener('click', endReveal);
   $('#rvSkip').addEventListener('click', () => { skipped = true; if (skipResolve) skipResolve(); });

@@ -366,6 +366,19 @@ played rather than survived. The crowd behind the band grows and bobs through fo
 states, and milestones fire at 40 / 70 / 90. Finish above `BAL.gigEncoreAt` (88) and
 you get an **encore** section on the opening song.
 
+**FATIGUE — the one thing STAMINA answers.** A long night costs the room's energy:
+`gigFatigue()` is `fatSection` (0.18) per song after the first, `fatHard` (0.10) per
+difficulty star above `fatHardFrom` (4), and `fatEncore` (0.25) for the encore, all of it
+reduced by the band's STAMINA (`statStamFat` 0.006 a point, capped at 85%). It lands in
+one place — `gigRun.hypeMul`, the multiplier on every **positive** hype move — so full
+fatigue costs `fatHypeCut` (35%) of the section's hype gain. A miss always costs what a
+miss costs; fatigue never makes the punishment worse.
+
+**A one-song show at Open Mic has fatigue exactly 0**, which is the point: STAMINA
+matters in long sets and hard rooms, and *songwriting is never fatigued at all*. The
+suite asserts a four-take song's Quality is byte-identical at STAMINA 0 and 100. The
+venue brief warns you before you commit — "by the last song the room gains N% less hype".
+
 **The result** is the brief's weighting exactly — `BAL.gigWeights`: 40% performance
 (itself 60% hit accuracy + 40% peak hype, so the meter is worth watching), 25% song
 Quality and tier, 15% crowd fit, 15% band power against the room's `pw`, 5% setlist
@@ -458,33 +471,75 @@ immediate payoff before you have any catalogue.
 
 ## 6b. CRAFT — the one thing every upgrade buys
 
-Member levels, the studio, and later gear and skills all feed **one number**: how good a
-song this band is capable of making.
+Member levels, star rank, the studio, and later gear and skills all feed **one number**:
+how good a song this band is capable of making.
 
-    craft     = Σ owned members (craftMember + craftLvl × level^craftExp × rarity)
-              + craftStudio × studio        (+ gear, + skills, when they land)
-    craftCap  = clamp(craftFloor + craft, craftFloor, 100)
+    craft     = Σ owned members (craftMember + craftLvl × level^craftExp
+                                 + starCraft[star] + statWriteCraft × WRITING
+                                 + gear + skills)
+              + craftStudio × studio
+    craftCap  = craftFloor + (100 − craftFloor) × (1 − exp(−craft / craftK))
 
 `craftCap` is the **highest Quality this band can reach**, and `finishWriting()` scales
-the played score into it. Measured with the shipped tunables (`craftFloor` 40,
-`craftMember` 2, `craftLvl` 1.1, `craftExp` 0.5, `craftStudio` 3.5):
+the played score into it. It is **asymptotic on purpose**: craft alone approaches 100 and
+never arrives, so the top of the scale is not something you can buy. Measured with the
+shipped tunables (`craftFloor` 33, `craftMember` 1.73, `craftLvl` 1.27, `craftExp` 0.35,
+`craftStudio` 1.8, `craftK` 46):
 
-| band | ceiling |
-|---|---|
-| you alone, level 1, Garage | **Q43** |
-| full band, level 1, Garage | Q52 |
-| full band, level 20, Garage | Q68 |
-| full band, level 20, Pro Studio | Q78 |
-| deep investment | Q100 (hard cap) |
+| band | craft | ceiling |
+|---|---|---|
+| you alone, level 1, Garage | 3.0 | **Q37** |
+| full band, level 1, Garage | 12.0 | Q48 |
+| full band, level 20, Garage | 21.4 | Q58 |
+| full band, level 20, Pro Studio | 26.8 | Q63 |
+| level 120, ★4, Tour Bus | 73.1 | Q86 |
+| maxed | 137 | **Q96.6** — and no further |
+
+**The flawless-session overshoot is the only way past it.** Three conditions, checked
+across *every* take in the song, each worth `BAL.flawBonus` (2) on top of the ceiling:
+every take graded ≥ `flawAcc` (0.90) accurate, every take finished on the top multiplier,
+and IN THE POCKET on every track. A maxed band (Q96.6) plus two of the three is Q100; a
+week-one band (Q73) playing all three is Q79. An AUTO-TAKE or a botched take fails all
+three, so a skipped take can never be part of a Q100 record. **Q100 is a maxed band that
+also very nearly did not miss** — rare, and not impossible.
 
 Two consequences worth stating plainly:
 - **A level pays you nothing directly.** It raises what you can write. The character
   sheet says so — the before → after rows are craft and *best song*, not streams.
 - **Solo demos are graded by the same ceiling** (`soloQ()`), so an unattended band cannot
-  exceed itself either.
+  exceed itself either — and they never get the overshoot, because nobody played them.
 
-The `level^0.5` is deliberate: craft has diminishing returns per level against a cost
+The `level^0.35` is deliberate: craft has diminishing returns per level against a cost
 curve that grows at 1.25, so no amount of levelling runs away with the ceiling.
+
+## 6c. STATS — four jobs, and not one of them is streams
+
+Every member carries `WRITING / SKILL / STAGE / STAMINA` (`STATS`, and `statOf(i, k)` is
+the one place they are read). Points come from Star Rank, gear and skills — all later
+build steps — so today every stat is 0 and every formula below is a no-op that the
+content stages switch on. **None of them multiplies streams or touches a released song.**
+
+| stat | what it drives | knob |
+|---|---|---|
+| **WRITING** | craft, and a **floor** under this member's hint accuracy — a high-WRITING level-1 member is already a reliable narrator | `statWriteCraft` 0.10, `statWriteHint` 0.004 |
+| **SKILL** | what a played take is worth in Quality, and a little timing window | `statSkillTake` 0.006, `statSkillWin` 0.0012 **capped at +12%** |
+| **STAGE** | hype gain, and a floor under a room's genre fit | `statStageHype` 0.005, `statStageFit` 0.003 capped 0.35 |
+| **STAMINA** | show fatigue, and nothing else | `statStamFat` 0.006 capped 0.85 |
+
+The two studio stats are **per member** — the one whose track it is. The two stage stats
+are the **band's average** (`bandStat`), because a show is played by a band.
+
+The timing window is capped hard and deliberately: it is an accessibility allowance, not
+a difficulty setting. The grade is still accuracy.
+
+**Rarity's `m` multiplier is deleted.** It ran 1 → 8 and multiplied craft and member
+power — exactly the unlimited multiplier this economy cannot have. Star Rank replaces it
+with additive `BAL.starCraft` (0 / 2.0 / 3.5 / 4.5 / 5.0). Rarity is a name and a colour
+now, and the character's outfit treatment.
+
+**Stat points are spent by the player and always refundable.** The character sheet shows
+four real rails, a `+` per stat while points are unspent, and a free `RESPEC` that gives
+every point back. A stat you cannot undo is a trap.
 
 ## 7. YOUR CHARACTER, AND HIRING THE REST
 On first run a **setup screen** asks for a band name, your name, the instrument you
@@ -507,10 +562,11 @@ earns.** The only thing that multiplies income is the royalty rate, and fans cap
 - **Member levels** — cost `lvlCost × 1.25^n`. Raises that member's craft, unlocks better
   cards, sharpens hints, speeds up solo demos.
 - **Royalty rate** — the one true multiplier, and the one fans gate. See §6.
-- **Rarity** — Common→Rare→Epic→Legendary→Mythic, from crates; multiplies craft.
+- **Star Rank** — ★1…★5, from duplicate member cards in crates; adds `BAL.starCraft` and
+  grants stat points. It replaced rarity's old 1→8 craft *multiplier* (§6c).
 - **Gear** — 2 slots per member; visible on the character; craft + writing cards.
 - **Studios** — Garage → Bedroom → Rehearsal → Pro Studio → Label HQ → Tour Bus →
-  Stadium → Space. Each adds `BAL.craftStudio` (3.5) craft and repaints the stage.
+  Stadium → Space. Each adds `BAL.craftStudio` (1.8) craft and repaints the stage.
 
 ## 9. PACING — why the curve is shaped the way it is
 
@@ -539,36 +595,42 @@ song rather than the oldest demo.
 **Measured** (greedy buyer, headless, real game code, 168 simulated hours; the player's
 Quality is their play skill scaled by `craftCap`, raw 88 steady / 72 casual):
 
+Re-measured after the asymptotic craft curve landed (§6b):
+
 | milestone | steady (a song every 2 min) | casual (every 10 min) |
 |---|---|---|
 | 2nd member | 2m | 2m |
-| craft ceiling Q60 | 54m | 1.5h |
-| full band | 86m | 2.9h |
-| Bedroom Studio | 3.0h | 6.6h |
-| craft ceiling Q75 | 4.1h | 8.9h |
-| Local Act | 6.4h | 20.8h |
-| Rehearsal Space | 11.3h | 24.9h |
-| Pro Studio | 2.0d | 4.2d |
-| Regional | 2.2d | 5.3d |
-| craft ceiling Q90 | 2.5d | 5.1d |
+| Bedroom Studio | 3.6h | 6.2h |
+| craft ceiling Q60 | 3.6h | 6.2h |
+| full band | 1.8h | 3.0h |
+| Local Act | 9.9h | 22.5h |
+| Rehearsal Space | 12.1h | 23.9h |
+| Pro Studio | 2.0d | 3.9d |
+| Regional | 2.7d | 6.1d |
+| craft ceiling Q75 / Q90 | not in a week | not in a week |
 | National / Label HQ / Q100 | not in a week | not in a week |
 
-A week of steady play ends at **Pro Studio, rank Regional, craft ceiling Q93, 672 money/s**
-— from 1.0 money/s and a Q43 ceiling at minute zero. A casual week ends at the same two
-landmarks about twice as slowly, at **203 money/s**. Label HQ, National and a Q100 ceiling
-are all past a week, which is where the mid-game is meant to sit; Stadium, Space and Legend
-are prestige territory.
+A week of steady play ends at **Pro Studio, rank Regional, craft ceiling Q68, 532 money/s**
+— from 1.0 money/s and a **Q37** ceiling at minute zero. A casual week ends at the same two
+landmarks about twice as slowly, at **211 money/s** and the same Q67 ceiling. The ceiling
+figures are *without gear or star rank*, which are the two craft sources still to be built;
+they carry roughly the last 8 craft, which is the difference between Q68 and the plan's
+Q73 target for a first week.
+
+**The ceiling got much slower on purpose.** Under the old linear `craftFloor + craft` a
+steady week reached Q93; it now reaches Q68, and Q90 is weeks away rather than days. That
+is the brief — *progression should be slow, and quality is the thing you are buying*.
 
 **Playing more has to pay, and it does.** Both runs end holding 200 songs, but the steady
-player's 200 are better: **4.17K streams/sec against 1.37K**, and a 36% hit rate against
-29%. That gap is entirely the catalogue-trim rule plus the Quality→odds curve — there is no
+player's 200 are better: **3.29K streams/sec against 1.43K**, and a 28% hit rate against
+23%. That gap is entirely the catalogue-trim rule plus the Quality→odds curve — there is no
 multiplier doing it.
 
 **If you retune, re-run the simulation** (`scratchpad/.../sim8.js`: a greedy buyer driven
 through the real `moneyRate` / `upCost` / `craftCap` / `addSong` / `songSPS` functions for
 168 simulated hours, with the band's own demos included). Reading the tables is not enough
 — the original runaway was invisible until it was simulated. One trap: the game's top-level
-`const` helpers (`craftCap`, `songSPS`, `studioMult`, …) are **not** `window` properties, so
+`const` helpers (`craftCap`, `songSPS`, `statOf`, …) are **not** `window` properties, so
 `window.craftCap = …` in an injected override silently does nothing and the run measures
 unchanged formulas.
 
@@ -737,10 +799,10 @@ What the screen holds, top to bottom:
   multiplier (with the reminder that it lifts the *whole* catalogue, and what that
   catalogue currently earns) and their writing-card count, hint clarity and the next
   card level unlocks.
-- **Stats** — SKILL / WRITING / STAGE / STAMINA, drawn as four empty hatched rails
-  labelled `SOON`. They are deliberately **not filled with a number**: nothing in the
-  game computes them yet, and a rail with an invented value in it is a lie the player
-  cannot check. They arrive with Gear.
+- **Stats** — WRITING / SKILL / STAGE / STAMINA, four real rails now (§6c), each with its
+  value, a one-line note on what it drives, a `+` while the member has unspent points, and
+  a free `RESPEC` once anything is spent. They read 0 for everyone until Star Rank, gear
+  and skills start granting points — which is the honest number, not an invented one.
 - **Gear** — two dashed slots, `INSTRUMENT` and `RIG`, tappable and honest about what
   they are waiting for.
 - **Level n → n+1** — three `before → after` rows measured with the real formulas
@@ -860,11 +922,12 @@ does not move either.
   redrawn with real instruments (animation and pivots unchanged), UI emoji replaced
   with an inline SVG icon set, procedural cover hues constrained to the warm/teal
   family.
-- Economy verified: a fresh band sits at **0 streams/sec, 1.0 money/sec and a Q43
+- Economy verified: a fresh band sits at **0 streams/sec, 1.0 money/sec and a Q37
   ceiling**; hiring raises gig money (1.0→1.5) with no songs out; the first release starts
   streams; hire ladder 30/300/2200; first level 14; royalty 4% at 250. Pacing per §9.
 - **The craft rework is verified by its own suite (`ec`)**: the ceiling ladder
-  (43 solo → 52 full band → 68 at Lv20 → 78 with Pro Studio → hard 100), a perfect session
+  (37 solo → 48 full band → 58 at Lv20 → 63 with Pro Studio → 96.6 maxed, never 100 from
+  craft alone since the stage-1 curve), a perfect session
   scoring exactly the ceiling, `baseFor` showing a 1.67x Quality swing against a 3x tier
   step, a Q100 Solid never out-earning a Q0 Hit, Hit-or-better odds moving 17%→40% from Q30
   to Q90, a released song's `songSPS` **unchanged** by taking the band from level 1/Garage
@@ -872,7 +935,8 @@ does not move either.
   catalogue at cap keeping an incoming Hit while rejecting an incoming flop.
 
 **Known gaps (deliberate, deferred):** gear, crates as real drops (and with them the
-rank's `crate` bonus, which is stored but unread), rarity/merge,
+rank's `crate` bonus, which is stored but unread), star rank and member cards — so
+**nothing grants a stat point yet** and every stat reads 0,
 the *Daily* Gig and rival/multiplayer gigs (the regular ladder in §4d is built),
 six-cards-per-track-per-genre (128 signature cards ship, 384 do not),
 streaks, prestige, league, weekend events, real shop, LLM content,
@@ -1053,7 +1117,8 @@ row in a list with a LEVEL UP button bolted to its right edge. Now they have a s
   than duplicating the formula — if the curve is retuned, the sheet follows it for free.
 - **The stat rails ship empty on purpose.** The plan's wireframe drew them part-filled;
   that would be inventing numbers the game does not have. Empty, hatched and labelled
-  `SOON` is the honest version of the same reservation.
+  `SOON` is the honest version of the same reservation. (Phase Two stage 1 gives them
+  real values — see §6c.)
 - The Band tab's member rows tap through to the same screen (`data-act="member"` on the
   card, with the LEVEL UP and ✎ buttons still winning the `closest()` inside it).
 
@@ -1170,6 +1235,42 @@ saved value survives — plus that two `load()` calls share no subtree and the d
 not mutated. Twenty assertions, all pass. Twenty suites pass in total, no console errors,
 frame time median 16.7ms / p95 17.2ms.
 
+**Phase Two, stage 1 — four stats, one asymptote, and the only fatigue in the game.**
+The economy had one progression spine and no branches: a level, a studio, and nothing else
+that could ever feed craft. Stage 1 builds the spine every later stage hangs off.
+
+- **The ceiling became a curve.** `craftFloor + craft` was linear and clamped, so Q100 was
+  simply a purchase far enough down the road. It is now
+  `craftFloor + (100 − craftFloor) × (1 − exp(−craft / craftK))` — it *approaches* 100 and
+  never arrives (§6b). Constants moved with it: floor 40 → 33, member 2 → 1.73, lvl
+  1.1 → 1.27, exp 0.5 → 0.35, studio 3.5 → 1.8, new `craftK` 46.
+- **…so Q100 needed a way to exist.** `flawBonus()` reads the three flawless conditions
+  recorded per take and adds up to +6 over the ceiling. A maxed band reaches 100; a
+  week-one band reaches 79 playing exactly as well. Auto-taken and botched takes fail all
+  three conditions, which is what stops AUTO-TAKE ever being part of a perfect record.
+- **`RARITY[].m` is deleted.** It ran 1 → 8 on craft and member power — the unlimited
+  multiplier this economy is built to not have. `BAL.starCraft` replaces it, additively.
+- **Four stats that each drive a real mechanic** (§6c), read in exactly one place
+  (`statOf`). WRITING floors hint accuracy and feeds craft; SKILL converts a take into
+  Quality and buys a hard-capped +12% timing window; STAGE lifts hype and floors venue
+  fit; STAMINA answers show fatigue and touches nothing else.
+- **Fatigue is the STAMINA answer and it lives only in gigs** (§4d). One helper,
+  `gigFatigue()`, one landing place, `gigRun.hypeMul`, and a one-song Open Mic is exactly
+  0 — so a normal writing take is never punished by it.
+- **The rails on the character sheet are real** and carry a `+` and a free RESPEC.
+  Nothing grants points yet, so they read 0 — which is the true number, not `SOON`.
+
+Re-simulated (`sim8.js`, 168h, real functions): steady play ends at **Pro Studio, rank
+Regional, ceiling Q68, 532 money/s**, casual at the same two landmarks and 211 money/s.
+Rule 3 of the plan — a week reaches Regional and Pro Studio — holds for both. §9 has the
+table. The ceiling is deliberately far slower than the Q93 the linear curve reached.
+
+Suites: the new `st` suite drives the ceiling ladder (Q37 fresh, Q96.6 maxed, never 100
+from craft alone), each stat's formula and its cap, fatigue at every source, **a four-take
+song scoring identically at STAMINA 0 and 100**, SKILL's take conversion measured through a
+real take, all four flawless outcomes, and allocation plus respec through the sheet's own
+buttons. Twenty-one suites pass, no console errors, frame time median 16.7ms / p95 17.5ms.
+
 **Removed along the way:** the tap-to-fill-tracks loop, Hook Moments, the Hype stat
 (Quality shifts chart odds instead), and weekly-seeded genre trends (replaced by the
 live heat cycle). Time-gated member unlocks are gone too —
@@ -1200,7 +1301,7 @@ base payout rate, levels, ownership, songs, time away) rather than discarded.
 - Everything lives in `index.html`. Keep the section-comment banners
   (`/* ===== AUDIO ===== */` etc.) and add new systems as new banners.
 - Tunables live in the tables near the top of the script — `BAL`, `MEMBERS`,
-  `RARITY`, `STUDIOS`, `TIERS`, `ODDS`, `GENRES`, `GCARDS`, `RANKS`, `CARDS`, `PATTERNS`. Never inline a balance
+  `RARITY`, `STATS`, `STUDIOS`, `TIERS`, `ODDS`, `GENRES`, `GCARDS`, `RANKS`, `CARDS`, `PATTERNS`. Never inline a balance
   number in logic. The craft knobs (`craftFloor`, `craftMember`, `craftLvl`, `craftExp`,
   `craftStudio`) and `qNudge` are the two levers that shape the whole curve — moving either
   means re-running the simulation (§9). `GOALS`, `RAIL` and `HYPE_TIERS` are the same idea for content rather
