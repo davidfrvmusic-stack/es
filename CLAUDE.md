@@ -51,8 +51,8 @@ is not that.
    Quality-driven release reveal, per-song decaying streams, live genre trends,
    16 genres with signature cards, fans and ranks, solo demos, studios, member levels,
    offline earnings, save/load, tab shell. **← current step**
-2. **Gear** — guitars, pedals, amps, mics. Visible on the characters, and each piece
-   unlocks better writing cards. Crates become real drops.
+2. **Gear** — guitars, pedals, amps, mics. Visible on the characters. **Built** (§8b);
+   what remains is crates as the source, which is step 3.
 3. **Crates + rarity** — member drops, Merge 3-same-rarity → +1 rarity, rarity
    passives. Rarity already changes the character's outfit style.
 4. **Retention** — the *Daily* Gig (a guaranteed special show, distinct from the
@@ -124,7 +124,8 @@ stroked paths (shoulder → elbow → hand) inside groups with
 and the hands land on the instrument. Every motion's duration derives from the
 `--beat` variable, so the whole band plays to the song's BPM. Random look on unlock (skin tone,
 hair style, hair colour, accessory). Rarity changes the outfit style (jacket panels →
-shoulder studs → trim + glow → aura). Equipped gear will be drawn on the character.
+shoulder studs → trim + glow → aura). **Equipped gear is drawn on the character** — the
+instrument in their hands, the rig part as a prop at their feet (§8b).
 Locked members are a dark silhouette with a lock. Flat, bold, slightly cartoonish.
 
 ## 4. SONGWRITING SESSION (the core loop)
@@ -564,9 +565,76 @@ earns.** The only thing that multiplies income is the royalty rate, and fans cap
 - **Royalty rate** — the one true multiplier, and the one fans gate. See §6.
 - **Star Rank** — ★1…★5, from duplicate member cards in crates; adds `BAL.starCraft` and
   grants stat points. It replaced rarity's old 1→8 craft *multiplier* (§6c).
-- **Gear** — 2 slots per member; visible on the character; craft + writing cards.
+- **Gear** — 2 slots per member, visible on the character, and 28 archetypes that are
+  builds rather than skins. See §8b.
 - **Studios** — Garage → Bedroom → Rehearsal → Pro Studio → Label HQ → Tour Bus →
   Stadium → Space. Each adds `BAL.craftStudio` (1.8) craft and repaints the stage.
+
+## 8b. GEAR — 28 archetypes, and the anchor contract
+
+**Every variant is a build, not a silhouette.** `GEAR` carries 28 archetypes — five
+instruments per role and eight universal rig parts — each with a stat split `sp`
+(`[WRITING, SKILL, STAGE, STAMINA]`, always totalling 100) and, for all but the five
+starters, one passive from `PASSIVE`.
+
+**Rarity belongs to the instance, not the archetype.** A crate rolls a rarity and then an
+archetype, so 28 × 5 = **140 possible items**. An instance is `{id, a, r, lvl}`; its
+points are `BAL.gearPts[r] × (1 + 0.12 × lvl)` — 4 / 7 / 11 / 16 / 22 at Level 0, and five
+upgrades are +60%. Upgrades cost Parts **4 / 9 / 18 / 34 / 60** and money
+`250 × 2.2^L × (1 + rarity)`.
+
+**Upgrades start at Level 0**, as dropped, and run to Level 5.
+
+**A duplicate instrument has nowhere to go**, because there is exactly one member per
+role — so it is *material*: scrapping pays `BAL.gearSalvage[r]` Parts, **+50% when you
+already own that archetype**. There is no gear merge; merging belongs to Member Cards, and
+two overlapping merge systems would muddy both. Scrapping is refused on anything equipped
+and asks first, naming the item and the payout.
+
+**Rig parts are universal** — the only gear that can be out on more than one member, up to
+four at once, one each. One *instance* still lives in one slot: equipping it elsewhere
+moves it.
+
+### The anchor contract
+
+The limb pivots are hardcoded viewBox units in CSS, so where a hand lands is a coincidence
+of hand-tuned numbers — the fret hand ends at (35,62), which is (43,0.6) inside the guitar
+group, on the neck between two fret dots. **A variant may not move that.** So:
+
+- **The neck is the anchor.** Every guitar and bass draws the same neck rect (x 16..54,
+  y −5..5) and the same two inlays. Bodies, pickups, headstocks and string counts change.
+- **The drums keep their three centres** — snare (33,78), rack tom (67,76), bass-drum head
+  (50,102) — because that is where the sticks land.
+- **The mic keeps its grille at (57,45)** and its barrel reaching the hand at (64,55).
+- **`.ch-bob` uses `transform-box: fill-box`, so its bounding box IS the bob pivot.** An
+  invisible `<rect>` at the base instrument's exact local extent pins the minimum, and
+  every variant is clamped inside it — so the pivot is a constant. The suite asserts all
+  five archetypes of each role resolve to **one identical `.ch-bob` bbox**.
+- **Rig parts are outside `.ch-bob` entirely**, at the feet, behind everything. That is
+  precisely why they are a separate slot: anything added inside that group would move the
+  bob pivot for the whole character.
+
+### Every passive is one key, read at one site
+
+`PASSIVE` gives each of the 23 a name, a line of copy, an effect key and a value;
+`fx(i, key)` sums that key over one member's two items and `fxBand(key)` over the band.
+A passive is applied where the mechanic already lives — `approachFor`, `winScale`,
+`gigFatigue`, `fitFloor`, `memberCraft`, `cardPoints`, `endTake`, `missNote`,
+`gigRun.hypeMul` — never as a special case somewhere else.
+
+| role | archetypes |
+|---|---|
+| drums | Practice Kit · Vintage Maple *(Warm Room)* · Punk Bop *(Fast Hands)* · Double Kick *(Engine)* · Crystal Shells *(Showpiece)* |
+| bass | Starter P · Short Scale *(Easy Reach)* · Thunderbird *(Low End)* · 5-String *(Range)* · Fretless Fusion *(Intonation)* |
+| guitar | Pawnshop SG · Offset Jazz *(Clean Tone)* · Flying V *(Rock Stance)* · Semi-Hollow *(Resonance)* · Baritone *(Drop Tune)* |
+| vocals | Dynamic 58 · Ribbon *(Studio Voice)* · Condenser + Shield *(Isolation)* · Handheld Wireless *(Work The Room)* · Headset *(Hands Free)* |
+| rig | Practice Amp · 4x12 Stack *(Volume)* · Pedalboard *(Palette)* · Tape Echo *(Ambience)* · Compressor Rack *(Levelling)* · Wedge Monitor *(Foldback)* · DI Box *(Clean Signal)* · Tube Preamp *(Harmonics)* |
+
+**Everyone starts holding their instrument.** Each owned member is granted their role's
+starter (Common, Level 0) on hire, at setup, and on load for an older save — it is not a
+reward, it is what holding an instrument means, and it is why the stage never draws an
+empty pair of hands. **Nothing else drops until crates ship**, so a Stage-2 player owns
+exactly four items and zero Parts. That is the sequencing, not an oversight.
 
 ## 9. PACING — why the curve is shaped the way it is
 
@@ -803,8 +871,12 @@ What the screen holds, top to bottom:
   value, a one-line note on what it drives, a `+` while the member has unspent points, and
   a free `RESPEC` once anything is spent. They read 0 for everyone until Star Rank, gear
   and skills start granting points — which is the honest number, not an invented one.
-- **Gear** — two dashed slots, `INSTRUMENT` and `RIG`, tappable and honest about what
-  they are waiting for.
+- **Gear** — two slots, `INSTRUMENT` and `RIG`. A filled slot is a solid card in the
+  item's rarity colour carrying its name, rarity, upgrade level and points; an empty one
+  stays dashed. Tapping either opens the **gear screen** — a detour off a detour, so
+  `sheetBack` remembers the member screen and the member screen still remembers its tab.
+  The screen lists only what fits that slot (instruments are role-locked, rigs fit anyone)
+  with EQUIP, the next upgrade priced in Parts and money, and SCRAP behind a confirm.
 - **Level n → n+1** — three `before → after` rows measured with the real formulas
   (`memberSPS`, the hint curve, the card pool), then `LEVEL UP · cost`. When the money
   is short the button greys out, disables itself, and the line under it says how much
@@ -858,7 +930,10 @@ greyed-out `BUY ₪12` reads as *you cannot afford this*, which is a lie about s
 that does not exist. The rails carry the spec as text instead — Bronze 50 · Gold 150 ·
 Mythic 500 Picks, packs of 100 · 550 · 1200 · 3500, VIP's x2 income and 24h offline cap —
 so nothing is lost and nothing is pretended. When a surface ships it replaces its rail and
-the screen's shape does not move.
+the screen's shape does not move — **the Gear rail is gone for exactly that reason**: gear
+exists now, so reserving it would be the same lie the other way round. Crates carries the
+reference instead, and the balance row shows Picks **and Parts**, because Parts are real
+state that a real screen spends.
 
 **The Home rail is declared, not empty** (`RAIL`, §13). Its three entries — daily, event,
 inbox — each read the state they will own (`S.daily.ready`, `S.event.live`,
@@ -934,9 +1009,10 @@ does not move either.
   to level 60/Tour Bus while the same song still moves when its genre goes hot, and the
   catalogue at cap keeping an incoming Hit while rejecting an incoming flop.
 
-**Known gaps (deliberate, deferred):** gear, crates as real drops (and with them the
-rank's `crate` bonus, which is stored but unread), star rank and member cards — so
-**nothing grants a stat point yet** and every stat reads 0,
+**Known gaps (deliberate, deferred):** crates as real drops — so gear exists (§8b) but
+**the only items in the game are the four starter instruments**, and there are no Parts to
+upgrade with; the rank's `crate` bonus is stored but unread; star rank and member cards, so
+**nothing grants a stat point yet**,
 the *Daily* Gig and rival/multiplayer gigs (the regular ladder in §4d is built),
 six-cards-per-track-per-genre (128 signature cards ship, 384 do not),
 streaks, prestige, league, weekend events, real shop, LLM content,
@@ -1270,6 +1346,46 @@ from craft alone), each stat's formula and its cap, fatigue at every source, **a
 song scoring identically at STAMINA 0 and 100**, SKILL's take conversion measured through a
 real take, all four flawless outcomes, and allocation plus respec through the sheet's own
 buttons. Twenty-one suites pass, no console errors, frame time median 16.7ms / p95 17.5ms.
+
+**Phase Two, stage 2 — the gear is on the characters.** §8b is the system. What is worth
+knowing about the build, in the order it was built:
+
+1. **A pure refactor first, proved at 0 diff.** Every instrument moved out of `charSVG`
+   into named builders in `INSTR` — `back` for what is drawn behind the body (stands,
+   cymbals, a mic stand), `front` for what is in front or in the hands. `sweep.js` differs
+   on **0 of 848 nodes** after that step, which is the only way to know a refactor of
+   hand-tuned SVG changed nothing.
+2. **Then the anchor contract**, because the risk was never the drawing — it was that
+   `.ch-bob` uses `transform-box: fill-box`, so its bounding box *is* the bob pivot, and a
+   bigger guitar body silently moves it for the whole character. Measured: the first cut of
+   the variants moved that box by up to 3 viewBox units. The fix is two-sided — an
+   invisible `<rect>` at the base extent pins the minimum, and every variant is clamped
+   inside it. A new `anchor` harness measures the bbox for all 20 instrument archetypes;
+   all five of each role now resolve to one identical box, and rigs never touch it at all.
+   The only sweep difference in the whole stage is those four invisible rects.
+3. **Then the items.** 28 archetypes × 5 rarities, rarity on the instance; splits that
+   total 100; 23 passives, each one key read at exactly one existing site rather than a
+   branch bolted somewhere new.
+4. **Then the screens.** The character sheet's two dashed slots became real cards, and the
+   gear screen is a detour off a detour — `gearBack` holds the member screen's own back, so
+   ← walks out one level at a time. Anything deeper wants a real stack, and says so.
+
+**A duplicate instrument had nowhere to go, and that is the design.** With one member per
+role, a second Flying V cannot be equipped — so it is material: scrap it for Parts, +50%
+when it duplicates something you own. Only rigs are universal.
+
+**Nothing drops yet.** Every owned member is granted their role's starter instrument and
+that is the whole supply until crates ship in stage 4 — a Stage-2 player holds four Common
+items and zero Parts. The machinery is complete and the source is the next stage; the suite
+grants items directly to exercise it.
+
+Suites: the new `gr` suite drives the table (28 archetypes, splits totalling 100, 23 named
+passives, every archetype drawn), the anchor contract, starter grants, role-locking, one
+instance in one slot, four rigs at once, the split as a build, upgrades and their cap,
+scrapping refused on equipped gear and the duplicate bonus, seven passives measured at
+their own sites, and the two screens including a scrap confirm that takes nothing until it
+is confirmed. Thirty assertions. Twenty-three suites pass, no console errors, frame time
+median 16.7ms / p95 17.3ms.
 
 **Removed along the way:** the tap-to-fill-tracks loop, Hook Moments, the Hype stat
 (Quality shifts chart odds instead), and weekly-seeded genre trends (replaced by the

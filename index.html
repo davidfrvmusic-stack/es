@@ -433,6 +433,23 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   border:2px dashed var(--line2);display:grid;place-items:center;gap:3px;color:var(--dim3);
   font-size:9.5px;font-weight:800;letter-spacing:.11em;text-align:center;padding:8px}
 .gearslot:active{transform:translateY(2px)}
+.gearslot.on{border-style:solid;border-color:var(--gc);color:var(--ink)}
+.gearslot .gn{font-size:11px;font-weight:800;letter-spacing:.02em;line-height:1.2}
+.gearslot .gr{font-size:8.5px;font-weight:800;letter-spacing:.12em;color:var(--gc)}
+.gearslot .gp{font-size:8.5px;font-weight:700;letter-spacing:.08em;color:var(--dim2)}
+/* the gear screen: one row per owned item, in its rarity, with what it is worth */
+.gitem{display:flex;align-items:center;gap:10px;margin-bottom:8px;padding:10px;
+  border-radius:var(--r2);background:var(--panel);border:2px solid var(--line)}
+.gitem.on{border-color:var(--gc)}
+.gitem .gi{flex:0 0 44px;height:44px;border-radius:var(--r1);background:var(--elev);
+  display:grid;place-items:center;border:2px solid var(--gc)}
+.gitem .gt{flex:1;min-width:0}
+.gitem .gt .t{font-size:12.5px;font-weight:800;letter-spacing:.01em}
+.gitem .gt .d{font-size:9.5px;color:var(--dim2);line-height:1.45}
+.gitem .gt .p{font-size:9.5px;color:var(--gold);font-weight:700}
+.gsplit{display:flex;gap:4px;margin-top:3px}
+.gsplit span{font-size:8px;font-weight:800;letter-spacing:.1em;color:var(--dim3);
+  background:var(--elev);border-radius:5px;padding:2px 4px}
 .gearslot b{font-size:19px;font-weight:800;color:var(--dim2);line-height:1}
 /* ---- RESERVED SURFACES: a rail that says what will be here and when, and never
    pretends to be the thing itself. Same dashed language as an empty gear slot. ---- */
@@ -1156,6 +1173,14 @@ const BAL = {
   statStageHype: 0.005,   // STAGE: hype gain...
   statStageFit: 0.003, statStageFitMax: 0.35,    // ...and the floor under a room's genre fit
   statStamFat: 0.006, statStamFatMax: 0.85,      // STAMINA: how much show fatigue it answers
+  // GEAR. Rarity belongs to the INSTANCE, so a crate rolls a rarity and then an
+  // archetype: 28 archetypes x 5 rarities = 140 items.
+  gearPts: [4, 7, 11, 16, 22],        // stat points at Level 0, by rarity
+  gearUpStep: 0.12, gearUpMax: 5,     // each upgrade adds 12% of base, to +60%
+  gearUpParts: [4, 9, 18, 34, 60],
+  gearUpCost: 250, gearUpGrow: 2.2,
+  gearSalvage: [2, 5, 12, 30, 80],    // Parts for scrapping one...
+  gearDupBonus: 0.5,                  // ...+50% when you already own that archetype
   // FATIGUE lives in gigs and nowhere else. A one-song Open Mic is exactly 0, so a
   // normal songwriting take is never punished by it.
   fatSection: 0.18,       // per song after the first
@@ -1340,12 +1365,16 @@ const DSCALE = 2.2;   // distance at which a card contributes nothing — tuned 
 const cdist = (a,b) => Math.hypot(a[0]-b[0], a[1]-b[1], a[2]-b[2]);
 const fitOf = (a,b) => clamp(1 - cdist(a,b) / DSCALE, 0, 1);
 /* Quality contribution of one card, given the genre and what is already written. */
-function cardPoints(card, genre, prev){
-  const gf = fitOf(card.v, genre.v);
+/* `i` is the member making this decision — their gear tilts the weights a little.
+   Polish-heavy and grit-heavy are read off the genre's own vector, so no table. */
+function cardPoints(card, genre, prev, i){
+  const gf = fitOf(card.v, genre.v) * (1 + (i != null && genre.v[2] > 0.2 ? fx(i, 'fitPolish') : 0));
   let ch;
   if (!prev.length) ch = gf;
   else { let d = 0; for (const p of prev) d += cdist(card.v, p.v); ch = clamp(1 - (d/prev.length)/DSCALE, 0, 1); }
-  return 25 * (BAL.wGenre * gf + BAL.wCoher * ch + BAL.wBase * card.b);
+  const wCoher = BAL.wCoher * (1 + (i != null ? fx(i, 'coher') : 0));
+  const b = card.b * (1 + (i != null ? fx(i, 'baseAll') + (genre.v[1] > 0.2 ? fx(i, 'baseGrit') : 0) : 0));
+  return 25 * (BAL.wGenre * gf + wCoher * ch + BAL.wBase * b);
 }
 
 /* ===== GENRE SIGNATURE CARDS =====
@@ -1816,6 +1845,517 @@ function accSVG(acc, col){
     default: return '';
   }
 }
+/* an owned gear instance, by id — `null` for an empty slot or a stale id */
+const itemOf = id => (id == null || !S.gear) ? null : (S.gear.own.find(x => x.id === id) || null);
+/* a rig part is a stage prop at the feet, drawn behind everything and OUTSIDE
+   `.ch-bob` — see the anchor contract below for why that matters */
+function rigSVG(role){
+  const st = S.members && S.members[role];
+  const it = st && st.gear && itemOf(st.gear.rig);
+  const b = it && RIG[it.a];
+  return b ? b() : '';
+}
+
+/* ===== INSTRUMENTS — the anchor contract =====
+   The limb pivots are hardcoded viewBox units in CSS (`transform-origin`), so where a
+   hand lands is a coincidence of hand-tuned numbers: the fret hand ends at (35,62),
+   which is (43,0.6) inside the guitar group — on the neck, between two fret dots.
+   Nothing about a *variant* may move that.
+
+   So every instrument is a pair of builders drawn into the same local box, and every
+   variant of it declares the same anchors:
+
+     drums   back = stands and cymbals, front = the drums. Snare (33,78), rack tom
+             (67,76) and the bass-drum head at (50,102) are where the sticks land.
+     guitar  front = the contents of `<g transform="translate(64 94) rotate(-133)">`.
+             THE NECK IS THE ANCHOR: rect x16..54, y-5..5, every variant, no exceptions.
+             The body must cover (-18..0, ±7) so the strum hand has something to hit.
+     mic     back = the stand, front = the head, whose grille centres on (57,45) and
+             whose barrel reaches the hand at (64,55).
+
+   Rig parts are NOT in here. They are stage props at the feet, outside `.ch-bob`, which
+   is exactly why they are a separate slot: `.ch-bob` uses `transform-box: fill-box`, so
+   anything added inside it moves the bob pivot for the whole character. */
+const gtrStrings = n => n === 4
+  ? `<path d="M-16 -3 H60M-16 -1 H60M-16 1 H60M-16 3 H60" stroke="#F4E7CC" stroke-width=".7"></path>`
+  : `<path d="M-16 -3.4 H60M-16 -2 H60M-16 -.7 H60M-16 .7 H60M-16 2 H60M-16 3.4 H60" stroke="#F4E7CC" stroke-width=".55"></path>`;
+const gtrTuners = n => n === 4
+  ? `<circle cx="56" cy="-8" r="1.8" fill="#D8CBB2"></circle><circle cx="61" cy="-8" r="1.8" fill="#D8CBB2"></circle>
+     <circle cx="56" cy="8" r="1.8" fill="#D8CBB2"></circle><circle cx="61" cy="8" r="1.8" fill="#D8CBB2"></circle>`
+  : `<circle cx="55" cy="-8" r="1.5" fill="#D8CBB2"></circle><circle cx="59.5" cy="-8" r="1.5" fill="#D8CBB2"></circle>
+     <circle cx="64" cy="-8" r="1.5" fill="#D8CBB2"></circle><circle cx="55" cy="8" r="1.5" fill="#D8CBB2"></circle>
+     <circle cx="59.5" cy="8" r="1.5" fill="#D8CBB2"></circle><circle cx="64" cy="8" r="1.5" fill="#D8CBB2"></circle>`;
+/* the neck, the frets and the two inlays the fret hand sits between — the anchor */
+const gtrNeck = fretless => `<rect x="16" y="-5" width="38" height="10" rx="1.5" fill="#7A4A22"></rect>
+  <rect x="16" y="-5" width="38" height="10" rx="1.5" fill="#5C3416" opacity=".4"></rect>
+  ${fretless ? '' : '<path d="M21 -5v10M25 -5v10M29 -5v10M34 -5v10M39 -5v10M45 -5v10M51 -5v10" stroke="#CFC0A6" stroke-width=".7"></path>'}
+  <circle cx="31" cy="0" r="1" fill="#E8DCC4"></circle><circle cx="42" cy="0" r="1" fill="#E8DCC4"></circle>`;
+/* one entry per archetype; `k` is { sk, c1, c2 } — the player's skin and the role's
+   two colours. Colour is the ONLY thing an archetype takes from the member. */
+const INSTR = {
+  /* ---- DRUMS ---- */
+  kit0: {   // Practice Kit — the kit that shipped, now the Common default
+    back: () => `<path d="M10 68 v42 M4 118 l6 -8 M16 118 l-6 -8" stroke="#B9AFA0" stroke-width="1.6" stroke-linecap="round"></path>
+      <ellipse cx="10" cy="66" rx="10" ry="2.2" fill="#E0A72E"></ellipse>
+      <ellipse cx="10" cy="63.5" rx="10" ry="2.2" fill="${PAL.gold}"></ellipse>
+      <path d="M90 62 v48 M84 118 l6 -8 M96 118 l-6 -8" stroke="#B9AFA0" stroke-width="1.6" stroke-linecap="round"></path>
+      <ellipse cx="90" cy="60" rx="12" ry="2.6" fill="${PAL.gold}"></ellipse>
+      <ellipse cx="90" cy="59.6" rx="6" ry="1.4" fill="none" stroke="#E0A72E" stroke-width=".8"></ellipse>`,
+    front: k => `<ellipse cx="33" cy="78" rx="12" ry="7.5" fill="${PAL.onAccent}" stroke="${k.c2}" stroke-width="2.4"></ellipse>
+      <path d="M21 78 v7 a12 7.5 0 0 0 24 0 v-7" fill="${k.c2}"></path>
+      <ellipse cx="67" cy="76" rx="11" ry="7" fill="${PAL.onAccent}" stroke="${k.c2}" stroke-width="2.4"></ellipse>
+      <path d="M56 76 v6 a11 7 0 0 0 22 0 v-6" fill="${k.c2}"></path>
+      <ellipse cx="18" cy="92" rx="12" ry="7" fill="${PAL.onAccent}" stroke="#B9AFA0" stroke-width="2.2"></ellipse>
+      <path d="M6 92 v7 a12 7 0 0 0 24 0 v-7" fill="#D9CFC0"></path>
+      <ellipse cx="50" cy="102" rx="29" ry="24" fill="${PAL.onAccent}"></ellipse>
+      <ellipse cx="50" cy="102" rx="29" ry="24" fill="none" stroke="${k.c2}" stroke-width="3.6"></ellipse>
+      <ellipse cx="50" cy="102" rx="24" ry="19.5" fill="none" stroke="#F0DCBC" stroke-width="1"></ellipse>
+      <circle cx="50" cy="78" r="2" fill="${k.c2}"></circle><circle cx="50" cy="126" r="2" fill="${k.c2}"></circle>
+      <circle cx="21" cy="102" r="2" fill="${k.c2}"></circle><circle cx="79" cy="102" r="2" fill="${k.c2}"></circle>
+      <circle cx="71" cy="85" r="2" fill="${k.c2}"></circle><circle cx="29" cy="119" r="2" fill="${k.c2}"></circle>
+      <circle cx="50" cy="102" r="11" fill="none" stroke="${PAL.gold}" stroke-width="2"></circle>
+      <path d="M47 96 l-2 7h3l-1 6 5 -8h-3l2 -5z" fill="${k.c2}"></path>`
+  },
+  kit1: {   // Vintage Maple — warm shells, wooden hoops, one big ride
+    back: () => `<path d="M10 70 v40 M4 118 l6 -8 M16 118 l-6 -8" stroke="#B9AFA0" stroke-width="1.6" stroke-linecap="round"></path>
+      <ellipse cx="10" cy="68" rx="9" ry="2" fill="#C79A3C"></ellipse>
+      <path d="M88 58 v52 M82 118 l6 -8 M94 118 l-6 -8" stroke="#B9AFA0" stroke-width="1.6" stroke-linecap="round"></path>
+      <ellipse cx="88" cy="56" rx="14" ry="3" fill="${PAL.gold}"></ellipse>
+      <ellipse cx="88" cy="55.6" rx="9" ry="1.8" fill="none" stroke="#C79A3C" stroke-width=".8"></ellipse>
+      <ellipse cx="88" cy="55.4" rx="4" ry="1" fill="none" stroke="#C79A3C" stroke-width=".8"></ellipse>`,
+    front: k => drumSVG(33, 78, 12, 7.5, 7, '#F2E3C4', '#9C6B33', '#C79A3C', 2.4) +
+      drumSVG(67, 76, 11, 7, 6, '#F2E3C4', '#9C6B33', '#C79A3C', 2.4) +
+      drumSVG(18, 92, 12, 7, 7, '#F2E3C4', '#8A5B2A', '#C79A3C', 2.2) +
+      `<ellipse cx="50" cy="102" rx="29" ry="24" fill="#F2E3C4"></ellipse>
+      <ellipse cx="50" cy="102" rx="29" ry="24" fill="none" stroke="#9C6B33" stroke-width="4.4"></ellipse>
+      <ellipse cx="50" cy="102" rx="24" ry="19.5" fill="none" stroke="#C79A3C" stroke-width="1"></ellipse>
+      ${kitLugs('#9C6B33')}
+      <path d="M40 98 q10 -5 20 0 q-10 5 -20 0z" fill="${k.c2}"></path>`
+  },
+  kit2: {   // Punk Bop — four pieces, two crashes, black wrap
+    back: () => `<path d="M12 62 v48 M6 118 l6 -8 M18 118 l-6 -8" stroke="#B9AFA0" stroke-width="1.6" stroke-linecap="round"></path>
+      <ellipse cx="12" cy="60" rx="13" ry="2.6" fill="${PAL.gold}"></ellipse>
+      <path d="M88 54 v56 M82 118 l6 -8 M94 118 l-6 -8" stroke="#B9AFA0" stroke-width="1.6" stroke-linecap="round"></path>
+      <ellipse cx="88" cy="52" rx="13" ry="2.6" fill="${PAL.gold}"></ellipse>`,
+    front: k => drumSVG(33, 78, 12, 7.5, 8, PAL.onAccent, '#15181F', k.c2, 2.4) +
+      drumSVG(67, 76, 11, 7, 6, PAL.onAccent, '#15181F', k.c2, 2.4) +
+      `<ellipse cx="50" cy="102" rx="26" ry="21" fill="${PAL.onAccent}"></ellipse>
+      <ellipse cx="50" cy="102" rx="26" ry="21" fill="none" stroke="#15181F" stroke-width="4"></ellipse>
+      <ellipse cx="50" cy="102" rx="21" ry="17" fill="none" stroke="${k.c2}" stroke-width="1"></ellipse>
+      ${kitLugs(k.c2)}
+      <path d="M42 96 h16 v4 h-16z M42 104 h16 v4 h-16z" fill="${k.c2}"></path>`
+  },
+  kit3: {   // Double Kick — two pedals, deep shells
+    back: () => `<path d="M10 68 v42 M4 118 l6 -8 M16 118 l-6 -8" stroke="#B9AFA0" stroke-width="1.6" stroke-linecap="round"></path>
+      <ellipse cx="10" cy="66" rx="10" ry="2.2" fill="#E0A72E"></ellipse>
+      <ellipse cx="10" cy="63.5" rx="10" ry="2.2" fill="${PAL.gold}"></ellipse>
+      <path d="M90 62 v48 M84 118 l6 -8 M96 118 l-6 -8" stroke="#B9AFA0" stroke-width="1.6" stroke-linecap="round"></path>
+      <ellipse cx="90" cy="60" rx="12" ry="2.6" fill="${PAL.gold}"></ellipse>`,
+    front: k => drumSVG(33, 78, 12, 7.5, 9, PAL.onAccent, k.c2, k.c2, 2.4) +
+      drumSVG(67, 76, 11, 7, 8, PAL.onAccent, k.c2, k.c2, 2.4) +
+      drumSVG(18, 92, 12, 7, 9, PAL.onAccent, '#B9AFA0', '#B9AFA0', 2.2) +
+      `<ellipse cx="50" cy="102" rx="30" ry="25" fill="${PAL.onAccent}"></ellipse>
+      <ellipse cx="50" cy="102" rx="30" ry="25" fill="none" stroke="${k.c2}" stroke-width="3.6"></ellipse>
+      <ellipse cx="50" cy="102" rx="25" ry="20" fill="none" stroke="#F0DCBC" stroke-width="1"></ellipse>
+      ${kitLugs(k.c2)}
+      <path d="M36 112 l6 -14 h3 l-6 14z M58 112 l-6 -14 h3 l6 14z" fill="#B9AFA0"></path>
+      <circle cx="40" cy="98" r="2.6" fill="${k.c2}"></circle><circle cx="60" cy="98" r="2.6" fill="${k.c2}"></circle>`
+  },
+  kit4: {   // Crystal Shells — see-through acrylic
+    back: () => `<path d="M10 68 v42 M4 118 l6 -8 M16 118 l-6 -8" stroke="#B9AFA0" stroke-width="1.6" stroke-linecap="round"></path>
+      <ellipse cx="10" cy="66" rx="10" ry="2.2" fill="#E0A72E"></ellipse>
+      <ellipse cx="10" cy="63.5" rx="10" ry="2.2" fill="${PAL.gold}"></ellipse>
+      <path d="M90 62 v48 M84 118 l6 -8 M96 118 l-6 -8" stroke="#B9AFA0" stroke-width="1.6" stroke-linecap="round"></path>
+      <ellipse cx="90" cy="60" rx="12" ry="2.6" fill="${PAL.gold}"></ellipse>
+      <ellipse cx="90" cy="59.6" rx="6" ry="1.4" fill="none" stroke="#E0A72E" stroke-width=".8"></ellipse>`,
+    front: k => drumSVG(33, 78, 12, 7.5, 7, '#E8F6FF', k.c2, '#CFE9F7', 2.4, .5) +
+      drumSVG(67, 76, 11, 7, 6, '#E8F6FF', k.c2, '#CFE9F7', 2.4, .5) +
+      drumSVG(18, 92, 12, 7, 7, '#E8F6FF', '#CFE9F7', '#CFE9F7', 2.2, .5) +
+      `<ellipse cx="50" cy="102" rx="29" ry="24" fill="#E8F6FF" opacity=".55"></ellipse>
+      <ellipse cx="50" cy="102" rx="29" ry="24" fill="none" stroke="#CFE9F7" stroke-width="3.6"></ellipse>
+      <ellipse cx="50" cy="102" rx="24" ry="19.5" fill="none" stroke="${PAL.ink}" stroke-width="1" opacity=".5"></ellipse>
+      ${kitLugs('#CFE9F7')}
+      <path d="M50 84 L62 102 L50 120 L38 102z" fill="none" stroke="${k.c2}" stroke-width="1.6"></path>`
+  },
+  /* ---- BASS ---- */
+  bas0: {   // Starter P
+    front: k => `<ellipse cx="-5" cy="0" rx="15" ry="12" fill="#0E9186"></ellipse>
+      <ellipse cx="8" cy="0" rx="11" ry="9" fill="#0E9186"></ellipse>
+      <ellipse cx="-5" cy="-2" rx="12.5" ry="9" fill="${PAL.accent2}"></ellipse>
+      ${gtrNeck()}
+      <rect x="-2" y="-7" width="4" height="13" rx="1" fill="#221812"></rect>
+      <rect x="-10" y="-7" width="4" height="13" rx="1" fill="#221812"></rect>
+      <rect x="-18" y="-6" width="4" height="12" rx="1" fill="#C9BCA6"></rect>
+      ${gtrStrings(4)}
+      <path d="M54 -6 h9 q3 0 3 3 v6 q0 3 -3 3 h-9z" fill="#0E9186"></path>
+      ${gtrTuners(4)}`
+  },
+  bas1: {   // Short Scale — small body, easy reach
+    front: () => `<ellipse cx="-4" cy="0" rx="12.5" ry="10" fill="#0E9186"></ellipse>
+      <ellipse cx="6" cy="0" rx="9" ry="7.5" fill="#0E9186"></ellipse>
+      <ellipse cx="-4" cy="-2" rx="10" ry="7.5" fill="${PAL.accent2}"></ellipse>
+      ${gtrNeck()}
+      <rect x="-4" y="-6" width="4" height="12" rx="1" fill="#221812"></rect>
+      <rect x="-16" y="-5" width="4" height="10" rx="1" fill="#C9BCA6"></rect>
+      ${gtrStrings(4)}
+      <path d="M54 -5 h8 q3 0 3 3 v4 q0 3 -3 3 h-8z" fill="#0E9186"></path>
+      ${gtrTuners(4)}`
+  },
+  bas2: {   // Thunderbird — angular, reversed body
+    front: () => `<path d="M10 -9 L-14 -11 L-20 0 L-14 11 L10 9z" fill="#1B2430"></path>
+      <path d="M8 -6 L-11 -8 L-15 0 L-11 8 L8 6z" fill="${PAL.accent2}" opacity=".55"></path>
+      ${gtrNeck()}
+      <rect x="-2" y="-7" width="4" height="13" rx="1" fill="#221812"></rect>
+      <rect x="-10" y="-7" width="4" height="13" rx="1" fill="#221812"></rect>
+      <rect x="-18" y="-6" width="4" height="12" rx="1" fill="#C9BCA6"></rect>
+      ${gtrStrings(4)}
+      <path d="M54 -6 L66 -9 L66 9 L54 6z" fill="#1B2430"></path>
+      ${gtrTuners(4)}`
+  },
+  bas3: {   // 5-String — one more string, wider range
+    front: () => `<ellipse cx="-5" cy="0" rx="15" ry="12" fill="#0B6F72"></ellipse>
+      <ellipse cx="8" cy="0" rx="11" ry="9" fill="#0B6F72"></ellipse>
+      <ellipse cx="-5" cy="-2" rx="12.5" ry="9" fill="${PAL.accent2}"></ellipse>
+      ${gtrNeck()}
+      <rect x="-2" y="-8" width="4" height="15" rx="1" fill="#221812"></rect>
+      <rect x="-10" y="-8" width="4" height="15" rx="1" fill="#221812"></rect>
+      <rect x="-18" y="-7" width="4" height="14" rx="1" fill="#C9BCA6"></rect>
+      <path d="M-16 -4 H60M-16 -2 H60M-16 0 H60M-16 2 H60M-16 4 H60" stroke="#F4E7CC" stroke-width=".7"></path>
+      <path d="M54 -7 h9 q3 0 3 3 v8 q0 3 -3 3 h-9z" fill="#0B6F72"></path>
+      <circle cx="57" cy="-9" r="1.7" fill="#D8CBB2"></circle><circle cx="62" cy="-9" r="1.7" fill="#D8CBB2"></circle>
+      <circle cx="56" cy="9" r="1.7" fill="#D8CBB2"></circle><circle cx="61" cy="9" r="1.7" fill="#D8CBB2"></circle>
+      <circle cx="64" cy="4" r="1.7" fill="#D8CBB2"></circle>`
+  },
+  bas4: {   // Fretless Fusion — natural wood, no fret wire
+    front: () => `<ellipse cx="-5" cy="0" rx="15" ry="12" fill="#8A5B2A"></ellipse>
+      <ellipse cx="8" cy="0" rx="11" ry="9" fill="#8A5B2A"></ellipse>
+      <ellipse cx="-5" cy="-2" rx="12.5" ry="9" fill="#B98346"></ellipse>
+      ${gtrNeck(true)}
+      <rect x="-4" y="-7" width="4" height="13" rx="1" fill="#221812"></rect>
+      <rect x="-18" y="-6" width="4" height="12" rx="1" fill="#C9BCA6"></rect>
+      ${gtrStrings(4)}
+      <path d="M54 -6 h9 q3 0 3 3 v6 q0 3 -3 3 h-9z" fill="#8A5B2A"></path>
+      ${gtrTuners(4)}`
+  },
+  /* ---- GUITAR ---- */
+  gtr0: {   // Pawnshop SG
+    front: k => `<ellipse cx="-5" cy="0" rx="15" ry="12" fill="${PAL.accentSh}"></ellipse>
+      <ellipse cx="8" cy="0" rx="11" ry="9" fill="${PAL.accentSh}"></ellipse>
+      <ellipse cx="-5" cy="-2" rx="12.5" ry="9" fill="${PAL.accentDk}"></ellipse>
+      ${gtrNeck()}
+      <rect x="-2" y="-7" width="4" height="13" rx="1" fill="#221812"></rect>
+      <rect x="-10" y="-7" width="4" height="13" rx="1" fill="#221812"></rect>
+      <rect x="-18" y="-6" width="4" height="12" rx="1" fill="#C9BCA6"></rect>
+      ${gtrStrings(6)}
+      <path d="M54 -6 h9 q3 0 3 3 v6 q0 3 -3 3 h-9z" fill="${PAL.accentSh}"></path>
+      ${gtrTuners(6)}`
+  },
+  gtr1: {   // Offset Jazz — offset waist, clean tone
+    front: () => `<ellipse cx="-5" cy="1" rx="14.5" ry="11" fill="#2E5C86"></ellipse>
+      <ellipse cx="7" cy="-2" rx="11" ry="9" fill="#2E5C86"></ellipse>
+      <ellipse cx="-5" cy="0" rx="12" ry="8" fill="#4C86BC"></ellipse>
+      ${gtrNeck()}
+      <rect x="-2" y="-7" width="4" height="13" rx="1" fill="#D8CBB2"></rect>
+      <rect x="-10" y="-7" width="4" height="13" rx="1" fill="#D8CBB2"></rect>
+      <rect x="-18" y="-6" width="4" height="12" rx="1" fill="#C9BCA6"></rect>
+      ${gtrStrings(6)}
+      <path d="M54 -7 h9 q3 0 3 3 v8 q0 3 -3 3 h-9z" fill="#2E5C86"></path>
+      ${gtrTuners(6)}`
+  },
+  gtr2: {   // Flying V — all stance
+    front: () => `<path d="M14 -2 L-20 -12 L-13 -1 L-20 12 L14 2z" fill="${PAL.accentSh}"></path>
+      <path d="M11 -2 L-15 -10 L-10 -1 L-15 9 L11 1z" fill="${PAL.accentDk}"></path>
+      ${gtrNeck()}
+      <rect x="-2" y="-6" width="4" height="11" rx="1" fill="#221812"></rect>
+      <rect x="-10" y="-6" width="4" height="11" rx="1" fill="#221812"></rect>
+      <rect x="-17" y="-5" width="4" height="10" rx="1" fill="#C9BCA6"></rect>
+      ${gtrStrings(6)}
+      <path d="M54 -5 L66 -9 L64 0 L66 9 L54 5z" fill="${PAL.accentSh}"></path>
+      ${gtrTuners(6)}`
+  },
+  gtr3: {   // Semi-Hollow — f-holes and air
+    front: () => `<ellipse cx="-5" cy="0" rx="15" ry="12" fill="#7A3320"></ellipse>
+      <ellipse cx="8" cy="0" rx="11" ry="9" fill="#7A3320"></ellipse>
+      <ellipse cx="-5" cy="-2" rx="12.5" ry="9" fill="#A8542F"></ellipse>
+      <path d="M-12 -7 q-3 6 0 12 M2 -7 q-3 6 0 12" stroke="#2A1810" stroke-width="1.6" fill="none" stroke-linecap="round"></path>
+      ${gtrNeck()}
+      <rect x="-4" y="-7" width="4" height="13" rx="1" fill="#D8CBB2"></rect>
+      <rect x="-18" y="-6" width="4" height="12" rx="1" fill="#C9BCA6"></rect>
+      ${gtrStrings(6)}
+      <path d="M54 -6 h9 q3 0 3 3 v6 q0 3 -3 3 h-9z" fill="#7A3320"></path>
+      ${gtrTuners(6)}`
+  },
+  gtr4: {   // Baritone — single cut, tuned down
+    front: () => `<ellipse cx="-5" cy="0" rx="15" ry="12" fill="#2A2E38"></ellipse>
+      <path d="M4 -9 q10 3 10 9 q0 6 -10 9z" fill="#2A2E38"></path>
+      <ellipse cx="-5" cy="-2" rx="12.5" ry="8.5" fill="${PAL.gold}" opacity=".75"></ellipse>
+      ${gtrNeck()}
+      <rect x="-2" y="-7" width="4" height="13" rx="1" fill="#221812"></rect>
+      <rect x="-11" y="-7" width="4" height="13" rx="1" fill="#221812"></rect>
+      <rect x="-18" y="-7" width="4" height="14" rx="1" fill="#C9BCA6"></rect>
+      ${gtrStrings(6)}
+      <path d="M54 -6 h9 q3 0 3 3 v6 q0 3 -3 3 h-9z" fill="#2A2E38"></path>
+      ${gtrTuners(6)}`
+  },
+  /* ---- VOCALS ---- */
+  mic0: {   // Dynamic 58
+    back: () => `<rect x="86" y="44" width="2" height="80" rx="1" fill="#B9AFA0"></rect>
+      <rect x="79" y="43" width="10" height="2" rx="1" fill="#B9AFA0"></rect>`,
+    front: () => `<rect x="57" y="46" width="7" height="11" rx="3.5" fill="#3A322C" transform="rotate(-32 60 51)"></rect>
+      <circle cx="57" cy="45" r="5.6" fill="#C6BFB3" stroke="#8E877B" stroke-width="1.1"></circle>
+      <path d="M51.6 42 h10.8 M51.2 45 h11.6 M52 48 h9.4" stroke="#8E877B" stroke-width=".7"></path>
+      <path d="M54 39.8 q-1.6 5.2 0 10.4 M57 39.4 q-1.2 5.6 0 11.2 M60 39.8 q1.6 5.2 0 10.4" stroke="#8E877B" stroke-width=".7" fill="none"></path>
+      <path d="M53.4 41.6 a5.6 5.6 0 0 1 4.6 -1" stroke="#EDE7DC" stroke-width="1.4" fill="none" stroke-linecap="round"></path>`
+  },
+  mic1: {   // Ribbon — a rectangle of studio
+    back: () => `<rect x="86" y="44" width="2" height="80" rx="1" fill="#B9AFA0"></rect>
+      <rect x="79" y="43" width="10" height="2" rx="1" fill="#B9AFA0"></rect>`,
+    front: () => `<rect x="57" y="46" width="7" height="11" rx="3.5" fill="#2B2620" transform="rotate(-32 60 51)"></rect>
+      <rect x="51.5" y="38" width="11" height="14" rx="2.5" fill="#8E877B" stroke="#5E584F" stroke-width="1.1"></rect>
+      <rect x="53.5" y="40" width="7" height="10" rx="1.5" fill="#3A322C"></rect>
+      <path d="M53.5 42 h7 M53.5 45 h7 M53.5 48 h7" stroke="#8E877B" stroke-width=".7"></path>`
+  },
+  mic2: {   // Condenser + Shield — isolation on a stand
+    back: () => `<rect x="86" y="44" width="2" height="80" rx="1" fill="#B9AFA0"></rect>
+      <rect x="79" y="43" width="10" height="2" rx="1" fill="#B9AFA0"></rect>`,
+    front: () => `<path d="M62 34 a11 11 0 0 1 0 22" fill="#2A2E38" stroke="#4A5162" stroke-width="1.4"></path>
+      <rect x="57" y="46" width="7" height="11" rx="3.5" fill="#3A322C" transform="rotate(-32 60 51)"></rect>
+      <rect x="52" y="37" width="10" height="16" rx="5" fill="#D8D2C6" stroke="#8E877B" stroke-width="1.1"></rect>
+      <path d="M53 41 h8 M53 44 h8 M53 47 h8" stroke="#8E877B" stroke-width=".7"></path>
+      <circle cx="57" cy="41" r="1.4" fill="${PAL.accent}"></circle>`
+  },
+  mic3: {   // Handheld Wireless — no stand, all room
+    front: () => `<rect x="57" y="46" width="8" height="12" rx="4" fill="#1B1F27" transform="rotate(-32 60 51)"></rect>
+      <circle cx="57" cy="45" r="6" fill="#3A4356" stroke="${PAL.gold}" stroke-width="1.2"></circle>
+      <path d="M51.5 42 h11 M51.2 45 h11.6 M52 48 h9.6" stroke="#1B1F27" stroke-width=".7"></path>
+      <circle cx="62" cy="52" r="1.2" fill="${PAL.ok}"></circle>`
+  },
+  mic4: {   // Headset — hands free, and a pack in the hand
+    front: () => `<path d="M64 40 q-9 -3 -13 4" stroke="#4A5162" stroke-width="1.4" fill="none" stroke-linecap="round"></path>
+      <circle cx="50.5" cy="44.4" r="2.2" fill="#4A5162"></circle>
+      <rect x="58" y="48" width="8" height="12" rx="2" fill="#2A2E38" stroke="#4A5162" stroke-width="1.1" transform="rotate(-20 62 54)"></rect>
+      <path d="M63 47 v-5" stroke="#4A5162" stroke-width="1" stroke-linecap="round"></path>`
+  }
+};
+/* one drum: a head, then the shell under it, at a centre no variant may move */
+function drumSVG(cx, cy, rx, ry, dp, head, shell, ring, sw, op){
+  return `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="${head}" stroke="${ring}" stroke-width="${sw}"${op ? ` opacity="${op}"` : ''}></ellipse>
+    <path d="M${cx - rx} ${cy} v${dp} a${rx} ${ry} 0 0 0 ${rx * 2} 0 v-${dp}" fill="${shell}"${op ? ` opacity="${op}"` : ''}></path>`;
+}
+/* the six lugs around the bass drum hoop — every kit has them, in the kit's own metal */
+const kitLugs = c => `<circle cx="50" cy="78" r="2" fill="${c}"></circle><circle cx="50" cy="126" r="2" fill="${c}"></circle>
+  <circle cx="21" cy="102" r="2" fill="${c}"></circle><circle cx="79" cy="102" r="2" fill="${c}"></circle>
+  <circle cx="71" cy="85" r="2" fill="${c}"></circle><circle cx="29" cy="119" r="2" fill="${c}"></circle>`;
+
+/* ===== RIG PARTS — stage props, at the feet, behind everything =====
+   Outside `.ch-bob` on purpose: that group uses `transform-box: fill-box`, so anything
+   added inside it moves the bob pivot for the whole character. They all live in the
+   same footprint, x 3..31 / y 96..126, so no two rigs shift the silhouette. */
+const RIG = {
+  rig0: () => `<rect x="8" y="106" width="20" height="18" rx="2" fill="#2A2E38" stroke="#4A5162" stroke-width="1.4"></rect>
+    <rect x="11" y="112" width="14" height="9" rx="1" fill="#1B1F27"></rect>
+    <rect x="11" y="108" width="14" height="2.5" rx="1" fill="#4A5162"></rect>`,
+  rig1: () => `<rect x="5" y="96" width="26" height="28" rx="2" fill="#1B1F27" stroke="#4A5162" stroke-width="1.6"></rect>
+    <circle cx="12" cy="103" r="4.6" fill="#2A2E38" stroke="#4A5162" stroke-width="1"></circle>
+    <circle cx="24" cy="103" r="4.6" fill="#2A2E38" stroke="#4A5162" stroke-width="1"></circle>
+    <circle cx="12" cy="116" r="4.6" fill="#2A2E38" stroke="#4A5162" stroke-width="1"></circle>
+    <circle cx="24" cy="116" r="4.6" fill="#2A2E38" stroke="#4A5162" stroke-width="1"></circle>`,
+  rig2: () => `<path d="M4 124 L8 112 h20 l4 12z" fill="#2A2E38" stroke="#4A5162" stroke-width="1.4"></path>
+    <rect x="10" y="114" width="5" height="6" rx="1" fill="${PAL.accent}"></rect>
+    <rect x="16.5" y="114" width="5" height="6" rx="1" fill="${PAL.accent2}"></rect>
+    <rect x="23" y="114" width="5" height="6" rx="1" fill="${PAL.gold}"></rect>`,
+  rig3: () => `<rect x="5" y="104" width="26" height="20" rx="2" fill="#3A322C" stroke="#8E877B" stroke-width="1.4"></rect>
+    <circle cx="13" cy="112" r="5" fill="#1B1F27" stroke="#C6BFB3" stroke-width="1.2"></circle>
+    <circle cx="24" cy="112" r="5" fill="#1B1F27" stroke="#C6BFB3" stroke-width="1.2"></circle>
+    <rect x="8" y="119" width="20" height="3" rx="1.5" fill="#8E877B"></rect>`,
+  rig4: () => `<rect x="6" y="100" width="24" height="24" rx="2" fill="#242B38" stroke="#4A5162" stroke-width="1.4"></rect>
+    <rect x="9" y="103" width="18" height="7" rx="1" fill="#1B1F27"></rect>
+    <rect x="9" y="113" width="18" height="7" rx="1" fill="#1B1F27"></rect>
+    <circle cx="12" cy="106.5" r="1.6" fill="${PAL.accent2}"></circle>
+    <circle cx="12" cy="116.5" r="1.6" fill="${PAL.accent}"></circle>`,
+  rig5: () => `<path d="M4 124 L4 116 L30 104 L30 124z" fill="#2A2E38" stroke="#4A5162" stroke-width="1.4"></path>
+    <path d="M8 120 L26 111" stroke="#1B1F27" stroke-width="5" stroke-linecap="round"></path>`,
+  rig6: () => `<rect x="12" y="112" width="14" height="12" rx="2" fill="#4A5162" stroke="#8A93A3" stroke-width="1.3"></rect>
+    <path d="M12 118 q-7 0 -8 6" stroke="#1B1F27" stroke-width="2" fill="none" stroke-linecap="round"></path>
+    <circle cx="19" cy="116" r="1.6" fill="${PAL.ink}"></circle>`,
+  rig7: () => `<rect x="7" y="104" width="24" height="20" rx="2" fill="#1B1F27" stroke="#8E877B" stroke-width="1.4"></rect>
+    <rect x="11" y="108" width="5" height="9" rx="2.5" fill="${PAL.gold}" opacity=".8"></rect>
+    <rect x="18" y="108" width="5" height="9" rx="2.5" fill="${PAL.gold}" opacity=".8"></rect>
+    <rect x="25" y="108" width="4" height="9" rx="2" fill="${PAL.gold}" opacity=".55"></rect>
+    <rect x="10" y="120" width="18" height="2" rx="1" fill="#8E877B"></rect>`
+};
+/* what this member is holding: their equipped instrument, or the role's Common default */
+const BASE_INSTR = ['kit0', 'bas0', 'gtr0', 'mic0'];
+function instrOf(role){
+  const st = S.members && S.members[role];
+  const it = st && st.gear && itemOf(st.gear.inst);
+  return INSTR[(it && INSTR[it.a]) ? it.a : BASE_INSTR[role]];
+}
+const noSVG = () => '';
+
+/* ===== GEAR — 28 archetypes, five rarities, one anchor contract =====
+   Rarity is a property of the INSTANCE, not the archetype: a crate rolls a rarity and
+   then an archetype, so there are 140 possible items. What an archetype is for is its
+   stat split and its passive — five instruments per role that are five builds, not five
+   silhouettes.
+
+   `sp` is [WRITING, SKILL, STAGE, STAMINA] as percentages of the item's points.
+   `fx` names its passive in PASSIVE below; the five starter items deliberately have
+   none, which is what makes them starters. */
+const GEAR = [
+  // DRUMS
+  { a:'kit0', role:0, n:'Practice Kit',   sp:[25,25,25,25] },
+  { a:'kit1', role:0, n:'Vintage Maple',  sp:[50,20,20,10], fx:'warmRoom' },
+  { a:'kit2', role:0, n:'Punk Bop',       sp:[0,50,30,20],  fx:'fastHands' },
+  { a:'kit3', role:0, n:'Double Kick',    sp:[20,30,0,50],  fx:'engine' },
+  { a:'kit4', role:0, n:'Crystal Shells', sp:[30,20,50,0],  fx:'showpiece' },
+  // BASS
+  { a:'bas0', role:1, n:'Starter P',      sp:[25,25,25,25] },
+  { a:'bas1', role:1, n:'Short Scale',    sp:[35,45,0,20],  fx:'easyReach' },
+  { a:'bas2', role:1, n:'Thunderbird',    sp:[35,20,45,0],  fx:'lowEnd' },
+  { a:'bas3', role:1, n:'5-String',       sp:[55,25,20,0],  fx:'range' },
+  { a:'bas4', role:1, n:'Fretless Fusion',sp:[40,40,20,0],  fx:'intonation' },
+  // GUITAR
+  { a:'gtr0', role:2, n:'Pawnshop SG',    sp:[25,25,25,25] },
+  { a:'gtr1', role:2, n:'Offset Jazz',    sp:[50,30,0,20],  fx:'cleanTone' },
+  { a:'gtr2', role:2, n:'Flying V',       sp:[20,25,55,0],  fx:'rockStance' },
+  { a:'gtr3', role:2, n:'Semi-Hollow',    sp:[45,0,35,20],  fx:'resonance' },
+  { a:'gtr4', role:2, n:'Baritone',       sp:[35,35,0,30],  fx:'dropTune' },
+  // VOCALS
+  { a:'mic0', role:3, n:'Dynamic 58',     sp:[25,25,25,25] },
+  { a:'mic1', role:3, n:'Ribbon',         sp:[50,0,30,20],  fx:'studioVoice' },
+  { a:'mic2', role:3, n:'Condenser + Shield', sp:[45,35,0,20], fx:'isolation' },
+  { a:'mic3', role:3, n:'Handheld Wireless',  sp:[0,15,55,30], fx:'workRoom' },
+  { a:'mic4', role:3, n:'Headset',        sp:[0,15,30,55],  fx:'handsFree' },
+  // RIG — universal, and the only gear that can sit on more than one member at once
+  { a:'rig0', role:4, n:'Practice Amp',   sp:[25,25,25,25] },
+  { a:'rig1', role:4, n:'4x12 Stack',     sp:[0,20,60,20],  fx:'volume' },
+  { a:'rig2', role:4, n:'Pedalboard',     sp:[50,30,20,0],  fx:'palette' },
+  { a:'rig3', role:4, n:'Tape Echo',      sp:[55,0,25,20],  fx:'ambience' },
+  { a:'rig4', role:4, n:'Compressor Rack',sp:[20,55,0,25],  fx:'levelling' },
+  { a:'rig5', role:4, n:'Wedge Monitor',  sp:[0,45,35,20],  fx:'foldback' },
+  { a:'rig6', role:4, n:'DI Box',         sp:[35,35,30,0],  fx:'cleanSig' },
+  { a:'rig7', role:4, n:'Tube Preamp',    sp:[60,0,20,20],  fx:'harmonics' }
+];
+/* One passive, one effect KEY, one read site. `when` gates it on the world; nothing in
+   here multiplies streams or reaches a song that is already released. */
+const PASSIVE = {
+  warmRoom:   { n:'Warm Room',    d:'+1 craft in Rehearsal Space or better', k:'craft',      v:1, when:() => S.studio >= 2 },
+  fastHands:  { n:'Fast Hands',   d:'Dense patterns score +5% take points',  k:'denseTake',  v:0.05 },
+  engine:     { n:'Engine',       d:'Show fatigue −10%',                     k:'fatCut',     v:0.10 },
+  showpiece:  { n:'Showpiece',    d:'+4 hype on IN THE POCKET',              k:'pocketHype', v:4 },
+  easyReach:  { n:'Easy Reach',   d:'+0.05s note approach',                  k:'approach',   v:0.05 },
+  lowEnd:     { n:'Low End',      d:'Hype +4% in rooms of difficulty 5+',    k:'hypeHard',   v:0.04 },
+  range:      { n:'Range',        d:'Coherence weight +5%',                  k:'coher',      v:0.05 },
+  intonation: { n:'Intonation',   d:'Perfect window +4%',                    k:'perfWin',    v:0.04 },
+  cleanTone:  { n:'Clean Tone',   d:'Genre fit +4% in polish-heavy genres',  k:'fitPolish',  v:0.04 },
+  rockStance: { n:'Rock Stance',  d:'+6 starting hype',                      k:'hypeStart',  v:6 },
+  resonance:  { n:'Resonance',    d:'+1 craft per rig part on this member',  k:'craftRig',   v:1 },
+  dropTune:   { n:'Drop Tune',    d:'Card base strength +5% in grit genres', k:'baseGrit',   v:0.05 },
+  studioVoice:{ n:'Studio Voice', d:'Take → Quality +4%',                    k:'takeQ',      v:0.04 },
+  isolation:  { n:'Isolation',    d:'Wrong-lane penalty −25%',               k:'wrongCut',   v:0.25 },
+  workRoom:   { n:'Work The Room',d:'Venue-fit floor +0.05',                 k:'fitFloor',   v:0.05 },
+  handsFree:  { n:'Hands Free',   d:'Show fatigue −15%',                     k:'fatCut',     v:0.15 },
+  volume:     { n:'Volume',       d:'Hype gain +5%',                         k:'hypeGain',   v:0.05 },
+  palette:    { n:'Palette',      d:'Card base strength +4%',                k:'baseAll',    v:0.04 },
+  ambience:   { n:'Ambience',     d:'+1 craft in Pro Studio or better',      k:'craft',      v:1, when:() => S.studio >= 3 },
+  levelling:  { n:'Levelling',    d:'Take-meter miss cost −10%',             k:'meterCut',   v:0.10 },
+  foldback:   { n:'Foldback',     d:'+0.04s note approach',                  k:'approach',   v:0.04 },
+  cleanSig:   { n:'Clean Signal', d:'+2% to all stats from the instrument',  k:'instAmp',    v:0.02 },
+  harmonics:  { n:'Harmonics',    d:"This member's craft +3%",               k:'craftPct',   v:0.03 }
+};
+const archOf = a => GEAR.find(g => g.a === a) || null;
+const gearName = it => { const g = archOf(it.a); return g ? g.n : '?'; };
+/* points scale with rarity and with the five upgrade levels: +12% of base each */
+const itemPts = it => BAL.gearPts[clamp(it.r, 0, 4)] * (1 + BAL.gearUpStep * clamp(it.lvl, 0, BAL.gearUpMax));
+const SKEYS = ['w', 's', 't', 'm'];
+function itemStat(it, k){
+  const g = archOf(it.a), ix = SKEYS.indexOf(k);
+  return (!g || ix < 0) ? 0 : itemPts(it) * (g.sp[ix] || 0) / 100;
+}
+const itemSalvage = it => Math.round(BAL.gearSalvage[clamp(it.r, 0, 4)] *
+  (1 + BAL.gearUpStep * it.lvl) * (ownsArch(it.a, it.id) ? 1 + BAL.gearDupBonus : 1));
+const ownsArch = (a, notId) => gearItems().some(x => x.a === a && x.id !== notId);
+const gearItems = () => (S.gear && S.gear.own) || [];
+const upParts = it => BAL.gearUpParts[it.lvl];
+const upMoney = it => Math.round(BAL.gearUpCost * Math.pow(BAL.gearUpGrow, it.lvl) * (1 + it.r));
+/* the two items this member is playing */
+function equippedOf(i){
+  const st = S.members[i], out = [];
+  if (!st || !st.gear) return out;
+  const a = itemOf(st.gear.inst), b = itemOf(st.gear.rig);
+  if (a) out.push(a);
+  if (b) out.push(b);
+  return out;
+}
+/* ONE place a passive is read. `key` is the effect, not the item. */
+function fx(i, key){
+  let n = 0;
+  equippedOf(i).forEach(it => {
+    const g = archOf(it.a), p = g && g.fx && PASSIVE[g.fx];
+    if (p && p.k === key && (!p.when || p.when())) n += p.v;
+  });
+  return n;
+}
+function fxBand(key){
+  let n = 0;
+  for (let i = 0; i < 4; i++) if (S.members[i].owned) n += fx(i, key);
+  return n;
+}
+/* a new instance. Ids only ever go up, so an equip reference can never be re-pointed. */
+function addGear(a, r, lvl){
+  const it = { id: S.gear.next++, a, r: clamp(r || 0, 0, 4), lvl: lvl || 0 };
+  S.gear.own.push(it);
+  return it;
+}
+/* Every owned member plays their role's starter instrument. It is not a reward — it is
+   what "holding an instrument" means, and it is why the stage never draws an empty pair
+   of hands. Old saves get theirs on load. */
+function grantBaseGear(i){
+  const st = S.members[i];
+  if (!st.owned || (st.gear && st.gear.inst != null && itemOf(st.gear.inst))) return;
+  if (!st.gear) st.gear = { inst:null, rig:null };
+  st.gear.inst = addGear(BASE_INSTR[i], 0, 0).id;
+}
+const grantAllBaseGear = () => { for (let i = 0; i < 4; i++) grantBaseGear(i); };
+/* equip / unequip. A rig is universal, so the same archetype may sit on four members —
+   but one INSTANCE is in one slot at a time, so equipping it elsewhere moves it. */
+function equipGear(i, id){
+  const it = itemOf(id);
+  if (!it) return false;
+  const g = archOf(it.a);
+  if (!g) return false;
+  const slot = g.role === 4 ? 'rig' : 'inst';
+  if (g.role !== 4 && g.role !== i) return false;        // role-locked
+  for (let k = 0; k < 4; k++){                            // one instance, one slot
+    const gk = S.members[k].gear;
+    if (!gk) continue;
+    if (gk.inst === id) gk.inst = null;
+    if (gk.rig === id) gk.rig = null;
+  }
+  S.members[i].gear[slot] = id;
+  return true;
+}
+const isEquipped = id => S.members.some(m => m.gear && (m.gear.inst === id || m.gear.rig === id));
+/* Salvage is the only thing a duplicate instrument is FOR: there is one member per role,
+   so a second Flying V has nowhere to go. Parts, and +50% when you already own one. */
+function salvageGear(id){
+  const it = itemOf(id);
+  if (!it || isEquipped(id)) return 0;
+  const p = itemSalvage(it);
+  S.gear.own = S.gear.own.filter(x => x.id !== id);
+  S.parts += p;
+  return p;
+}
+function upgradeGear(id){
+  const it = itemOf(id);
+  if (!it || it.lvl >= BAL.gearUpMax) return false;
+  const p = upParts(it), m = upMoney(it);
+  if (S.parts < p || S.money < m) return false;
+  S.parts -= p; S.money -= m; it.lvl++;
+  return true;
+}
+
 /* a jointed limb: shoulder -> elbow -> hand, drawn as one round-capped stroke */
 const limb = (sk, pts, w) => `<path d="M${pts}" stroke="${sk}" stroke-width="${w||9}" fill="none"
   stroke-linecap="round" stroke-linejoin="round"/>`;
@@ -1858,29 +2398,12 @@ function charSVG(role, look, rarity, locked){
       ${panels}${stripe}${studs}`;
   const shadow = `<ellipse cx="50" cy="127" rx="28" ry="4" fill="#E8C79C"></ellipse>`;
 
+  const K = { sk, c1, c2 }, G = instrOf(role), rig = rigSVG(role);
   if (role === 0){        // DRUMMER — kit with real heads, hoops and lugs
-    return `<svg viewBox="0 0 100 130" aria-hidden="true"${glow}>${aura}${shadow}
-      <path d="M10 68 v42 M4 118 l6 -8 M16 118 l-6 -8" stroke="#B9AFA0" stroke-width="1.6" stroke-linecap="round"></path>
-      <ellipse cx="10" cy="66" rx="10" ry="2.2" fill="#E0A72E"></ellipse>
-      <ellipse cx="10" cy="63.5" rx="10" ry="2.2" fill="${PAL.gold}"></ellipse>
-      <path d="M90 62 v48 M84 118 l6 -8 M96 118 l-6 -8" stroke="#B9AFA0" stroke-width="1.6" stroke-linecap="round"></path>
-      <ellipse cx="90" cy="60" rx="12" ry="2.6" fill="${PAL.gold}"></ellipse>
-      <ellipse cx="90" cy="59.6" rx="6" ry="1.4" fill="none" stroke="#E0A72E" stroke-width=".8"></ellipse>
+    return `<svg viewBox="0 0 100 130" aria-hidden="true"${glow}>${aura}${shadow}${rig}
+      ${(G.back || noSVG)(K)}
       <g class="ch-bob">${legs}${torso}${head}</g>
-      <ellipse cx="33" cy="78" rx="12" ry="7.5" fill="${PAL.onAccent}" stroke="${c2}" stroke-width="2.4"></ellipse>
-      <path d="M21 78 v7 a12 7.5 0 0 0 24 0 v-7" fill="${c2}"></path>
-      <ellipse cx="67" cy="76" rx="11" ry="7" fill="${PAL.onAccent}" stroke="${c2}" stroke-width="2.4"></ellipse>
-      <path d="M56 76 v6 a11 7 0 0 0 22 0 v-6" fill="${c2}"></path>
-      <ellipse cx="18" cy="92" rx="12" ry="7" fill="${PAL.onAccent}" stroke="#B9AFA0" stroke-width="2.2"></ellipse>
-      <path d="M6 92 v7 a12 7 0 0 0 24 0 v-7" fill="#D9CFC0"></path>
-      <ellipse cx="50" cy="102" rx="29" ry="24" fill="${PAL.onAccent}"></ellipse>
-      <ellipse cx="50" cy="102" rx="29" ry="24" fill="none" stroke="${c2}" stroke-width="3.6"></ellipse>
-      <ellipse cx="50" cy="102" rx="24" ry="19.5" fill="none" stroke="#F0DCBC" stroke-width="1"></ellipse>
-      <circle cx="50" cy="78" r="2" fill="${c2}"></circle><circle cx="50" cy="126" r="2" fill="${c2}"></circle>
-      <circle cx="21" cy="102" r="2" fill="${c2}"></circle><circle cx="79" cy="102" r="2" fill="${c2}"></circle>
-      <circle cx="71" cy="85" r="2" fill="${c2}"></circle><circle cx="29" cy="119" r="2" fill="${c2}"></circle>
-      <circle cx="50" cy="102" r="11" fill="none" stroke="${PAL.gold}" stroke-width="2"></circle>
-      <path d="M47 96 l-2 7h3l-1 6 5 -8h-3l2 -5z" fill="${c2}"></path>
+      ${G.front(K)}
       <g class="pl-l">${limb(sk, '31 61 L22 74 L35 85', 7)}<circle cx="35" cy="85" r="4.4" fill="${sk}"></circle>
         <path d="M31 81 L52 97" stroke="#EFDCB8" stroke-width="2.4" stroke-linecap="round"></path></g>
       <g class="pl-r">${limb(sk, '69 61 L78 73 L65 84', 7)}<circle cx="65" cy="84" r="4.4" fill="${sk}"></circle>
@@ -1888,50 +2411,23 @@ function charSVG(role, look, rarity, locked){
     </svg>`;
   }
   if (role === 3){        // VOCALIST — mic with a real grille
-    return `<svg viewBox="0 0 100 130" aria-hidden="true"${glow}>${aura}${shadow}
-      <rect x="86" y="44" width="2" height="80" rx="1" fill="#B9AFA0"></rect>
-      <rect x="79" y="43" width="10" height="2" rx="1" fill="#B9AFA0"></rect>
+    return `<svg viewBox="0 0 100 130" aria-hidden="true"${glow}>${aura}${shadow}${rig}
+      ${(G.back || noSVG)(K)}
       <g class="ch-bob">${legs}${torso}${head}
         <g class="pl-free">${limb(sk, '32 61 L23 70 L28 50', 7)}<circle cx="28" cy="47" r="4.6" fill="${sk}"></circle></g>
         <g class="pl-mic">${limb(sk, '68 61 L77 70 L64 54', 7)}
-          <rect x="57" y="46" width="7" height="11" rx="3.5" fill="#3A322C" transform="rotate(-32 60 51)"></rect>
-          <circle cx="57" cy="45" r="5.6" fill="#C6BFB3" stroke="#8E877B" stroke-width="1.1"></circle>
-          <path d="M51.6 42 h10.8 M51.2 45 h11.6 M52 48 h9.4" stroke="#8E877B" stroke-width=".7"></path>
-          <path d="M54 39.8 q-1.6 5.2 0 10.4 M57 39.4 q-1.2 5.6 0 11.2 M60 39.8 q1.6 5.2 0 10.4" stroke="#8E877B" stroke-width=".7" fill="none"></path>
-          <path d="M53.4 41.6 a5.6 5.6 0 0 1 4.6 -1" stroke="#EDE7DC" stroke-width="1.4" fill="none" stroke-linecap="round"></path>
+          ${G.front(K)}
           <circle cx="64" cy="55" r="4.6" fill="${sk}"></circle></g>
       </g>
     </svg>`;
   }
   // BASSIST (1) / GUITARIST (2)
-  const big = role === 1;
-  const bodyC = big ? '#0E9186' : PAL.accentSh, bodyHi = big ? PAL.accent2 : PAL.accentDk;
-  const strings = big
-    ? `<path d="M-16 -3 H60M-16 -1 H60M-16 1 H60M-16 3 H60" stroke="#F4E7CC" stroke-width=".7"></path>`
-    : `<path d="M-16 -3.4 H60M-16 -2 H60M-16 -.7 H60M-16 .7 H60M-16 2 H60M-16 3.4 H60" stroke="#F4E7CC" stroke-width=".55"></path>`;
-  const tuners = big
-    ? `<circle cx="56" cy="-8" r="1.8" fill="#D8CBB2"></circle><circle cx="61" cy="-8" r="1.8" fill="#D8CBB2"></circle>
-       <circle cx="56" cy="8" r="1.8" fill="#D8CBB2"></circle><circle cx="61" cy="8" r="1.8" fill="#D8CBB2"></circle>`
-    : `<circle cx="55" cy="-8" r="1.5" fill="#D8CBB2"></circle><circle cx="59.5" cy="-8" r="1.5" fill="#D8CBB2"></circle>
-       <circle cx="64" cy="-8" r="1.5" fill="#D8CBB2"></circle><circle cx="55" cy="8" r="1.5" fill="#D8CBB2"></circle>
-       <circle cx="59.5" cy="8" r="1.5" fill="#D8CBB2"></circle><circle cx="64" cy="8" r="1.5" fill="#D8CBB2"></circle>`;
-  return `<svg viewBox="0 0 100 130" aria-hidden="true"${glow}>${aura}${shadow}
+  return `<svg viewBox="0 0 100 130" aria-hidden="true"${glow}>${aura}${shadow}${rig}
     <g class="ch-bob">${legs}${torso}${head}
       <path d="M36 58 L64 90" stroke="${PAL.faceInk}" stroke-width="3.4" stroke-linecap="round" opacity=".85"></path>
       <g transform="translate(64 94) rotate(-133)">
-        <ellipse cx="-5" cy="0" rx="15" ry="12" fill="${bodyC}"></ellipse>
-        <ellipse cx="8" cy="0" rx="11" ry="9" fill="${bodyC}"></ellipse>
-        <ellipse cx="-5" cy="-2" rx="12.5" ry="9" fill="${bodyHi}"></ellipse>
-        <rect x="16" y="-5" width="38" height="10" rx="1.5" fill="#7A4A22"></rect>
-        <rect x="16" y="-5" width="38" height="10" rx="1.5" fill="#5C3416" opacity=".4"></rect>
-        <path d="M21 -5v10M25 -5v10M29 -5v10M34 -5v10M39 -5v10M45 -5v10M51 -5v10" stroke="#CFC0A6" stroke-width=".7"></path>
-        <circle cx="31" cy="0" r="1" fill="#E8DCC4"></circle><circle cx="42" cy="0" r="1" fill="#E8DCC4"></circle>
-        <rect x="-2" y="-7" width="4" height="13" rx="1" fill="#221812"></rect>
-        <rect x="-10" y="-7" width="4" height="13" rx="1" fill="#221812"></rect>
-        <rect x="-18" y="-6" width="4" height="12" rx="1" fill="#C9BCA6"></rect>
-        ${strings}
-        <path d="M54 -6 h9 q3 0 3 3 v6 q0 3 -3 3 h-9z" fill="${bodyC}"></path>
-        ${tuners}
+        <rect x="-20" y="-12" width="86" height="24" fill="none"></rect>
+        ${G.front(K)}
       </g>
       <g class="pl-fret">${limb(sk, '32 61 L25 71 L35 63', 7)}<circle cx="35" cy="62" r="4.4" fill="${sk}"></circle></g>
       <g class="pl-strum">${limb(sk, '68 61 L77 78 L63 91', 7)}<circle cx="62" cy="92" r="4.6" fill="${sk}"></circle></g>
@@ -2269,9 +2765,19 @@ function statOf(i, k){
   const sp = S.spend && S.spend[i];
   return (sp && sp[k] || 0) + gearStat(i, k) + skillStat(i, k);
 }
-/* gear and skills are later build steps; declared here so statOf has one shape */
-const gearStat = () => 0;
+/* skills are a later build step; declared here so statOf has one shape */
 const skillStat = () => 0;
+/* what a member's two equipped items are worth in one stat. Clean Signal (the DI box)
+   is the one passive that amplifies the other slot rather than adding to it. */
+function gearStat(i, k){
+  const st = S.members[i];
+  if (!st || !st.gear) return 0;
+  const inst = itemOf(st.gear.inst), rig = itemOf(st.gear.rig);
+  let n = 0;
+  if (inst) n += itemStat(inst, k) * (1 + fx(i, 'instAmp'));
+  if (rig) n += itemStat(rig, k);
+  return n;
+}
 /* the two stage stats belong to the band, not to whoever is holding the pick */
 function bandStat(k){
   let n = 0, c = 0;
@@ -2284,19 +2790,23 @@ const hintAcc = i => clamp(Math.max(0.5 + 0.035 * S.members[i].lvl,
                                     0.5 + BAL.statWriteHint * statOf(i, 'w')), 0.5, 0.97);
 /* SKILL widens the hit windows a little. Capped hard: this is accessibility, not a
    difficulty setting, and the grade is still accuracy. */
-const winScale = i => 1 + Math.min(BAL.statSkillWinMax, BAL.statSkillWin * statOf(i, 's'));
+const winScale = i => 1 + Math.min(BAL.statSkillWinMax,
+  BAL.statSkillWin * statOf(i, 's') + fx(i, 'perfWin'));
 /* STAGE never makes a wrong room right, it just stops it being hopeless */
-const fitFloor = () => Math.min(BAL.statStageFitMax, BAL.statStageFit * bandStat('t'));
+const fitFloor = () => Math.min(BAL.statStageFitMax,
+  BAL.statStageFit * bandStat('t') + fxBand('fitFloor'));
 
 /* ===== CRAFT — the one thing upgrades buy =====
    Levels, the studio, and later gear and skills all feed ONE number: how good a song this
    band is capable of making. Craft never touches what a released song earns; it raises the
    ceiling on the next one. That is the whole progression — you do not get richer per song,
    you get *better*, and better songs chart higher. */
-const memberCraft = i => BAL.craftMember +
+const memberCraft = i => (BAL.craftMember +
   BAL.craftLvl * Math.pow(S.members[i].lvl, BAL.craftExp) +
   BAL.starCraft[clamp((S.star[i] || 1) - 1, 0, BAL.starCraft.length - 1)] +
-  BAL.statWriteCraft * statOf(i, 'w');
+  BAL.statWriteCraft * statOf(i, 'w') +
+  fx(i, 'craft') + fx(i, 'craftRig') * (S.members[i].gear && S.members[i].gear.rig ? 1 : 0))
+  * (1 + fx(i, 'craftPct'));
 function craft(){
   let c = 0;
   for (let i = 0; i < 4; i++) if (S.members[i].owned) c += memberCraft(i);
@@ -2342,7 +2852,7 @@ function gigFatigue(vi, section, encore){
   const raw = BAL.fatSection * Math.max(0, section) +
               BAL.fatHard * Math.max(0, VENUES[vi].d - BAL.fatHardFrom) +
               (encore ? BAL.fatEncore : 0);
-  const held = Math.min(BAL.statStamFatMax, BAL.statStamFat * bandStat('m'));
+  const held = Math.min(BAL.statStamFatMax, BAL.statStamFat * bandStat('m') + fxBand('fatCut'));
   return clamp(raw * (1 - held), 0, 1);
 }
 /* the reward is a slice of the band's own money rate, so a show is always worth
@@ -2870,7 +3380,7 @@ function dealStep(){
   s.offers = [star].concat(rest.slice(0, 2));
   for (let i = s.offers.length - 1; i > 0; i--){ const j = rndi(0,i); const t = s.offers[i]; s.offers[i] = s.offers[j]; s.offers[j] = t; }
   const genre = genre0, prev = s.picks.map(p => CARDS[p.track][p.ci]);
-  const pts = s.offers.map(ix => cardPoints(CARDS[track][ix], genre, prev));
+  const pts = s.offers.map(ix => cardPoints(CARDS[track][ix], genre, prev, track));
   const rank = pts.map((p,k) => ({ p, k })).sort((a,b) => b.p - a.p);
   const labels = [];
   labels[rank[0].k] = 'good';
@@ -2963,7 +3473,7 @@ function finishWriting(){
   const s = S.session, genre = GENRES[s.g];
   let pts = 0;
   const prev = [];
-  s.picks.forEach(p => { const c = CARDS[p.track][p.ci]; pts += cardPoints(c, genre, prev); prev.push(c); });
+  s.picks.forEach(p => { const c = CARDS[p.track][p.ci]; pts += cardPoints(c, genre, prev, p.track); prev.push(c); });
   const norm = s.picks.length ? (pts / (25 * s.picks.length)) * 100 : 0;
   const jam = s.jam.reduce((a,b) => a + b, 0);
   const takes = Math.min(BAL.takeMax, s.takePts || 0);
@@ -2999,7 +3509,9 @@ function finishWriting(){
    Three lanes, thumb-sized, at the bottom of the screen. The pattern the card
    chose decides the rhythm; where each note lands is the part it plays. */
 let take = null;
-const approachFor = lvl => Math.min(BAL.approachMax, BAL.approachBase + BAL.approachPerLvl * (lvl - 1));
+/* better members buy reading time, and so do a short-scale bass and a wedge monitor */
+const approachFor = i => Math.min(BAL.approachMax,
+  BAL.approachBase + BAL.approachPerLvl * (S.members[i].lvl - 1) + fx(i, 'approach'));
 /* What each lane is, per instrument — the drummer's kit, everyone else's part. */
 const LANE_NAMES = [
   ['SNARE','KICK','HAT'], ['SLIDE','ROOT','WALK'],
@@ -3059,7 +3571,7 @@ function renderMeter(){
 }
 function startTake(track, card){
   const lvl = S.members[track].lvl;
-  const approach = approachFor(lvl);              // better members give you longer to read
+  const approach = approachFor(track);            // better members give you longer to read
   take = {
     mode:'take', secs: BAL.takeSecs,
     track, card, approach, notes: takeNotes(card, AU.bpm, approach, BAL.takeSecs),
@@ -3166,8 +3678,9 @@ function tapLane(L){
 function missNote(wrongLane){
   const t = now() - take.t0;
   take.streak = 0;
-  if (take.mode === 'gig') hype(-(wrongLane ? BAL.hypeWrong : BAL.hypeMiss));
-  else take.meter -= wrongLane ? BAL.meterMiss / 2 : BAL.meterMiss;
+  const soft = 1 - fx(take.track, 'meterCut'), shield = 1 - fx(take.track, 'wrongCut');
+  if (take.mode === 'gig') hype(-(wrongLane ? BAL.hypeWrong * shield : BAL.hypeMiss));
+  else take.meter -= (wrongLane ? BAL.meterMiss / 2 * shield : BAL.meterMiss) * soft;
   if (t - take.lastMiss > 0.4){
     take.lastMiss = t;
     feed(wrongLane ? 'WRONG LANE' : 'MISS', JUDGE.miss);
@@ -3188,7 +3701,7 @@ function pocket(){
     if (b){ b.textContent = 'in the pocket!'; b.classList.remove('on'); void b.offsetWidth; b.classList.add('on'); }
     m.classList.remove('nod'); void m.offsetWidth; m.classList.add('nod');
   }
-  if (take.mode === 'gig') hypeGain(6);                   // the room feels a run of perfects
+  if (take.mode === 'gig') hypeGain(6 + fxBand('pocketHype'));   // the room feels a run of perfects
   else if (S.session) S.heat[S.session.g] = clamp(S.heat[S.session.g] + BAL.pocketHeat, 0, 100);
   AU.fill(); buzz([14, 40, 14]);
 }
@@ -3222,7 +3735,11 @@ function endTake(auto, botched){
     ratio = max ? take.pts / max : 0;
     got = ratio >= 0.80 ? BAL.takePerfect : ratio >= 0.45 ? BAL.takeGood : 0;
     if (got && take.bestMult >= BAL.multSteps.length + 1) got += BAL.multBonus;
-    got *= 1 + BAL.statSkillTake * statOf(take.track, 's');   // SKILL: the conversion, not the notes
+    // SKILL is the conversion, not the notes; gear tilts it, and Fast Hands only
+    // pays on a pattern that actually deals a lot of them
+    const dense = take.notes.length >= 14;
+    got *= 1 + BAL.statSkillTake * statOf(take.track, 's') + fx(take.track, 'takeQ')
+             + (dense ? fx(take.track, 'denseTake') : 0);
     toast(got >= BAL.takePerfect ? '🎙️ Perfect take — +' + fmt1(got) + ' Quality'
         : got ? '🎙️ Good take — +' + fmt1(got) + ' Quality'
         : '🎙️ That take did not make it');
@@ -3432,8 +3949,9 @@ function startGig(){
   closeGigs();
   const V = VENUES[gsel.v], songs = gsel.songs.map(i => S.songs[i]).filter(Boolean);
   const secs = BAL.gigSecs[Math.min(songs.length, 3) - 1];
-  gigRun = { v: gsel.v, songs, k: -1, secs, hype: BAL.hypeStart, pts: 0, max: 0,
-             best: 0, milestone: 0, encore: false, peak: BAL.hypeStart };
+  const hype0 = clamp(BAL.hypeStart + fxBand('hypeStart'), 0, 100);   // Rock Stance
+  gigRun = { v: gsel.v, songs, k: -1, secs, hype: hype0, pts: 0, max: 0,
+             best: 0, milestone: 0, encore: false, peak: hype0, hypeMul: 1 };
   el.bg.style.background = `radial-gradient(125% 72% at 50% 0%, ${V.bg[0]}, ${V.bg[1]} 48%, var(--bg0) 100%)`;
   el.takefs.classList.add('gig');
   el.gtVenue.textContent = V.n;
@@ -3457,7 +3975,7 @@ function gigSection(song, secs, encore){
   AU.root = 40 + (song.g * 3) % 12;                  // the song keeps its own key
   AU.setBPM(Math.round(88 + (GENRES[song.g].v[0] + 1) * 22));
   AU.reset(); AU.layerOn(track, (card.v[0] + 1) / 2);
-  const approach = approachFor(S.members[track].lvl);
+  const approach = approachFor(track);
   take = {
     mode:'gig', secs, track, card, approach,
     notes: takeNotes(card, AU.bpm, approach, secs),
@@ -3470,7 +3988,8 @@ function gigSection(song, secs, encore){
   // FATIGUE: later songs, harder rooms and the encore, minus whatever the band's
   // STAMINA answers. A one-song Open Mic is exactly 0 — see gigFatigue().
   g.fat = gigFatigue(g.v, encore ? g.songs.length - 1 : g.k, encore);
-  g.hypeMul = (1 + BAL.statStageHype * bandStat('t')) * (1 - BAL.fatHypeCut * g.fat);
+  g.hypeMul = (1 + BAL.statStageHype * bandStat('t') + fxBand('hypeGain') +
+               (VENUES[g.v].d >= 5 ? fxBand('hypeHard') : 0)) * (1 - BAL.fatHypeCut * g.fat);
   g.max += take.notes.length * 2;
   el.tkTrack.textContent = encore ? 'ENCORE' : 'SONG ' + (g.k + 1) + '/' + g.songs.length;
   el.tkWho.textContent = GENRES[song.g].n;
@@ -3813,7 +4332,12 @@ function openMember(i){
   sheetBack = sheetTab;
   openScreen('member', S.members[i].name);
 }
-function sheetOut(){ if (sheetBack) openTab(sheetBack); else closeSheet(); }
+/* one detour deep is enough: the gear screen remembers the member screen it came from,
+   and the member screen still remembers the tab. Anything deeper wants a real stack. */
+function sheetOut(){
+  if (sheetBack === 'member'){ sheetBack = gearBack; return openScreen('member', S.members[memberView].name); }
+  if (sheetBack) openTab(sheetBack); else closeSheet();
+}
 function closeSheet(){
   sheetTab = null; sheetBack = null;
   el.sheet.classList.remove('on');
@@ -3852,6 +4376,7 @@ function renderSheet(t, soft){
   const sc = b.scrollTop;              // a purchase re-renders the screen; stay where you were
   b.innerHTML = t === 'band' ? htmlBand() : t === 'music' ? htmlMusic()
               : t === 'member' ? htmlMember(memberView)
+              : t === 'gear' ? htmlGear()
               : t === 'shop' ? htmlShop() : htmlSettings();
   b.scrollTop = sc;
 }
@@ -3862,11 +4387,8 @@ function renderSheet(t, soft){
    "you cannot afford this" rather than "this does not exist yet". Adding the real thing
    later means replacing one entry, not inventing a layout. */
 const RESERVED = [
-  { id:'gear', n:'Gear', i:'gear', c:'gold', w:'BUILD STEP 2',
-    d:'Guitars, pedals, amps and mics. Each piece hangs on the character it is equipped to and opens writing cards the way levels do. Two slots a member — they are already drawn on the character sheet.',
-    t:['INSTRUMENT','RIG','AMP'] },
   { id:'crates', n:'Crates', i:'crate', c:'violet', w:'BUILD STEP 3',
-    d:'Bronze 50 · Gold 150 · Mythic 500 Picks. Members and gear drop from them, and three of a rarity merge into one of the next. The rank you have already earned carries better odds into them.',
+    d:'Bronze 50 · Gold 150 · Mythic 500 Picks. This is where the 28 gear archetypes come from — a crate rolls a rarity, then an item — along with the member cards that raise a star rank. The rank you have already earned carries better odds into them.',
     t:['BRONZE','GOLD','MYTHIC'] },
   { id:'picks', n:'Picks', i:'pick', c:'gold', w:'BUILD STEP 7',
     d:'The premium currency, spent on crates, skips and streak saves. Packs of 100 · 550 · 1200 · 3500.',
@@ -3941,13 +4463,12 @@ function htmlMember(i){
     : `<div class="hint" style="text-align:left;padding:0 2px 4px">Points arrive with Star Rank —
       duplicate member cards from crates. Spending them is always free to undo.</div>`;
 
-  h += `<div class="sect">Gear <span style="color:var(--dim3);font-weight:700">2 slots</span></div>
+  h += `<div class="sect">Gear <span style="color:var(--dim3);font-weight:700">${fmt(S.parts)} parts</span></div>
     <div class="gearrow">
-      <button class="gearslot" data-act="gear" data-i="${i}"><b>+</b>INSTRUMENT</button>
-      <button class="gearslot" data-act="gear" data-i="${i}"><b>+</b>RIG</button>
+      ${slotBtn(i, 'inst')}${slotBtn(i, 'rig')}
     </div>
-    <div class="hint">Gear is the next build step. It will hang on this character and open
-      writing cards the way levels do.</div>`;
+    <div class="hint">The instrument is drawn on this character; the rig stands at their
+      feet. A rig fits anyone — an instrument only fits its own role.</div>`;
 
   h += `<div class="sect">Level ${st.lvl} → ${st.lvl + 1}</div>
     <div class="ba"><span class="bl">Craft</span>
@@ -4110,11 +4631,80 @@ function htmlSongs(){
   if (S.songs.length > 60) h += '<div class="hint">…and ' + (S.songs.length - 60) + ' more.</div>';
   return h;
 }
+/* ===== THE GEAR SCREEN =====
+   A detour off the character sheet, one slot at a time: `gearSlot` says whose and
+   which. It lists only what can go in that slot — instruments are role-locked, rigs
+   fit anyone — because a list you cannot act on is not a list. */
+let gearSlot = { i: 0, slot: 'inst' };
+const rarC = r => RARITY[clamp(r, 0, 4)].c;
+function slotBtn(i, slot){
+  const st = S.members[i], it = itemOf(st.gear && st.gear[slot]);
+  const lbl = slot === 'inst' ? 'INSTRUMENT' : 'RIG';
+  if (!it) return `<button class="gearslot" data-act="gear" data-i="${i}" data-slot="${slot}">
+    <b>+</b>${lbl}</button>`;
+  const g = archOf(it.a);
+  return `<button class="gearslot on" style="--gc:${rarC(it.r)}" data-act="gear" data-i="${i}" data-slot="${slot}">
+    <span class="gr">${RARITY[it.r].n}${it.lvl ? ' · L' + it.lvl : ''}</span>
+    <span class="gn">${esc(g ? g.n : lbl)}</span>
+    <span class="gp">${fmt1(itemPts(it))} PTS</span></button>`;
+}
+/* the four-way split, as four chips — a build you can read without doing the arithmetic */
+const splitChips = g => `<div class="gsplit">${STATS.map((s, k) =>
+  g.sp[k] ? `<span>${s.n.slice(0,1)}${g.sp[k]}</span>` : '').join('')}</div>`;
+function htmlGear(){
+  const i = gearSlot.i, slot = gearSlot.slot, st = S.members[i];
+  const cur = itemOf(st.gear && st.gear[slot]);
+  const want = slot === 'inst' ? i : 4;
+  const list = gearItems().filter(x => { const g = archOf(x.a); return g && g.role === want; })
+    .sort((a, b) => (isEquipped(b.id) - isEquipped(a.id)) || (b.r - a.r) || (b.lvl - a.lvl));
+  let h = `<div class="sect">${slot === 'inst' ? MEMBERS[i].role : 'Rig'} · ${esc(st.name)}
+    <span style="color:var(--dim3);font-weight:700">${fmt(S.parts)} PARTS</span></div>`;
+  h += `<div class="hint" style="text-align:left;padding:0 2px 10px">${slot === 'inst'
+    ? 'An instrument is role-locked — there is one ' + MEMBERS[i].track.toLowerCase() +
+      ' chair, so a duplicate is material rather than a spare.'
+    : 'A rig fits any member, and four of them can be out at once — one each.'}</div>`;
+  if (!list.length) h += `<div class="hint" style="text-align:left;padding:0 2px 10px">
+    Nothing for this slot yet. Gear drops from crates.</div>`;
+  list.forEach(x => {
+    const g = archOf(x.a), on = isEquipped(x.id), mine = st.gear[slot] === x.id;
+    const p = g.fx && PASSIVE[g.fx];
+    const canUp = x.lvl < BAL.gearUpMax;
+    h += `<div class="gitem ${mine ? 'on' : ''}" style="--gc:${rarC(x.r)}">
+      <div class="gi">${ico(slot === 'inst' && g.role === 3 ? ICON.mic : slot === 'inst' ? ICON.music : ICON.gear,
+        { c: rarC(x.r), s: 22 })}</div>
+      <div class="gt"><div class="t">${esc(g.n)}
+        <span class="gr" style="color:${rarC(x.r)}">${RARITY[x.r].n}${x.lvl ? ' · L' + x.lvl : ''}</span></div>
+        <div class="d">${fmt1(itemPts(x))} points${on && !mine ? ' · on ' + esc(shortName(equippedBy(x.id))) : ''}</div>
+        ${p ? `<div class="p">${p.n} — ${p.d}</div>` : '<div class="d" style="opacity:.6">No passive</div>'}
+        ${splitChips(g)}</div>
+      <div style="display:flex;flex-direction:column;gap:5px">
+        <button class="buy ${mine ? 'alt' : ''}" data-act="equip" data-i="${x.id}">${mine ? 'EQUIPPED' : 'EQUIP'}</button>
+        ${canUp ? `<button class="buy ${S.parts >= upParts(x) && S.money >= upMoney(x) ? '' : 'no'}"
+          data-act="gup" data-i="${x.id}">LV ${x.lvl + 1}<small>${upParts(x)}p · ${fmt(upMoney(x))}</small></button>`
+                : '<div class="rar">MAX</div>'}
+        ${on ? '' : `<button class="buy alt" data-act="gsalv" data-i="${x.id}">SCRAP<small>+${itemSalvage(x)}p</small></button>`}
+      </div></div>`;
+  });
+  if (cur) h += `<div class="hint" style="text-align:left;padding:4px 2px">Scrapping is only
+    offered for something you are not playing. A duplicate archetype scraps for
+    ${Math.round(BAL.gearDupBonus * 100)}% more.</div>`;
+  return h;
+}
+const shortName = i => i < 0 ? '' : S.members[i].name.split(' ')[0];
+const equippedBy = id => S.members.findIndex(m => m.gear && (m.gear.inst === id || m.gear.rig === id));
+let gearBack = null;
+function openGear(i, slot){
+  gearSlot = { i, slot };
+  memberView = i;
+  if (sheetTab !== 'gear'){ gearBack = sheetBack; sheetBack = 'member'; }
+  openScreen('gear', slot === 'inst' ? 'Instrument' : 'Rig');
+}
 function htmlShop(){
   let h = `<div class="card"><div class="av" style="--c1:${PAL.gold}">${ico(ICON.pick, {c:PAL.onGold, s:22})}</div>
-    <div class="info"><div class="t">${fmt(S.picks)} Picks</div>
-    <div class="d">Your premium balance. Nothing spends it yet, and nothing in this
-      build can be bought.</div></div></div>
+    <div class="info"><div class="t">${fmt(S.picks)} Picks · ${fmt(S.parts)} Parts</div>
+    <div class="d">Picks are the premium balance — nothing spends them yet, and nothing in
+      this build can be bought. Parts come from scrapping gear you are not playing, and
+      they are what upgrades it.</div></div></div>
     <div class="sect">Reserved for later</div>`;
   RESERVED.forEach(r => h += htmlReserved(r));
   h += `<div class="hint">Every rail above says what it will hold and which build step brings
@@ -4168,6 +4758,7 @@ function buy(act, i, node){
     S.money -= price;
     askName(MEMBERS[i].role, S.members[i].name, nm => {
       S.members[i].owned = true;
+      grantBaseGear(i);
       S.members[i].name = nm;
       S.members[i].look = newLook();
       buildBand(); renderIdle(); renderTop(); renderSheet(sheetTab); save();
@@ -4200,8 +4791,30 @@ function buy(act, i, node){
   } else if (act === 'member'){
     openMember(i); return;
   } else if (act === 'gear'){
-    toast('🎸 Gear arrives in the next build — the slot is already yours');
-    buzz(10); return;
+    openGear(i, (node && node.dataset.slot) || 'inst'); buzz(10); return;
+  } else if (act === 'equip'){
+    if (!equipGear(gearSlot.i, i)) return;
+    buildBand();                                  // the character is holding it now
+    AU.chord('small'); buzz(12);
+    toast('🎸 ' + shortName(gearSlot.i) + ' picked up the ' + gearName(itemOf(i)));
+  } else if (act === 'gup'){
+    const it = itemOf(i);
+    if (!it || !upgradeGear(i)) return;
+    buildBand(); AU.chord('small'); buzz([12,30,12]);
+    toast('🔧 ' + gearName(it) + ' → L' + it.lvl);
+  } else if (act === 'gsalv'){
+    // scrapping is permanent, so it names the item and asks — the same shape as reset
+    const it = itemOf(i);
+    if (!it) return;
+    const nm = gearName(it), pay = itemSalvage(it);
+    modal(`<h3>Scrap ${esc(nm)}?</h3><p>${RARITY[it.r].n}${it.lvl ? ' · L' + it.lvl : ''} —
+      broken down for <b>${pay} parts</b>. The item is gone for good.</p>`, 'SCRAP IT', () => {
+      const got = salvageGear(i);
+      if (!got) return;
+      buzz(14); toast('🧰 Scrapped ' + nm + ' — +' + got + ' parts');
+      renderSheet(sheetTab); renderTop(); save();
+    }, true);
+    return;
   } else if (act === 'stat'){
     // a stat point is never spent on the player's behalf, and never costs money
     const k = node && node.dataset.k;
@@ -4265,6 +4878,7 @@ function finishSetup(){
   const nm = ($('#setName').value || '').trim().slice(0,20) || genName();
   S.you = setupRole;
   S.members[setupRole].owned = true;
+  grantBaseGear(setupRole);
   S.members[setupRole].name = nm;
   S.members[setupRole].look = setupLook;
   S.setup = true;
@@ -4395,6 +5009,7 @@ function modal(html, btn, onOk, danger){
 function boot(){
   S = load();
   if (S.session && S.session.phase === 'cards' && !S.session.order) S.session = null;
+  grantAllBaseGear();                  // a save from before gear still holds instruments
   buildBand(); applyStudio(); renderIdle(); renderTop();
   disp = S.streams;
   AU.setBPM(104);
