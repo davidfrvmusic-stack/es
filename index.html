@@ -133,6 +133,11 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   font-size:9px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--dim3)}
 /* the stepped-forward member fills the stage top to bottom while you play, so the two
    labels that live at those edges get out of the way rather than sit under them */
+/* the band name can wear a banner: same element, a cloth strip behind it. Free, and
+   togglable in Settings, because the stage is the player's. */
+#bandChip.banner{margin:6px 30px 0;padding:6px 16px;border:2px solid var(--line2);
+  border-radius:var(--r1);background:var(--panel);color:var(--ink);align-self:center;
+  box-shadow:0 3px 0 var(--cream);letter-spacing:.2em}
 #bandChip,#studioChip{transition:opacity var(--m2) ease}
 #stage.playing #bandChip,#stage.playing #studioChip{opacity:0}
 /* the side rail carries one icon per system with something waiting. Nothing is waiting
@@ -471,6 +476,30 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .qrow{display:flex;align-items:center;gap:8px;margin:8px 2px 2px}
 .qrow .qn{flex:1;font-size:9.5px;font-weight:800;letter-spacing:.11em;color:var(--dim3)}
 .qdone{opacity:.7}
+.logbox{background:var(--panel);border:2px solid var(--line);border-radius:var(--r2);
+  padding:8px 10px;margin:0 0 var(--s2)}
+.logrow{display:flex;align-items:center;gap:8px;padding:3px 0;font-size:10.5px;font-weight:700;
+  color:var(--dim)}
+.logrow span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.logrow em{flex:0 0 auto;font-style:normal;font-size:9px;letter-spacing:.1em;color:var(--dim3);
+  text-transform:uppercase}
+.lookrow{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.lookrow .ln{width:74px;flex:0 0 auto;font-size:9.5px;font-weight:800;letter-spacing:.13em;color:var(--dim2)}
+.lookrow .lv{flex:1;text-align:center;font-size:11.5px;font-weight:800;color:var(--ink)}
+.lookrow .lb{flex:0 0 auto;width:34px;height:32px;border-radius:9px;border:2px solid var(--line2);
+  background:var(--elev);color:var(--ink);font-size:11px;line-height:1}
+.lookrow .lb:active{transform:translateY(2px)}
+.cwrow{display:flex;gap:6px;margin:0 0 var(--s2)}
+.cw{flex:1;min-width:0;padding:7px 4px 6px;border-radius:var(--r1);border:2px solid var(--line);
+  background:var(--panel);display:flex;flex-direction:column;align-items:center;gap:5px}
+.cw i{display:block;width:100%;height:14px;border-radius:5px;
+  background:linear-gradient(180deg,var(--a) 0 55%,var(--b) 55% 100%)}
+.cw span{font-size:8px;font-weight:800;letter-spacing:.08em;color:var(--dim2);
+  text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.cw.on{border-color:var(--gold)}
+.cw.on span{color:var(--gold)}
+.cw.no{opacity:.4}
+.cw:active{transform:translateY(2px)}
 .gearrow{display:flex;gap:var(--s2)}
 .gearslot{flex:1;min-height:76px;border-radius:var(--r2);background:var(--panel);
   border:2px dashed var(--line2);display:grid;place-items:center;gap:3px;color:var(--dim3);
@@ -1245,6 +1274,7 @@ const BAL = {
   // is EXACTLY what a free player collects by watching every ad, posted to the Inbox.
   vipTickets: 3, vipPicks: 20,
   vipTrialHours: 24,      // the single free trial, once ever, from Offers
+  logMax: 200,            // the local activity log's ring buffer — see logEvent()
   offerAfter: 3,          // ...and no offer at all before this many releases
   // SKILLS — the third craft source. Hours only: never money, never an ad. Tier 2 wants
   // a *3 member and tier 3 a *5, so the crate ladder is what gates them.
@@ -1942,6 +1972,46 @@ function accSVG(acc, col){
     default: return '';
   }
 }
+/* ===== THE ACTIVITY LOG — local, capped, and it never leaves this device =====
+   No network exists in this game and none is added here: `S.log` is a ring buffer of the
+   last BAL.logMax things you did, kept in the same localStorage save as everything else,
+   readable in Settings, clearable there, and switchable off there. It is written at one
+   site — every call to `qEvent`, which is already the one bus every notable action goes
+   through — plus purchases, which are not events. */
+function logEvent(k, d){
+  if (!S || S.logOff) return;
+  S.log.push({ k, d, at:Date.now() });
+  if (S.log.length > BAL.logMax) S.log.splice(0, S.log.length - BAL.logMax);
+}
+const LOG_SAY = {
+  release:'Released a song', hit:'Landed a Hit or better', quality:'Wrote a song',
+  gig:'Played a show', sold:'Sold out a room', career:'Cleared a career objective',
+  crate:'Opened a crate', pocket:'In the pocket', perfect:'Landed a perfect take',
+  level:'Levelled a member', skill:'Learned a skill', buy:'Bought something', ad:'Watched an ad'
+};
+/* ===== CUSTOMIZATION — all of it free =====
+   Random-on-unlock is a starting point, not a sentence: every part of a member's look is
+   editable from their own screen, at no cost, forever. Nothing here is sold, and nothing
+   here touches a number. */
+const LOOK_PARTS = [
+  { k:'sk', n:'SKIN',      names:['I', 'II', 'III', 'IV', 'V'] },
+  { k:'hs', n:'HAIR',      names:['Crop', 'Bob', 'Spikes', 'Long', 'Bun'] },
+  { k:'hc', n:'COLOUR',    names:['Black', 'Brown', 'Ginger', 'Blonde', 'Jet', 'Auburn', 'Red'] },
+  { k:'ac', n:'ACCESSORY', names:['None', 'Cap', 'Shades', 'Headphones', 'Grill'] }
+];
+/* An instrument's finish. Index 0 is the band's own colours, which is what every
+   instrument has always been drawn in; the other four are unlocked BY THE ITEM'S RARITY,
+   so a Mythic guitar can wear any of them and a Common one wears the band's. It repaints
+   the instrument only — the member's shirt is still their own colour (§3). */
+const COLORWAY = [
+  { n:'As built', c:null },
+  { n:'Sunburst',  c:['#E0A72E', '#8A4E18'] },
+  { n:'Midnight',  c:['#3A4356', '#171B24'] },
+  { n:'Ivory',     c:['#EBD9A8', '#B9AFA0'] },
+  { n:'Chrome',    c:['#AAB2C0', '#6E7686'] }
+];
+const cwOpen = it => 1 + clamp(it.r, 0, COLORWAY.length - 1);
+const cwOf = it => (it && COLORWAY[clamp(it.cw || 0, 0, COLORWAY.length - 1)].c) || null;
 /* an owned gear instance, by id — `null` for an empty slot or a stale id */
 const itemOf = id => (id == null || !S.gear) ? null : (S.gear.own.find(x => x.id === id) || null);
 /* a rig part is a stage prop at the feet, drawn behind everything and OUTSIDE
@@ -2181,6 +2251,7 @@ const questRerolls = () => BAL.questReroll + (vipOn() ? BAL.questRerollVip : 0) 
 /* PROGRESS. One bus: the game calls qEvent at the moment a thing happens, and the day's
    board and the week's challenge both read it. No system polls anything. */
 function qEvent(k, n){
+  logEvent(k, n);                   // the activity log rides the same bus, and only this one
   if (!S.quests || !S.quests.list.length) return;
   let moved = false;
   S.quests.list.forEach(it => {
@@ -2304,6 +2375,7 @@ function buyPicks(id){
   if (!b || buyLeft(b) <= 0 || S.picks < b.picks()) return false;
   S.picks -= b.picks();
   b.pay();
+  logEvent('buy', b.id);
   return true;
 }
 /* ONE ad component. The gig panel's ad was this function with the ticket hard-wired into
@@ -2326,6 +2398,7 @@ function watchAd(id){
     if (left > 0){ n.textContent = left; return; }
     clearInterval(iv);
     a.pay();                       // the reward is HERE, in the terminal branch, and nowhere else
+    logEvent('ad', a.id);
     save(); renderTix(); renderTop();
     if (sheetTab === 'shop') renderSheet('shop');
     $('#mbox').innerHTML = `<h3>${esc(a.n)}</h3><p>${esc(a.say)}</p>
@@ -2548,130 +2621,141 @@ const INSTR = {
   },
   /* ---- BASS ---- */
   bas0: {   // Starter P
-    front: k => `<ellipse cx="-5" cy="0" rx="15" ry="12" fill="#0E9186"></ellipse>
-      <ellipse cx="8" cy="0" rx="11" ry="9" fill="#0E9186"></ellipse>
-      <ellipse cx="-5" cy="-2" rx="12.5" ry="9" fill="${PAL.accent2}"></ellipse>
+    f:['#0E9186', PAL.accent2],
+    front: k => `<ellipse cx="-5" cy="0" rx="15" ry="12" fill="${k.c1}"></ellipse>
+      <ellipse cx="8" cy="0" rx="11" ry="9" fill="${k.c1}"></ellipse>
+      <ellipse cx="-5" cy="-2" rx="12.5" ry="9" fill="${k.c2}"></ellipse>
       ${gtrNeck()}
       <rect x="-2" y="-7" width="4" height="13" rx="1" fill="#221812"></rect>
       <rect x="-10" y="-7" width="4" height="13" rx="1" fill="#221812"></rect>
       <rect x="-18" y="-6" width="4" height="12" rx="1" fill="#C9BCA6"></rect>
       ${gtrStrings(4)}
-      <path d="M54 -6 h9 q3 0 3 3 v6 q0 3 -3 3 h-9z" fill="#0E9186"></path>
+      <path d="M54 -6 h9 q3 0 3 3 v6 q0 3 -3 3 h-9z" fill="${k.c1}"></path>
       ${gtrTuners(4)}`
   },
   bas1: {   // Short Scale — small body, easy reach
-    front: () => `<ellipse cx="-4" cy="0" rx="12.5" ry="10" fill="#0E9186"></ellipse>
-      <ellipse cx="6" cy="0" rx="9" ry="7.5" fill="#0E9186"></ellipse>
-      <ellipse cx="-4" cy="-2" rx="10" ry="7.5" fill="${PAL.accent2}"></ellipse>
+    f:['#0E9186', PAL.accent2],
+    front: k => `<ellipse cx="-4" cy="0" rx="12.5" ry="10" fill="${k.c1}"></ellipse>
+      <ellipse cx="6" cy="0" rx="9" ry="7.5" fill="${k.c1}"></ellipse>
+      <ellipse cx="-4" cy="-2" rx="10" ry="7.5" fill="${k.c2}"></ellipse>
       ${gtrNeck()}
       <rect x="-4" y="-6" width="4" height="12" rx="1" fill="#221812"></rect>
       <rect x="-16" y="-5" width="4" height="10" rx="1" fill="#C9BCA6"></rect>
       ${gtrStrings(4)}
-      <path d="M54 -5 h8 q3 0 3 3 v4 q0 3 -3 3 h-8z" fill="#0E9186"></path>
+      <path d="M54 -5 h8 q3 0 3 3 v4 q0 3 -3 3 h-8z" fill="${k.c1}"></path>
       ${gtrTuners(4)}`
   },
   bas2: {   // Thunderbird — angular, reversed body
-    front: () => `<path d="M10 -9 L-14 -11 L-20 0 L-14 11 L10 9z" fill="#1B2430"></path>
-      <path d="M8 -6 L-11 -8 L-15 0 L-11 8 L8 6z" fill="${PAL.accent2}" opacity=".55"></path>
+    f:['#1B2430', PAL.accent2],
+    front: k => `<path d="M10 -9 L-14 -11 L-20 0 L-14 11 L10 9z" fill="${k.c1}"></path>
+      <path d="M8 -6 L-11 -8 L-15 0 L-11 8 L8 6z" fill="${k.c2}" opacity=".55"></path>
       ${gtrNeck()}
       <rect x="-2" y="-7" width="4" height="13" rx="1" fill="#221812"></rect>
       <rect x="-10" y="-7" width="4" height="13" rx="1" fill="#221812"></rect>
       <rect x="-18" y="-6" width="4" height="12" rx="1" fill="#C9BCA6"></rect>
       ${gtrStrings(4)}
-      <path d="M54 -6 L66 -9 L66 9 L54 6z" fill="#1B2430"></path>
+      <path d="M54 -6 L66 -9 L66 9 L54 6z" fill="${k.c1}"></path>
       ${gtrTuners(4)}`
   },
   bas3: {   // 5-String — one more string, wider range
-    front: () => `<ellipse cx="-5" cy="0" rx="15" ry="12" fill="#0B6F72"></ellipse>
-      <ellipse cx="8" cy="0" rx="11" ry="9" fill="#0B6F72"></ellipse>
-      <ellipse cx="-5" cy="-2" rx="12.5" ry="9" fill="${PAL.accent2}"></ellipse>
+    f:['#0B6F72', PAL.accent2],
+    front: k => `<ellipse cx="-5" cy="0" rx="15" ry="12" fill="${k.c1}"></ellipse>
+      <ellipse cx="8" cy="0" rx="11" ry="9" fill="${k.c1}"></ellipse>
+      <ellipse cx="-5" cy="-2" rx="12.5" ry="9" fill="${k.c2}"></ellipse>
       ${gtrNeck()}
       <rect x="-2" y="-8" width="4" height="15" rx="1" fill="#221812"></rect>
       <rect x="-10" y="-8" width="4" height="15" rx="1" fill="#221812"></rect>
       <rect x="-18" y="-7" width="4" height="14" rx="1" fill="#C9BCA6"></rect>
       <path d="M-16 -4 H60M-16 -2 H60M-16 0 H60M-16 2 H60M-16 4 H60" stroke="#F4E7CC" stroke-width=".7"></path>
-      <path d="M54 -7 h9 q3 0 3 3 v8 q0 3 -3 3 h-9z" fill="#0B6F72"></path>
+      <path d="M54 -7 h9 q3 0 3 3 v8 q0 3 -3 3 h-9z" fill="${k.c1}"></path>
       <circle cx="57" cy="-9" r="1.7" fill="#D8CBB2"></circle><circle cx="62" cy="-9" r="1.7" fill="#D8CBB2"></circle>
       <circle cx="56" cy="9" r="1.7" fill="#D8CBB2"></circle><circle cx="61" cy="9" r="1.7" fill="#D8CBB2"></circle>
       <circle cx="64" cy="4" r="1.7" fill="#D8CBB2"></circle>`
   },
   bas4: {   // Fretless Fusion — natural wood, no fret wire
-    front: () => `<ellipse cx="-5" cy="0" rx="15" ry="12" fill="#8A5B2A"></ellipse>
-      <ellipse cx="8" cy="0" rx="11" ry="9" fill="#8A5B2A"></ellipse>
-      <ellipse cx="-5" cy="-2" rx="12.5" ry="9" fill="#B98346"></ellipse>
+    f:['#8A5B2A', '#B98346'],
+    front: k => `<ellipse cx="-5" cy="0" rx="15" ry="12" fill="${k.c1}"></ellipse>
+      <ellipse cx="8" cy="0" rx="11" ry="9" fill="${k.c1}"></ellipse>
+      <ellipse cx="-5" cy="-2" rx="12.5" ry="9" fill="${k.c2}"></ellipse>
       ${gtrNeck(true)}
       <rect x="-4" y="-7" width="4" height="13" rx="1" fill="#221812"></rect>
       <rect x="-18" y="-6" width="4" height="12" rx="1" fill="#C9BCA6"></rect>
       ${gtrStrings(4)}
-      <path d="M54 -6 h9 q3 0 3 3 v6 q0 3 -3 3 h-9z" fill="#8A5B2A"></path>
+      <path d="M54 -6 h9 q3 0 3 3 v6 q0 3 -3 3 h-9z" fill="${k.c1}"></path>
       ${gtrTuners(4)}`
   },
   /* ---- GUITAR ---- */
   gtr0: {   // Pawnshop SG
-    front: k => `<ellipse cx="-5" cy="0" rx="15" ry="12" fill="${PAL.accentSh}"></ellipse>
-      <ellipse cx="8" cy="0" rx="11" ry="9" fill="${PAL.accentSh}"></ellipse>
-      <ellipse cx="-5" cy="-2" rx="12.5" ry="9" fill="${PAL.accentDk}"></ellipse>
+    f:[PAL.accentSh, PAL.accentDk],
+    front: k => `<ellipse cx="-5" cy="0" rx="15" ry="12" fill="${k.c1}"></ellipse>
+      <ellipse cx="8" cy="0" rx="11" ry="9" fill="${k.c1}"></ellipse>
+      <ellipse cx="-5" cy="-2" rx="12.5" ry="9" fill="${k.c2}"></ellipse>
       ${gtrNeck()}
       <rect x="-2" y="-7" width="4" height="13" rx="1" fill="#221812"></rect>
       <rect x="-10" y="-7" width="4" height="13" rx="1" fill="#221812"></rect>
       <rect x="-18" y="-6" width="4" height="12" rx="1" fill="#C9BCA6"></rect>
       ${gtrStrings(6)}
-      <path d="M54 -6 h9 q3 0 3 3 v6 q0 3 -3 3 h-9z" fill="${PAL.accentSh}"></path>
+      <path d="M54 -6 h9 q3 0 3 3 v6 q0 3 -3 3 h-9z" fill="${k.c1}"></path>
       ${gtrTuners(6)}`
   },
   gtr1: {   // Offset Jazz — offset waist, clean tone
-    front: () => `<ellipse cx="-5" cy="1" rx="14.5" ry="11" fill="#2E5C86"></ellipse>
-      <ellipse cx="7" cy="-2" rx="11" ry="9" fill="#2E5C86"></ellipse>
-      <ellipse cx="-5" cy="0" rx="12" ry="8" fill="#4C86BC"></ellipse>
+    f:['#2E5C86', '#4C86BC'],
+    front: k => `<ellipse cx="-5" cy="1" rx="14.5" ry="11" fill="${k.c1}"></ellipse>
+      <ellipse cx="7" cy="-2" rx="11" ry="9" fill="${k.c1}"></ellipse>
+      <ellipse cx="-5" cy="0" rx="12" ry="8" fill="${k.c2}"></ellipse>
       ${gtrNeck()}
       <rect x="-2" y="-7" width="4" height="13" rx="1" fill="#D8CBB2"></rect>
       <rect x="-10" y="-7" width="4" height="13" rx="1" fill="#D8CBB2"></rect>
       <rect x="-18" y="-6" width="4" height="12" rx="1" fill="#C9BCA6"></rect>
       ${gtrStrings(6)}
-      <path d="M54 -7 h9 q3 0 3 3 v8 q0 3 -3 3 h-9z" fill="#2E5C86"></path>
+      <path d="M54 -7 h9 q3 0 3 3 v8 q0 3 -3 3 h-9z" fill="${k.c1}"></path>
       ${gtrTuners(6)}`
   },
   gtr2: {   // Flying V — all stance
-    front: () => `<path d="M14 -2 L-20 -12 L-13 -1 L-20 12 L14 2z" fill="${PAL.accentSh}"></path>
-      <path d="M11 -2 L-15 -10 L-10 -1 L-15 9 L11 1z" fill="${PAL.accentDk}"></path>
+    f:[PAL.accentSh, PAL.accentDk],
+    front: k => `<path d="M14 -2 L-20 -12 L-13 -1 L-20 12 L14 2z" fill="${k.c1}"></path>
+      <path d="M11 -2 L-15 -10 L-10 -1 L-15 9 L11 1z" fill="${k.c2}"></path>
       ${gtrNeck()}
       <rect x="-2" y="-6" width="4" height="11" rx="1" fill="#221812"></rect>
       <rect x="-10" y="-6" width="4" height="11" rx="1" fill="#221812"></rect>
       <rect x="-17" y="-5" width="4" height="10" rx="1" fill="#C9BCA6"></rect>
       ${gtrStrings(6)}
-      <path d="M54 -5 L66 -9 L64 0 L66 9 L54 5z" fill="${PAL.accentSh}"></path>
+      <path d="M54 -5 L66 -9 L64 0 L66 9 L54 5z" fill="${k.c1}"></path>
       ${gtrTuners(6)}`
   },
   gtr3: {   // Semi-Hollow — f-holes and air
-    front: () => `<ellipse cx="-5" cy="0" rx="15" ry="12" fill="#7A3320"></ellipse>
-      <ellipse cx="8" cy="0" rx="11" ry="9" fill="#7A3320"></ellipse>
-      <ellipse cx="-5" cy="-2" rx="12.5" ry="9" fill="#A8542F"></ellipse>
+    f:['#7A3320', '#A8542F'],
+    front: k => `<ellipse cx="-5" cy="0" rx="15" ry="12" fill="${k.c1}"></ellipse>
+      <ellipse cx="8" cy="0" rx="11" ry="9" fill="${k.c1}"></ellipse>
+      <ellipse cx="-5" cy="-2" rx="12.5" ry="9" fill="${k.c2}"></ellipse>
       <path d="M-12 -7 q-3 6 0 12 M2 -7 q-3 6 0 12" stroke="#2A1810" stroke-width="1.6" fill="none" stroke-linecap="round"></path>
       ${gtrNeck()}
       <rect x="-4" y="-7" width="4" height="13" rx="1" fill="#D8CBB2"></rect>
       <rect x="-18" y="-6" width="4" height="12" rx="1" fill="#C9BCA6"></rect>
       ${gtrStrings(6)}
-      <path d="M54 -6 h9 q3 0 3 3 v6 q0 3 -3 3 h-9z" fill="#7A3320"></path>
+      <path d="M54 -6 h9 q3 0 3 3 v6 q0 3 -3 3 h-9z" fill="${k.c1}"></path>
       ${gtrTuners(6)}`
   },
   gtr4: {   // Baritone — single cut, tuned down
-    front: () => `<ellipse cx="-5" cy="0" rx="15" ry="12" fill="#2A2E38"></ellipse>
-      <path d="M4 -9 q10 3 10 9 q0 6 -10 9z" fill="#2A2E38"></path>
-      <ellipse cx="-5" cy="-2" rx="12.5" ry="8.5" fill="${PAL.gold}" opacity=".75"></ellipse>
+    f:['#2A2E38', PAL.gold],
+    front: k => `<ellipse cx="-5" cy="0" rx="15" ry="12" fill="${k.c1}"></ellipse>
+      <path d="M4 -9 q10 3 10 9 q0 6 -10 9z" fill="${k.c1}"></path>
+      <ellipse cx="-5" cy="-2" rx="12.5" ry="8.5" fill="${k.c2}" opacity=".75"></ellipse>
       ${gtrNeck()}
       <rect x="-2" y="-7" width="4" height="13" rx="1" fill="#221812"></rect>
       <rect x="-11" y="-7" width="4" height="13" rx="1" fill="#221812"></rect>
       <rect x="-18" y="-7" width="4" height="14" rx="1" fill="#C9BCA6"></rect>
       ${gtrStrings(6)}
-      <path d="M54 -6 h9 q3 0 3 3 v6 q0 3 -3 3 h-9z" fill="#2A2E38"></path>
+      <path d="M54 -6 h9 q3 0 3 3 v6 q0 3 -3 3 h-9z" fill="${k.c1}"></path>
       ${gtrTuners(6)}`
   },
   /* ---- VOCALS ---- */
   mic0: {   // Dynamic 58
     back: () => `<rect x="86" y="44" width="2" height="80" rx="1" fill="#B9AFA0"></rect>
       <rect x="79" y="43" width="10" height="2" rx="1" fill="#B9AFA0"></rect>`,
-    front: () => `<rect x="57" y="46" width="7" height="11" rx="3.5" fill="#3A322C" transform="rotate(-32 60 51)"></rect>
-      <circle cx="57" cy="45" r="5.6" fill="#C6BFB3" stroke="#8E877B" stroke-width="1.1"></circle>
+    f:['#C6BFB3', '#3A322C'],
+    front: k => `<rect x="57" y="46" width="7" height="11" rx="3.5" fill="${k.c2}" transform="rotate(-32 60 51)"></rect>
+      <circle cx="57" cy="45" r="5.6" fill="${k.c1}" stroke="#8E877B" stroke-width="1.1"></circle>
       <path d="M51.6 42 h10.8 M51.2 45 h11.6 M52 48 h9.4" stroke="#8E877B" stroke-width=".7"></path>
       <path d="M54 39.8 q-1.6 5.2 0 10.4 M57 39.4 q-1.2 5.6 0 11.2 M60 39.8 q1.6 5.2 0 10.4" stroke="#8E877B" stroke-width=".7" fill="none"></path>
       <path d="M53.4 41.6 a5.6 5.6 0 0 1 4.6 -1" stroke="#EDE7DC" stroke-width="1.4" fill="none" stroke-linecap="round"></path>`
@@ -2679,30 +2763,34 @@ const INSTR = {
   mic1: {   // Ribbon — a rectangle of studio
     back: () => `<rect x="86" y="44" width="2" height="80" rx="1" fill="#B9AFA0"></rect>
       <rect x="79" y="43" width="10" height="2" rx="1" fill="#B9AFA0"></rect>`,
-    front: () => `<rect x="57" y="46" width="7" height="11" rx="3.5" fill="#2B2620" transform="rotate(-32 60 51)"></rect>
-      <rect x="51.5" y="38" width="11" height="14" rx="2.5" fill="#8E877B" stroke="#5E584F" stroke-width="1.1"></rect>
+    f:['#8E877B', '#2B2620'],
+    front: k => `<rect x="57" y="46" width="7" height="11" rx="3.5" fill="${k.c2}" transform="rotate(-32 60 51)"></rect>
+      <rect x="51.5" y="38" width="11" height="14" rx="2.5" fill="${k.c1}" stroke="#5E584F" stroke-width="1.1"></rect>
       <rect x="53.5" y="40" width="7" height="10" rx="1.5" fill="#3A322C"></rect>
       <path d="M53.5 42 h7 M53.5 45 h7 M53.5 48 h7" stroke="#8E877B" stroke-width=".7"></path>`
   },
   mic2: {   // Condenser + Shield — isolation on a stand
     back: () => `<rect x="86" y="44" width="2" height="80" rx="1" fill="#B9AFA0"></rect>
       <rect x="79" y="43" width="10" height="2" rx="1" fill="#B9AFA0"></rect>`,
-    front: () => `<path d="M62 34 a11 11 0 0 1 0 22" fill="#2A2E38" stroke="#4A5162" stroke-width="1.4"></path>
-      <rect x="57" y="46" width="7" height="11" rx="3.5" fill="#3A322C" transform="rotate(-32 60 51)"></rect>
-      <rect x="52" y="37" width="10" height="16" rx="5" fill="#D8D2C6" stroke="#8E877B" stroke-width="1.1"></rect>
+    f:['#D8D2C6', '#3A322C'],
+    front: k => `<path d="M62 34 a11 11 0 0 1 0 22" fill="#2A2E38" stroke="#4A5162" stroke-width="1.4"></path>
+      <rect x="57" y="46" width="7" height="11" rx="3.5" fill="${k.c2}" transform="rotate(-32 60 51)"></rect>
+      <rect x="52" y="37" width="10" height="16" rx="5" fill="${k.c1}" stroke="#8E877B" stroke-width="1.1"></rect>
       <path d="M53 41 h8 M53 44 h8 M53 47 h8" stroke="#8E877B" stroke-width=".7"></path>
       <circle cx="57" cy="41" r="1.4" fill="${PAL.accent}"></circle>`
   },
   mic3: {   // Handheld Wireless — no stand, all room
-    front: () => `<rect x="57" y="46" width="8" height="12" rx="4" fill="#1B1F27" transform="rotate(-32 60 51)"></rect>
-      <circle cx="57" cy="45" r="6" fill="#3A4356" stroke="${PAL.gold}" stroke-width="1.2"></circle>
+    f:['#3A4356', '#1B1F27'],
+    front: k => `<rect x="57" y="46" width="8" height="12" rx="4" fill="${k.c2}" transform="rotate(-32 60 51)"></rect>
+      <circle cx="57" cy="45" r="6" fill="${k.c1}" stroke="${PAL.gold}" stroke-width="1.2"></circle>
       <path d="M51.5 42 h11 M51.2 45 h11.6 M52 48 h9.6" stroke="#1B1F27" stroke-width=".7"></path>
       <circle cx="62" cy="52" r="1.2" fill="${PAL.ok}"></circle>`
   },
   mic4: {   // Headset — hands free, and a pack in the hand
-    front: () => `<path d="M64 40 q-9 -3 -13 4" stroke="#4A5162" stroke-width="1.4" fill="none" stroke-linecap="round"></path>
-      <circle cx="50.5" cy="44.4" r="2.2" fill="#4A5162"></circle>
-      <rect x="58" y="48" width="8" height="12" rx="2" fill="#2A2E38" stroke="#4A5162" stroke-width="1.1" transform="rotate(-20 62 54)"></rect>
+    f:['#4A5162', '#2A2E38'],
+    front: k => `<path d="M64 40 q-9 -3 -13 4" stroke="#4A5162" stroke-width="1.4" fill="none" stroke-linecap="round"></path>
+      <circle cx="50.5" cy="44.4" r="2.2" fill="${k.c1}"></circle>
+      <rect x="58" y="48" width="8" height="12" rx="2" fill="${k.c2}" stroke="#4A5162" stroke-width="1.1" transform="rotate(-20 62 54)"></rect>
       <path d="M63 47 v-5" stroke="#4A5162" stroke-width="1" stroke-linecap="round"></path>`
   }
 };
@@ -2876,7 +2964,7 @@ function fxBand(key){
 }
 /* a new instance. Ids only ever go up, so an equip reference can never be re-pointed. */
 function addGear(a, r, lvl){
-  const it = { id: S.gear.next++, a, r: clamp(r || 0, 0, 4), lvl: lvl || 0 };
+  const it = { id: S.gear.next++, a, r: clamp(r || 0, 0, 4), lvl: lvl || 0, cw: 0 };
   S.gear.own.push(it);
   return it;
 }
@@ -2970,7 +3058,14 @@ function charSVG(role, look, rarity, locked){
       ${panels}${stripe}${studs}`;
   const shadow = `<ellipse cx="50" cy="127" rx="28" ry="4" fill="#E8C79C"></ellipse>`;
 
-  const K = { sk, c1, c2 }, G = instrOf(role), rig = rigSVG(role);
+  // The instrument wears its own finish; the shirt is always the member's colour (§3).
+  // An archetype with an `f` pair is painted from that pair — its own two colours, which
+  // is exactly what it was drawn in before finishes existed — and a chosen colourway
+  // replaces the pair. The drum kit has no `f`: its shells take the member's colour, and
+  // that is what a kit is.
+  const G = instrOf(role), st0 = S.members && S.members[role];
+  const fin = (G && G.f) ? (cwOf(st0 && st0.gear ? itemOf(st0.gear.inst) : null) || G.f) : null;
+  const K = { sk, c1: fin ? fin[0] : c1, c2: fin ? fin[1] : c2 }, rig = rigSVG(role);
   if (role === 0){        // DRUMMER — kit with real heads, hoops and lugs
     return `<svg viewBox="0 0 100 130" aria-hidden="true"${glow}>${aura}${shadow}${rig}
       ${(G.back || noSVG)(K)}
@@ -3225,7 +3320,7 @@ function newState(){
     offers:{ seen:[], sessionShown:false },
     /* daily caps on what Picks and ads hand out, on the same monotonic index as tickets */
     shop:{ day:dayNum(), tickets:0, swaps:0, adPicks:0, vipDay:-1 },
-    inbox:[], vipUntil:0, vipTrial:false, log:[],
+    inbox:[], vipUntil:0, vipTrial:false, log:[], logOff:false, banner:true,
     lastSeen:Date.now(), created:Date.now()
   };
 }
@@ -3757,6 +3852,7 @@ function renderTop(){
   el.fps.textContent = '+' + fmtRate(fanRate()) + '/s';
   renderRank();
   el.bandChip.textContent = S.band || 'Your Band';
+  applyBanner();
   let alert = false;
   for (let i = 0; i < 4; i++){
     if (S.members[i].owned){ if (S.money >= upCost(i)) alert = true; }
@@ -3792,11 +3888,36 @@ function addFans(n, why){
   }
 }
 const giftText = g => Object.keys(g).map(k => g[k] + ' ' + crateOf(k).n + (g[k] > 1 ? 's' : '')).join(' + ');
-let rankQueue = [];
+
+/* ===== ONE POP-UP QUEUE =====
+   Every full-screen moment in the game goes through here, so two can never stack and the
+   order is a rule rather than an accident of which code path fired first:
+
+       0  a reward moment      the reveal, a gig result, the offline haul, a crate open
+       1  progression          a rank-up
+       2  commercial           nothing today — offers are a Shop surface, not a pop-up
+
+   `rankUp()` used to carry its own two-panel guard (`revealing || #gone`), which missed the
+   gig result, the crate open and any modal. `POPS` is the list of panels that own the
+   screen; `popBusy()` is the one thing every caller asks. */
+const POPS = ['#reveal', '#gigres', '#gone', '#rankup', '#crateop', '#modal', '#setup'];
+const popBusy = () => revealing || !!take || !!gigRun ||
+  POPS.some(id => { const n = $(id); return n && n.classList.contains('on'); });
+let popQ = [];
+function pushPop(prio, fn){
+  popQ.push({ prio, fn });
+  popQ.sort((a, b) => a.prio - b.prio);        // reward moments first, commercial last
+  drainPops();
+}
+/* called by every panel as it closes: whatever queued behind it goes now */
+function drainPops(){
+  if (popBusy() || !popQ.length) return;
+  popQ.shift().fn();
+}
 function rankUp(r){
   const R = RANKS[r], prev = RANKS[r-1] || RANKS[0];
   const gained = GENRES.filter(g => g.r === r).map(g => g.n);
-  if (revealing || $('#gone').classList.contains('on')){ rankQueue.push(r); return; }
+  if (popBusy()){ pushPop(1, () => rankUp(r)); return; }
   const rows = [];
   if (gained.length) rows.push('<b>' + gained.length + ' new genre' + (gained.length > 1 ? 's' : '') +
     '</b> — ' + gained.join(', '));
@@ -3821,7 +3942,7 @@ function closeRankUp(){
   clearTimeout(rb._pop); rb._pop = setTimeout(() => rb.classList.remove('pop'), 520);
   AU.chord('big'); buzz([20, 45, 20]); bandNod();
   if (sheetTab) renderSheet(sheetTab);
-  if (rankQueue.length) rankUp(rankQueue.shift());
+  drainPops();
 }
 let toastQueue = [];
 function toast(msg){
@@ -3923,6 +4044,7 @@ const RAIL = [
     badge:null,                                      // commercial, and last in the row
     go:() => openTab('shop'), say:'There is an offer waiting in the Shop' }
 ];
+const applyBanner = () => el.bandChip.classList.toggle('banner', !!S.banner);
 function renderRail(){
   el.rail.innerHTML = RAIL.filter(r => r.when()).map(r =>
     `<button class="railbtn" data-rail="${r.id}">${ico(r.icon, {s:20})}${
@@ -4913,6 +5035,7 @@ function collectGig(){
   toast('💰 +' + fmt(p.m) + ' from the show');
   said.forEach(t => toast('🏆 ' + t));
   if (p.cleared && VENUES[p.v + 1]) toast('🎪 ' + VENUES[p.v + 1].n + ' is open');
+  drainPops();
 }
 
 /* ===== RELEASE: the slot machine ===== */
@@ -5021,6 +5144,7 @@ function endReveal(){
   if (sheetTab) renderSheet(sheetTab);
   const q = toastQueue; toastQueue = []; q.forEach(toast);
   save();
+  drainPops();
 }
 function confetti(tier){
   const cols = tier >= 3 ? CONFETTI.big : CONFETTI.small;
@@ -5242,6 +5366,19 @@ function htmlMember(i){
     : `<div class="hint" style="text-align:left;padding:0 2px 4px">Points arrive with Star Rank —
       duplicate member cards from crates. Gear and skills add to these rails directly.
       Spending a point is always free to undo.</div>`;
+
+  h += `<div class="sect">Look <span style="color:var(--dim3);font-weight:700">FREE, ALWAYS</span></div>`;
+  LOOK_PARTS.forEach(x => {
+    const v = clamp(st.look[x.k] || 0, 0, x.names.length - 1);
+    h += `<div class="lookrow"><span class="ln">${x.n}</span>
+      <button class="lb" data-act="look" data-i="${i}" data-k="${x.k}" data-d="-1">&#9664;</button>
+      <span class="lv">${x.names[v]}</span>
+      <button class="lb" data-act="look" data-i="${i}" data-k="${x.k}" data-d="1">&#9654;</button></div>`;
+  });
+  h += `<button class="ghost" data-act="lookroll" data-i="${i}" style="min-height:40px">SHUFFLE</button>
+    <div class="hint" style="text-align:left;padding:6px 2px 4px">Their look is yours to
+      change, as often as you like, for nothing. A rank, a rarity and a star never touch
+      it — those change the outfit treatment on top (§3), never the person.</div>`;
 
   h += htmlSkills(i);
 
@@ -5496,6 +5633,23 @@ function htmlGear(){
         ${on ? '' : `<button class="buy alt" data-act="gsalv" data-i="${x.id}">SCRAP<small>+${itemSalvage(x)}p</small></button>`}
       </div></div>`;
   });
+  const arch = cur && archOf(cur.a);
+  if (cur && slot === 'inst' && arch && arch.f){
+    const open = cwOpen(cur);
+    h += `<div class="sect">Finish · ${esc(gearName(cur))}</div>
+      <div class="cwrow">${COLORWAY.map((C, k) => {
+        const lock = k >= open, on = (cur.cw || 0) === k;
+        return `<button class="cw ${on ? 'on' : ''} ${lock ? 'no' : ''}"
+          data-act="${lock ? 'cwlock' : 'cw'}" data-i="${cur.id}" data-k="${k}"
+          style="--a:${C.c ? C.c[0] : arch.f[0]};--b:${C.c ? C.c[1] : arch.f[1]}">
+          <i></i><span>${lock ? RARITY[k].n : C.n}</span></button>`;
+      }).join('')}</div>
+      <div class="hint" style="text-align:left;padding:2px 2px 10px">A finish repaints the
+        instrument on the stage and nothing else — no stat, no craft, no cost. An item
+        unlocks one more of them per rarity step, so a ${RARITY[4].n} plays any of the
+        ${COLORWAY.length}. A drum kit has no finish: its shells wear the band's colour,
+        which is what a kit is.</div>`;
+  }
   if (cur) h += `<div class="hint" style="text-align:left;padding:4px 2px">Scrapping is only
     offered for something you are not playing. A duplicate archetype scraps for
     ${Math.round(BAL.gearDupBonus * 100)}% more.</div>`;
@@ -5674,6 +5828,7 @@ function closeCrate(){
   buildBand(); renderTop();
   if (sheetTab) renderSheet(sheetTab);
   save();
+  drainPops();
 }
 function htmlShop(){
   let h = `<div class="card"><div class="av" style="--c1:${PAL.gold}">${ico(ICON.pick, {c:PAL.onGold, s:22})}</div>
@@ -5768,6 +5923,26 @@ function htmlSettings(){
     ${perm === 'granted' ? '<span class="synced">ON</span>'
       : `<button class="sbtn ${perm === 'denied' ? 'ghosty' : ''}" data-set="notify">ENABLE</button>`}</div>`;
 
+  h += `<div class="srow"><div class="si" style="--c1:${PAL.violet}">${ico(ICON.flag, {c:PAL.onAccent, s:20})}</div>
+    <div class="st"><b>Stage banner</b><span>The band's name on a banner over the stage</span></div>
+    <button class="sw ${S.banner ? 'on' : ''}" data-set="banner"></button></div>`;
+
+  h += '<div class="sect">Activity log</div>';
+  const lg = S.log || [];
+  h += `<div class="srow"><div class="si" style="--c1:${PAL.mute}">${ico(ICON.catalog, {c:PAL.dim, s:20})}</div>
+    <div class="st"><b>${S.logOff ? 'Off' : lg.length + ' of ' + BAL.logMax + ' kept'}</b>
+      <span>${S.logOff ? 'Nothing is being recorded' : 'The last ' + BAL.logMax + ' things you did'}</span></div>
+    <button class="sw ${S.logOff ? '' : 'on'}" data-set="log"></button></div>`;
+  if (lg.length){
+    h += `<div class="logbox">${lg.slice(-12).reverse().map(e =>
+      `<div class="logrow"><span>${esc(LOG_SAY[e.k] || e.k)}</span>
+        <em>${dur(Math.max(1, (Date.now() - e.at) / 1000))} ago</em></div>`).join('')}</div>`;
+    h += `<button class="ghost" data-set="logclear" style="min-height:40px">CLEAR THE LOG</button>`;
+  }
+  h += `<div class="hint" style="padding:6px 4px 14px">This log is written to your save on
+    this device and <b>nowhere else</b>. There is no analytics service, no account and no
+    network request anywhere in this game — the same is true of the cloud-save demo below.</div>`;
+
   const since = Math.max(0, Math.round((Date.now() - (S.lastSeen || Date.now())) / 1000));
   h += '<div class="sect">Save</div>';
   h += `<div class="srow"><div class="si" style="--c1:${PAL.selW}">${ico(ICON.save, {c:PAL.accent2Dk, s:20})}</div>
@@ -5858,13 +6033,38 @@ function buy(act, i, node){
   } else if (act === 'copen'){
     const res = openCrate(node && node.dataset.k);
     if (!res) return;
-    save(); showCrate(res); return;
+    save();
+    if (popBusy()) pushPop(0, () => showCrate(res)); else showCrate(res);
+    return;
   } else if (act === 'cbuy'){
     const C = crateOf(node && node.dataset.k);
     if (!C || S.picks < C.picks) return;
     S.picks -= C.picks; grantCrate(C.k, 1);
     AU.chord('small'); buzz(12);
     toast('📦 ' + C.n + ' — open it when you like');
+  } else if (act === 'look'){
+    const k = node && node.dataset.k, d = +(node && node.dataset.d) || 1;
+    const part = LOOK_PARTS.find(x => x.k === k);
+    if (!part) return;
+    const n = part.names.length;
+    S.members[i].look[k] = (((S.members[i].look[k] || 0) + d) % n + n) % n;
+    buildBand(); buzz(8);
+    memberReact = sheetTab === 'member' ? i : -1;
+  } else if (act === 'lookroll'){
+    S.members[i].look = newLook();
+    buildBand(); AU.chord('small'); buzz(12);
+    memberReact = sheetTab === 'member' ? i : -1;
+  } else if (act === 'cw'){
+    const it = itemOf(i), k = +(node && node.dataset.k) || 0;
+    if (!it || k >= cwOpen(it)) return;
+    it.cw = k;
+    buildBand(); AU.chord('small'); buzz(10);
+    toast('🎨 ' + gearName(it) + ' — ' + COLORWAY[k].n);
+  } else if (act === 'cwlock'){
+    const it = itemOf(i), k = +(node && node.dataset.k) || 0;
+    if (!it) return;
+    toast('🔒 ' + COLORWAY[k].n + ' needs a ' + RARITY[k].n + ' ' + gearName(it));
+    return;
   } else if (act === 'pbuy'){
     const id = node && node.dataset.id;
     if (!buyPicks(id)) return;
@@ -6067,6 +6267,7 @@ function collectGone(){
   S.capHit = false; markCapped(false);
   renderIdle(); renderTop(); save();
   reward({ m:got.m, s:got.s, f:got.f, big:true });
+  drainPops();
 }
 /* the 8h ceiling, surfaced where a player can see it from outside the game */
 function markCapped(on){
@@ -6098,6 +6299,15 @@ function settingsAct(what){
         Notification.requestPermission().then(() => renderSheet('settings'));
       }
     } catch(e){}
+  } else if (what === 'banner'){
+    S.banner = !S.banner;
+    applyBanner();
+  } else if (what === 'log'){
+    S.logOff = !S.logOff;
+    if (S.logOff) S.log = [];               // switching it off empties it, not just pauses it
+  } else if (what === 'logclear'){
+    S.log = [];
+    toast('Log cleared');
   } else if (what === 'signin'){
     S.cloud = { on:true, email:'player@chartbreaker.demo', at:Date.now() };
     toast('Signed in (demo) — nothing left this device');
@@ -6124,8 +6334,8 @@ function modal(html, btn, onOk, two, noLabel, onNo){
     (two ? `<button id="mno" style="margin-top:8px;background:${PAL.mute};color:${PAL.dim};box-shadow:none">${
       noLabel || 'CANCEL'}</button>` : '');
   m.classList.add('on');
-  $('#mok').onclick = () => { m.classList.remove('on'); if (onOk) onOk(); };
-  if (two) $('#mno').onclick = () => { m.classList.remove('on'); if (onNo) onNo(); };
+  $('#mok').onclick = () => { m.classList.remove('on'); if (onOk) onOk(); drainPops(); };
+  if (two) $('#mno').onclick = () => { m.classList.remove('on'); if (onNo) onNo(); drainPops(); };
 }
 
 /* ===== BOOT ===== */

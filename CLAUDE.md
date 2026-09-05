@@ -1104,6 +1104,26 @@ Two counters were **snapping instead of moving**: `collectGig()` set `dispM = S.
 `collectGone()` set all three `disp*` to their new totals, so the single most rewarding
 moments in the game showed no movement at all. Both now leave the easing alone.
 
+## 13d. ONE POP-UP QUEUE
+
+Every full-screen moment goes through one queue, so two can never stack and the order is a
+rule rather than an accident of which code path fired first:
+
+| priority | what |
+|---|---|
+| **0** | a **reward moment** — the reveal, a gig result, the offline haul, a crate open |
+| **1** | **progression** — a rank-up |
+| **2** | **commercial** — nothing, because an offer is a Shop surface and not a pop-up (§14) |
+
+`POPS` is the list of panels that own the screen and `popBusy()` is the one thing every
+caller asks — it also counts a live take and a live show, so nothing can land on the lanes.
+`pushPop(prio, fn)` queues and sorts; `drainPops()` runs the next one and is called by every
+panel as it closes.
+
+`rankUp()` used to carry its own two-panel guard (`revealing || #gone`), which missed the gig
+result, the crate open and every modal — a rank-up could land on top of a crate you were
+opening. It queues now, and a crate opened while something else owns the screen queues too.
+
 ## 14. SHOP, ADS, VIP, OFFERS AND THE INBOX
 
 Shop is, top to bottom: your **Picks / Parts / Hours** balance, **this session's offer** if
@@ -1267,6 +1287,46 @@ quest, a milestone, a career objective and the weekly challenge cannot drift apa
 
 ---
 
+## 16. CUSTOMIZATION — all of it free
+
+**Nothing on this page costs anything, ever.** Not Picks, not money, not an ad. A look is
+identity, and identity is not a product.
+
+- **A full look editor** on each member's own screen: `LOOK_PARTS` is four rows — SKIN,
+  HAIR, COLOUR, ACCESSORY — each a named cycler, plus SHUFFLE. Random-on-unlock is a
+  starting point now rather than a sentence. The character on the stage redraws on the
+  press.
+- **Instrument finishes.** `COLORWAY` is five entries: *As built* plus Sunburst, Midnight,
+  Ivory and Chrome. An item unlocks **one more per rarity step** (`cwOpen`), so a Common
+  plays as built and a Mythic plays any of the five. It repaints the **instrument only** —
+  the member's shirt is still their own colour (§3), and the suite asserts both.
+  - **Every string instrument and mic declares its own `f` pair** — the two colours it was
+    already drawn in — and the builder paints from `k.c1` / `k.c2`. With no finish chosen
+    that pair *is* the finish, so the 15 archetypes render exactly as they did before
+    finishes existed. A chosen colourway replaces the pair.
+  - **A drum kit has no `f`,** and gets no finish: its shells take the member's own colour,
+    which is what a kit is and what `kit0` was always drawn as. The picker does not appear
+    for the drums, and the copy says why.
+- **The stage banner** is the band's name on a cloth strip over the stage, toggled in
+  Settings. Same element (`#bandChip`), one class.
+- **Star Rank treatments** are automatic and unchanged (§3, §8d) — a rank changes the outfit
+  on top, never the person underneath.
+
+## 17. THE ACTIVITY LOG — local, capped, and it never leaves the device
+
+`S.log` is a ring buffer of the last `BAL.logMax` (200) notable things you did, written at
+**one site**: `qEvent`, which is already the single bus every notable action goes through,
+plus the two purchase paths that are not events. Settings shows the count, the last twelve
+with how long ago, a CLEAR button and an **off switch that empties it rather than pausing
+it**.
+
+**There is no analytics service, no account and no network request anywhere in this game.**
+The suite asserts that: it strips the one allowed URL (the SVG namespace, which is a name
+and not an address) out of the shipped file and then asserts `fetch(`, `XMLHttpRequest`,
+`sendBeacon`, `new WebSocket`, `EventSource`, `http://` and `https://` appear **nowhere**.
+
+---
+
 ## CURRENT STATE
 
 - `index.html` — BUILD ORDER step 1 complete and verified in headless mobile
@@ -1331,6 +1391,11 @@ quest, a milestone, a career objective and the weekly challenge cannot drift apa
   to Q90, a released song's `songSPS` **unchanged** by taking the band from level 1/Garage
   to level 60/Tour Bus while the same song still moves when its genre goes hot, and the
   catalogue at cap keeping an incoming Hit while rejecting an incoming flop.
+
+**Phase Two is complete.** Ten stages: the save layer, stats, gear, the room, crates, career
+objectives, skills, quests, the shop, and customization. **Phase Three** is Live Rival Gigs,
+a backend, Seasons and Clans — and with them the two checkouts (Picks packs, a VIP
+subscription) that are reserved rails today.
 
 **Known gaps (deliberate, deferred):**
 the *Daily* Gig and rival/multiplayer gigs (the regular ladder in §4d is built),
@@ -1915,6 +1980,56 @@ pop-up (including that no pop-up function exists at all) and never returning onc
 the Shop's three consumables and its two ad rows disappearing under VIP, the reserved rails
 still carrying zero buttons and no currency glyph, and a reload. Twenty-nine suites pass, no
 console errors.
+
+**Phase Two, stage 9 — one queue, a free look, and a log that goes nowhere.** The last stage
+of the phase. §13d, §16 and §17 are the systems.
+
+- **The pop-up queue replaced a guard that had gone stale.** `rankUp()` checked two panels
+  by name; by stage 8 there were seven, so a rank-up could land on top of a crate you were
+  opening. `popBusy()` is the one question now, and it counts a live take and a live show as
+  well — a rank card can never land on the lanes. The priority is a rule (reward > 
+  progression > commercial), not the order the code happened to fire in.
+- **Customization is complete and it is all free.** A four-row look editor with SHUFFLE on
+  every member's own screen, and instrument finishes unlocked one per rarity step.
+- **The finish is a data field, not a special case.** Every string instrument and mic now
+  declares its own `f` pair — the exact two colours it was already drawn in — and the
+  builder paints from `k.c1`/`k.c2`. With nothing chosen the pair *is* the finish, so all 15
+  render identically to before; a colourway simply replaces the pair. The `anchor` harness
+  re-measured all 20 archetypes and every role still resolves to one identical `.ch-bob`
+  bbox, which is the thing that could have broken.
+- **The drums deliberately have no finish.** Their shells wear the member's own colour and
+  always have; a kit whose shells are the band's colour is what a kit is. The picker does
+  not appear for the drummer, and the copy says why rather than offering five swatches that
+  would do nothing.
+- **The activity log is one write site.** `qEvent` was already the single bus, so the log
+  rides it — no second set of hooks to keep in sync. Switching it off empties it rather than
+  pausing it, because a log you have turned off should not still be sitting in your save.
+- **And the "no network" rule is now asserted rather than asserted-to.** The suite strips the
+  SVG namespace (a name, not an address) out of the shipped file and then requires that
+  `fetch(`, `XMLHttpRequest`, `sendBeacon`, `new WebSocket`, `EventSource`, `http://` and
+  `https://` appear nowhere in it at all.
+
+Suites: the new `x9` suite is 18 assertions — the queue's busy test, a rank-up queueing
+behind a reward moment and landing after it, priority beating arrival order, the four look
+rows cycling and wrapping and costing nothing, the five finishes and their rarity gates and
+the shirt surviving them, the drums having none, the banner toggle, the log recording,
+capping at 200, emptying when switched off and clearing, the whole-file network check, and a
+reload carrying all of it. Thirty suites pass, no console errors.
+
+**The Phase Two final pass.** Thirty-one suites (the new `oldsave` harness included), no
+console errors, frame time during a gig **median 16.7ms / p95 16.7ms**, and `sim8.js` at 168
+simulated hours still lands both players on **Pro Studio and rank Regional** with a **Q68**
+ceiling — rule 3 of the plan, unmoved by six content stages. `anchor.js` re-measured all 20
+instrument archetypes and every role still resolves to one identical `.ch-bob` bbox.
+
+**A `chartbreaker.v3` save written before Phase Two loads clean**, and the `oldsave` harness
+is the proof: it writes a save carrying only the 29 pre-phase fields, with `gear` stripped
+off every member and `heat` truncated to ten genres, then reloads and asserts the money,
+songs, levels and ownership all survive, the heat array pads with **real numbers** rather
+than `undefined`, every Phase Two default arrives (star, skills, hours, parts, shop, inbox,
+log, banner, the VIP trial flag), the daily board is dealt and the week has a challenge,
+every owned member is holding their starter instrument, and the band still writes and still
+earns.
 
 **Removed along the way:** the tap-to-fill-tracks loop, Hook Moments, the Hype stat
 (Quality shifts chart odds instead), and weekly-seeded genre trends (replaced by the
