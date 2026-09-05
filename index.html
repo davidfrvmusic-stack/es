@@ -178,6 +178,21 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   transition:opacity var(--m3) ease}
 #room svg{width:100%;height:100%;display:block}
 #stage.away #room{opacity:0}
+/* the crate open is the fifth reward moment, and it borrows the other four's component */
+#crateop{z-index:64;gap:var(--s3)}
+#coIcon{width:96px;height:96px;border-radius:var(--r3);display:grid;place-items:center;
+  border:3px solid var(--cc);background:var(--elev)}
+#coWhat{font-size:var(--t3);font-weight:800;color:var(--ink);text-align:center;max-width:280px}
+#coNote{font-size:var(--t2);color:var(--dim2);text-align:center;max-width:280px;line-height:1.5}
+#coBar{width:210px;height:8px;border-radius:99px;background:var(--elev);overflow:hidden}
+#coBar i{display:block;height:100%;background:var(--cc);transform-origin:left;
+  transition:transform .7s cubic-bezier(.2,1,.3,1)}
+#coBar.off{display:none}
+/* one crate row in the Shop: what it costs, what it rolls, and how close the pity is */
+.crow .odds{display:flex;gap:4px;margin-top:5px;flex-wrap:wrap}
+.crow .odds span{font-size:8px;font-weight:800;letter-spacing:.09em;padding:2px 5px;
+  border-radius:5px;background:var(--elev)}
+.crow .pity{font-size:9.5px;font-weight:700;color:var(--gold);margin-top:4px}
 #flash{position:absolute;inset:0;z-index:4;pointer-events:none;background:var(--ink);opacity:0}
 #flash.on{animation:flash .2s ease-out}
 @keyframes flash{0%{opacity:.22}100%{opacity:0}}
@@ -257,13 +272,13 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .demo[hidden]{display:none}
 /* ---- the one button: everything pressable shares its press and its type, and each
    rule below keeps only what differs — the fill, the size and the shadow tone ---- */
-.bigbtn,.buy,.ghost,.sbtn,.venue .vgo,#rvGo,#ruGo,#grGo,#takeauto,#tixAd,#gone .ad,
+.bigbtn,.buy,.ghost,.sbtn,.venue .vgo,#rvGo,#ruGo,#coGo,#grGo,#takeauto,#tixAd,#gone .ad,
 .mbox button{
   font-weight:800;border:0;cursor:pointer;
   transition:transform var(--m1) ease,box-shadow var(--m1) ease}
 .buy:active,.ghost:active,.sbtn:active,.venue .vgo:active,#takeauto:active,
 #tixAd:active,#gone .ad:active{transform:translateY(2px)}
-.bigbtn:active,#rvGo:active,#ruGo:active,#grGo:active,.mbox button:active{transform:translateY(3px)}
+.bigbtn:active,#rvGo:active,#ruGo:active,#coGo:active,#grGo:active,.mbox button:active{transform:translateY(3px)}
 
 .bigbtn{display:block;width:100%;padding:18px;border-radius:18px;font-size:17px;font-weight:800;
   letter-spacing:.11em;background:var(--accent);color:var(--onAccent);
@@ -434,6 +449,8 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   background:var(--elev);color:var(--ink);font-weight:900;font-size:15px;line-height:1}
 .statrail .sadd:active{transform:translateY(2px)}
 .stathint{font-size:9.5px;color:var(--dim3);margin:-3px 0 9px 84px}
+.starbar{display:block;height:7px;border-radius:99px;background:var(--elev);overflow:hidden;margin-top:6px}
+.starbar i{display:block;height:100%;border-radius:99px;background:var(--accent2)}
 .gearrow{display:flex;gap:var(--s2)}
 .gearslot{flex:1;min-height:76px;border-radius:var(--r2);background:var(--panel);
   border:2px dashed var(--line2);display:grid;place-items:center;gap:3px;color:var(--dim3);
@@ -495,13 +512,13 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 
 /* ===== REVEAL ===== */
 /* ---- the one full-screen panel: six moments, opened the same way ---- */
-#reveal,#gigs,#gigres,#rankup,#setup,#gone{
+#reveal,#gigs,#gigres,#rankup,#setup,#gone,#crateop{
   position:fixed;inset:0;display:none;flex-direction:column}
-#reveal.on,#gigs.on,#gigres.on,#rankup.on,#setup.on,#gone.on{display:flex}
-/* ---- and the one MOMENT: four rewards that all say the same three things — what it
+#reveal.on,#gigs.on,#gigres.on,#rankup.on,#setup.on,#gone.on,#crateop.on{display:flex}
+/* ---- and the one MOMENT: five rewards that all say the same three things — what it
    was, how much, and one button to take it. Ground, padding, eyebrow, headline, big
    number and button are shared; only the middle of each panel differs. ---- */
-#reveal,#gigres,#rankup,#gone{align-items:center;justify-content:center;
+#reveal,#gigres,#rankup,#gone,#crateop{align-items:center;justify-content:center;
   padding:calc(var(--safe-t) + 22px) 24px calc(var(--safe-b) + 22px);
   background:radial-gradient(90% 62% at 50% 27%,var(--panel-top) 0%,var(--cream2) 55%,var(--panel-bot) 100%)}
 .meyebrow{font-size:10.5px;font-weight:800;letter-spacing:.22em;text-transform:uppercase;color:var(--dim2)}
@@ -998,6 +1015,16 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   <button id="ruGo" class="mgo">TAKE IT</button>
 </div>
 
+<div id="crateop">
+  <div class="meyebrow" id="coCrate">bronze crate</div>
+  <div id="coIcon"></div>
+  <h3 id="coName" class="mhead">Rare</h3>
+  <div id="coWhat"></div>
+  <div id="coBar"><i></i></div>
+  <div id="coNote"></div>
+  <button id="coGo" class="mgo">TAKE IT</button>
+</div>
+
 <div id="reveal">
   <button id="rvSkip">SKIP</button>
   <div id="rvGenre" class="meyebrow">—</div>
@@ -1188,6 +1215,13 @@ const BAL = {
   gearUpCost: 250, gearUpGrow: 2.2,
   gearSalvage: [2, 5, 12, 30, 80],    // Parts for scrapping one...
   gearDupBonus: 0.5,                  // ...+50% when you already own that archetype
+  // CRATES. One roll decides the rarity; the second decides gear or a member card, and
+  // the CARD BUNDLE scales with the rarity that was already rolled — so a Mythic crate
+  // is worth 5.3x a Bronze in card value and the tiers can never collide.
+  crateCard: 0.22,                    // ...of every open is a member card
+  cardBundle: [1, 2, 4, 8, 16],       // cards per drop, by the rolled rarity
+  starCards: [0, 2, 6, 14, 30],       // cumulative cards for a star rank
+  starPts: [0, 2, 4, 7, 11],          // stat points granted on reaching each one
   // FATIGUE lives in gigs and nowhere else. A one-song Open Mic is exactly 0, so a
   // normal songwriting take is never punished by it.
   fatSection: 0.18,       // per song after the first
@@ -1304,12 +1338,12 @@ const VENUES = [
    header. Each rank opens genres, makes the gigs bigger (money and the crowd on the
    stage), and lifts the ceiling on the royalty rate. */
 const RANKS = [
-  { n:'Garage Band', at:0,   gig:1,   payCap:0.09, crate:0, crowd:0.30, c:PAL.dim2, i:'house' },
-  { n:'Local Act',   at:1e4, gig:1.6, payCap:0.14, crate:1, crowd:0.46, c:PAL.accent2, i:'pin' },
-  { n:'Regional',    at:1e5, gig:2.4, payCap:0.20, crate:2, crowd:0.62, c:PAL.blue, i:'map' },
-  { n:'National',    at:1e6, gig:3.5, payCap:0.30, crate:3, crowd:0.78, c:PAL.gold, i:'flag' },
-  { n:'Global',      at:1e7, gig:5,   payCap:0.45, crate:4, crowd:0.92, c:PAL.accent, i:'globe' },
-  { n:'Legend',      at:1e8, gig:8,   payCap:1.00, crate:5, crowd:1.00, c:PAL.violet, i:'crown' }
+  { n:'Garage Band', at:0,   gig:1,   payCap:0.09, gift:null,          crowd:0.30, c:PAL.dim2, i:'house' },
+  { n:'Local Act',   at:1e4, gig:1.6, payCap:0.14, gift:{ b:2 },       crowd:0.46, c:PAL.accent2, i:'pin' },
+  { n:'Regional',    at:1e5, gig:2.4, payCap:0.20, gift:{ b:3 },       crowd:0.62, c:PAL.blue, i:'map' },
+  { n:'National',    at:1e6, gig:3.5, payCap:0.30, gift:{ b:3, g:1 },  crowd:0.78, c:PAL.gold, i:'flag' },
+  { n:'Global',      at:1e7, gig:5,   payCap:0.45, gift:{ g:2 },       crowd:0.92, c:PAL.accent, i:'globe' },
+  { n:'Legend',      at:1e8, gig:8,   payCap:1.00, gift:{ m:1 },       crowd:1.00, c:PAL.violet, i:'crown' }
 ];
 /* A take's rhythm comes from the card, so the decision and the playing connect.
    16 steps = 2 bars of eighths at the song's BPM. */
@@ -1863,6 +1897,85 @@ function rigSVG(role){
   const it = st && st.gear && itemOf(st.gear.rig);
   const b = it && RIG[it.a];
   return b ? b() : '';
+}
+
+/* ===== CRATES, MEMBER CARDS AND STAR RANK =====
+   Three crates, and the odds are PUBLISHED on the card you open them from — including
+   the pity counter, before the purchase rather than after it. A crate rolls a rarity
+   from its own table, then decides between gear and a member card; the rarity it rolled
+   is what the drop is worth either way, so a Mythic crate can never hand out a Bronze
+   crate's card value. */
+const CRATES = [
+  { k:'b', n:'Bronze Crate', c:PAL.dim,    picks:50,
+    odds:[60, 30, 8, 1.8, 0.2], pity:10, pityAt:2 },
+  { k:'g', n:'Gold Crate',   c:PAL.gold,   picks:150,
+    odds:[0, 0, 72, 24, 4],     pity:8,  pityAt:3 },
+  { k:'m', n:'Mythic Crate', c:PAL.accent, picks:500,
+    odds:[0, 0, 0, 88, 12],     pity:5,  pityAt:4 }
+];
+const crateOf = k => CRATES.find(c => c.k === k) || null;
+const crateHeld = k => (S.crates && S.crates.own[k]) || 0;
+/* the crate's own odds, restricted to `pityAt` and up when the counter has run out */
+function rollRarity(C, forced){
+  const w = C.odds.map((o, i) => (forced && i < C.pityAt) ? 0 : o);
+  const tot = w.reduce((a, b) => a + b, 0);
+  let r = Math.random() * tot;
+  for (let i = 0; i < w.length; i++){ r -= w[i]; if (r <= 0) return i; }
+  return w.length - 1;
+}
+/* how many opens until this crate must pay out at `pityAt` or better */
+const pityLeft = C => Math.max(0, C.pity - (S.crates.pity[C.k] || 0));
+/* Cards go to whoever is furthest behind, so four members rise together instead of one
+   running away. Ties break on the fewest cards, then on the slot. */
+function lowestStar(){
+  let best = -1;
+  for (let i = 0; i < 4; i++){
+    if (!S.members[i].owned) continue;
+    if (best < 0) { best = i; continue; }
+    const a = [S.star[i], S.cards[i]], b = [S.star[best], S.cards[best]];
+    if (a[0] < b[0] || (a[0] === b[0] && a[1] < b[1])) best = i;
+  }
+  return best;
+}
+const starFor = c => { let s = 1; BAL.starCards.forEach((need, k) => { if (c >= need) s = k + 1; }); return s; };
+const starNext = i => BAL.starCards[clamp(S.star[i], 0, BAL.starCards.length - 1)];
+/* A star rank raises craft, hands out stat points and changes the outfit treatment.
+   It NEVER touches identity: the name, the look, the role and the bio are the player's. */
+function applyStar(i){
+  const was = S.star[i] || 1, now = starFor(S.cards[i] || 0);
+  if (now <= was) return { up:0, pts:0 };
+  let pts = 0;                          // a big bundle can cross two ranks at once
+  for (let s = was + 1; s <= now; s++) pts += BAL.starPts[s - 1];
+  S.pts[i] += pts;
+  S.star[i] = now;
+  S.members[i].rarity = clamp(now - 1, 0, RARITY.length - 1);
+  return { up: now - was, pts };
+}
+/* One open: spend the crate, roll the rarity, then gear or cards at that rarity. */
+function openCrate(k){
+  const C = crateOf(k);
+  if (!C || crateHeld(k) <= 0) return null;
+  S.crates.own[k]--;
+  S.crates.opened++;
+  const forced = pityLeft(C) <= 1;
+  const r = rollRarity(C, forced);
+  S.crates.pity[k] = r >= C.pityAt ? 0 : (S.crates.pity[k] || 0) + 1;
+  if (Math.random() < BAL.crateCard){
+    const n = BAL.cardBundle[r], i = lowestStar();
+    if (i >= 0){
+      S.cards[i] += n;
+      const st = applyStar(i);
+      return { crate:C, kind:'cards', r, n, i, up:st.up, pts:st.pts };
+    }
+  }
+  // gear: only for chairs that exist, plus the rigs, which fit anyone
+  const pool = GEAR.filter(g => g.role === 4 || S.members[g.role].owned);
+  const it = addGear(pick(pool).a, r, 0);
+  return { crate:C, kind:'gear', r, it };
+}
+function grantCrate(k, n){
+  if (!crateOf(k)) return;
+  S.crates.own[k] += (n || 1);
 }
 
 /* ===== INSTRUMENTS — the anchor contract =====
@@ -3149,8 +3262,16 @@ function addFans(n, why){
   if (!(n > 0)) return;
   S.fans += n;
   const r = rankOf(S.fans);
-  if (r > S.rank){ S.rank = r; rankUp(r); }
+  if (r > S.rank){
+    S.rank = r;
+    // granted HERE, at the moment the rank changes — rankUp() runs twice when the card
+    // has to queue behind a reveal, and a gift must land exactly once
+    const gift = RANKS[r].gift;
+    if (gift) for (const k in gift) grantCrate(k, gift[k]);
+    rankUp(r);
+  }
 }
+const giftText = g => Object.keys(g).map(k => g[k] + ' ' + crateOf(k).n + (g[k] > 1 ? 's' : '')).join(' + ');
 let rankQueue = [];
 function rankUp(r){
   const R = RANKS[r], prev = RANKS[r-1] || RANKS[0];
@@ -3161,7 +3282,7 @@ function rankUp(r){
     '</b> — ' + gained.join(', '));
   rows.push('<b>Bigger rooms</b> — gigs pay x' + R.gig + ', and the crowd grows');
   rows.push('<b>Royalty ceiling</b> — the rate can now reach ' + (R.payCap * 100).toFixed(0) + '%');
-  if (R.crate > prev.crate) rows.push('<b>Better crate odds</b> — banked until crates land with Gear');
+  if (R.gift) rows.push('<b>' + giftText(R.gift) + '</b> — waiting in the Shop');
   $('#rankup').style.setProperty('--rc', R.c);
   $('#ruBadge').innerHTML = ico(ICON[R.i], { s:56, c:PAL.onAccent, w:1.9 });
   $('#ruName').textContent = R.n;
@@ -4499,9 +4620,6 @@ function renderSheet(t, soft){
    "you cannot afford this" rather than "this does not exist yet". Adding the real thing
    later means replacing one entry, not inventing a layout. */
 const RESERVED = [
-  { id:'crates', n:'Crates', i:'crate', c:'violet', w:'BUILD STEP 3',
-    d:'Bronze 50 · Gold 150 · Mythic 500 Picks. This is where the 28 gear archetypes come from — a crate rolls a rarity, then an item — along with the member cards that raise a star rank. The rank you have already earned carries better odds into them.',
-    t:['BRONZE','GOLD','MYTHIC'] },
   { id:'picks', n:'Picks', i:'pick', c:'gold', w:'BUILD STEP 7',
     d:'The premium currency, spent on crates, skips and streak saves. Packs of 100 · 550 · 1200 · 3500.',
     t:['100','550','1200','3500'] },
@@ -4556,6 +4674,24 @@ function htmlMember(i){
       <div class="info"><div class="t">${nCards} writing cards · hints ${hintWas}% clear</div>
       <div class="d">${nextCard ? 'Lv ' + nextCard.lvl + ' unlocks &ldquo;' + esc(nextCard.n) + '&rdquo;'
                                 : 'Every card on this track is unlocked'}</div></div></div>`;
+
+  // STAR RANK — cards in, craft and stat points out, and the outfit follows it
+  const star = S.star[i] || 1, need = starNext(i), from = BAL.starCards[star - 1] || 0;
+  const cards = S.cards[i] || 0;
+  h += `<div class="sect">Star rank</div>
+    <div class="card"><div class="av" style="--c1:${RARITY[star - 1].c}">
+      ${ico(ICON.crown, {c:PAL.onAccent, s:22})}</div>
+      <div class="info"><div class="t" style="letter-spacing:.14em">${starStr(star)}
+        <span class="rar" style="color:${RARITY[star - 1].c}">${RARITY[star - 1].n}</span></div>
+      <div class="d">+${fmt(BAL.starCraft[star - 1])} craft${need
+        ? ` · <b>${cards - from}</b> of ${need - from} cards to ${starStr(star + 1)}`
+        : ' · the top of the ladder'}</div>
+      ${need ? `<span class="starbar">
+        <i style="width:${Math.round(clamp((cards - from) / (need - from), 0, 1) * 100)}%"></i></span>` : ''}
+      </div></div>
+    <div class="hint" style="text-align:left;padding:0 2px 4px">Duplicate cards come from
+      crates and always go to whoever is furthest behind. A star rank never changes their
+      name, their face or their instrument — only what they can do.</div>`;
 
   const pts = (S.pts && S.pts[i]) || 0;
   const sp = (S.spend && S.spend[i]) || {};
@@ -4811,13 +4947,81 @@ function openGear(i, slot){
   if (sheetTab !== 'gear'){ gearBack = sheetBack; sheetBack = 'member'; }
   openScreen('gear', slot === 'inst' ? 'Instrument' : 'Rig');
 }
+/* ===== THE CRATE SURFACE — Shop, and the open itself ===== */
+const pct = n => (n >= 1 ? n.toFixed(0) : n.toFixed(1)) + '%';
+function htmlCrates(){
+  let h = `<div class="sect">Crates</div>`;
+  CRATES.forEach(C => {
+    const have = crateHeld(C.k), can = S.picks >= C.picks, left = pityLeft(C);
+    h += `<div class="card crow" style="--c1:${C.c}">
+      <div class="av" style="--c1:${C.c}">${ico(ICON.crate, {c:PAL.onAccent, s:22})}</div>
+      <div class="info"><div class="t">${C.n}${have ? ' · ' + have : ''}</div>
+        <div class="d">${C.picks} Picks · ${pct(BAL.crateCard * 100)} member card</div>
+        <div class="odds">${C.odds.map((o, i) => o ? `<span style="color:${RARITY[i].c}">${RARITY[i].n} ${pct(o)}</span>` : '').join('')}</div>
+        <div class="pity">${RARITY[C.pityAt].n} or better guaranteed in ${left}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:5px">
+        ${have ? `<button class="buy" data-act="copen" data-i="0" data-k="${C.k}">OPEN</button>` : ''}
+        <button class="buy ${can ? '' : 'no'}" data-act="cbuy" data-i="0" data-k="${C.k}">BUY<small>${C.picks}</small></button>
+      </div></div>`;
+  });
+  h += `<div class="hint" style="text-align:left;padding:2px 2px 10px">The odds above are the
+    real ones and the pity counter is the real counter — both are on the card before you
+    spend, not in a footnote after. <b>Nothing grants Picks yet</b>: quests and career
+    objectives are later build steps, so today crates arrive with a rank-up.</div>`;
+  return h;
+}
+/* Opening is the fifth reward moment, and it borrows the other four's component. Layer
+   two is the star bar filling rather than a counter easing, because a crate does not
+   move money, streams or fans — it moves a member. */
+function showCrate(res){
+  const C = res.crate, col = RARITY[res.r].c;
+  $('#crateop').style.setProperty('--cc', col);
+  $('#coCrate').textContent = C.n;
+  $('#coName').textContent = RARITY[res.r].n;
+  $('#coName').style.color = col;
+  const bar = $('#coBar'), fill = bar.querySelector('i');
+  if (res.kind === 'gear'){
+    const g = archOf(res.it.a), p = g.fx && PASSIVE[g.fx];
+    $('#coIcon').innerHTML = ico(g.role === 3 ? ICON.mic : g.role === 4 ? ICON.gear : ICON.music, { c: col, s: 48 });
+    $('#coWhat').textContent = g.n;
+    $('#coNote').innerHTML = `${fmt1(itemPts(res.it))} points · ${g.role === 4 ? 'fits anyone'
+      : MEMBERS[g.role].role}${p ? '<br>' + p.n + ' — ' + p.d : ''}`;
+    bar.classList.add('off');
+  } else {
+    const st = S.members[res.i], need = starNext(res.i);
+    $('#coIcon').innerHTML = `<div style="width:64px">${charSVG(res.i, st.look, st.rarity, false)}</div>`;
+    $('#coWhat').textContent = res.n + ' × ' + esc(st.name.split(' ')[0]) + ' card' + (res.n > 1 ? 's' : '');
+    $('#coNote').innerHTML = res.up
+      ? `<b style="color:${PAL.gold}">${starStr(S.star[res.i])} — ${res.pts} stat points</b>
+         <br>${esc(st.name.split(' ')[0])} is now ${RARITY[st.rarity].n}`
+      : `${S.cards[res.i]} of ${need} cards toward ${starStr(S.star[res.i] + 1)}`;
+    bar.classList.remove('off');
+    fill.style.transform = 'scaleX(0)';
+    const from = BAL.starCards[S.star[res.i] - 1] || 0;
+    const p = need ? clamp((S.cards[res.i] - from) / (need - from), 0, 1) : 1;
+    requestAnimationFrame(() => { fill.style.transform = 'scaleX(' + p + ')'; });
+  }
+  $('#crateop').classList.add('on');
+  AU.chord(res.r >= 3 ? 'big' : 'small');
+  buzz(res.r >= 3 ? [22, 50, 22] : 16);
+  bandNod();
+  if (res.r >= 3) confetti(3);
+}
+const starStr = n => '★'.repeat(clamp(n, 0, 5)) + '☆'.repeat(clamp(5 - n, 0, 5));
+function closeCrate(){
+  $('#crateop').classList.remove('on');
+  buildBand(); renderTop();
+  if (sheetTab) renderSheet(sheetTab);
+  save();
+}
 function htmlShop(){
   let h = `<div class="card"><div class="av" style="--c1:${PAL.gold}">${ico(ICON.pick, {c:PAL.onGold, s:22})}</div>
     <div class="info"><div class="t">${fmt(S.picks)} Picks · ${fmt(S.parts)} Parts</div>
-    <div class="d">Picks are the premium balance — nothing spends them yet, and nothing in
-      this build can be bought. Parts come from scrapping gear you are not playing, and
-      they are what upgrades it.</div></div></div>
-    <div class="sect">Reserved for later</div>`;
+    <div class="d">Picks buy crates. Parts come from scrapping gear you are not playing,
+      and they are what upgrades it.</div></div></div>`;
+  h += htmlCrates();
+  h += `<div class="sect">Reserved for later</div>`;
   RESERVED.forEach(r => h += htmlReserved(r));
   h += `<div class="hint">Every rail above says what it will hold and which build step brings
     it. None of them is a product with the price greyed out — a disabled BUY reads as
@@ -4927,6 +5131,16 @@ function buy(act, i, node){
       renderSheet(sheetTab); renderTop(); save();
     }, true);
     return;
+  } else if (act === 'copen'){
+    const res = openCrate(node && node.dataset.k);
+    if (!res) return;
+    save(); showCrate(res); return;
+  } else if (act === 'cbuy'){
+    const C = crateOf(node && node.dataset.k);
+    if (!C || S.picks < C.picks) return;
+    S.picks -= C.picks; grantCrate(C.k, 1);
+    AU.chord('small'); buzz(12);
+    toast('📦 ' + C.n + ' — open it when you like');
   } else if (act === 'stat'){
     // a stat point is never spent on the player's behalf, and never costs money
     const k = node && node.dataset.k;
@@ -5212,6 +5426,7 @@ function boot(){
   $('#setBtn').addEventListener('click', e => { e.stopPropagation(); openTab('settings'); });
   $('#setBtn').innerHTML = ico(ICON.cog, {s:17});
   $('#ruGo').addEventListener('click', closeRankUp);
+  $('#coGo').addEventListener('click', closeCrate);
   $('#gigBtn').addEventListener('click', e => { e.stopPropagation(); openGigs(); });
   $('#gigClose').addEventListener('click', () => { if (gsel.v >= 0) backToList(); else closeGigs(); });
   $('#tixAd').addEventListener('click', e => { e.stopPropagation(); watchGigAd(); });

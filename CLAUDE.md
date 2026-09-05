@@ -53,8 +53,10 @@ is not that.
    offline earnings, save/load, tab shell. **← current step**
 2. **Gear** — guitars, pedals, amps, mics. Visible on the characters. **Built** (§8b);
    what remains is crates as the source, which is step 3.
-3. **Crates + rarity** — member drops, Merge 3-same-rarity → +1 rarity, rarity
-   passives. Rarity already changes the character's outfit style.
+3. **Crates + rarity** — **built** (§8d): three crates with published odds and a
+   transparent pity floor, member cards, and Star Rank ★1…★5 driving craft, stat points
+   and the outfit treatment. There is no 3-into-1 merge — the rarity ladder is the card
+   ladder, and two merge systems would muddy both.
 4. **Retention** — the *Daily* Gig (a guaranteed special show, distinct from the
    regular gig ladder in §4d, which is built), streaks + streak save, notification
    triggers.
@@ -302,8 +304,10 @@ Regional, the third of six (§9). Each one buys four things, all live:
 - **The royalty ceiling** is a real cap — `payoutRate()` is `min(rank.payCap, base +
   step × level)`, the Band tab says so when it bites, and BETTER DEAL refuses to sell
   you a rate you cannot use. It is the one place where fans gate money.
-- **Better crate odds** are stored on the rank (`crate`) and honestly labelled in the
-  rank-up card as banked until crates land with Gear. Nothing reads it yet.
+- **Crates.** Each rank above Garage Band pays a `gift` of crates (§8d), granted the
+  moment the rank changes and named on the rank-up card. This replaced a stored `crate`
+  odds tier that nothing read — published odds that a rank quietly tilts would not be
+  published odds.
 - **The rank-up is a moment**: a full-screen card with the new badge, the fan count, the
   list of what just opened, confetti, a chord, a buzz and the whole band nodding. It
   queues behind the release reveal and the offline panel rather than stacking on them.
@@ -564,7 +568,7 @@ earns.** The only thing that multiplies income is the royalty rate, and fans cap
   cards, sharpens hints, speeds up solo demos.
 - **Royalty rate** — the one true multiplier, and the one fans gate. See §6.
 - **Star Rank** — ★1…★5, from duplicate member cards in crates; adds `BAL.starCraft` and
-  grants stat points. It replaced rarity's old 1→8 craft *multiplier* (§6c).
+  grants stat points. It replaced rarity's old 1→8 craft *multiplier* (§6c). See §8d.
 - **Gear** — 2 slots per member, visible on the character, and 28 archetypes that are
   builds rather than skins. See §8b.
 - **Studios** — Garage → Bedroom → Rehearsal → Pro Studio → Label HQ → Tour Bus →
@@ -668,6 +672,66 @@ behind the band: `ROOM` is an ordered table, one builder per studio, drawn into 
 
 **A show is not your studio.** `startGig()` puts `.away` on the stage and the room fades
 out with the venue backdrop taking over; `finishGig()` brings it back.
+
+## 8d. CRATES, MEMBER CARDS AND STAR RANK
+
+**The odds are published on the card you open them from** — every rarity, the exact
+percentage, and the pity counter, *before* the purchase rather than in a footnote after
+it. `CRATES` is the table, and the suite's whole job is to prove the published numbers are
+the real ones (20,000 opens per crate, each within 1.6 points of its row).
+
+| crate | Picks | Common | Rare | Epic | Legendary | Mythic | pity |
+|---|---|---|---|---|---|---|---|
+| Bronze | 50 | 60% | 30% | 8% | 1.8% | 0.2% | Epic+ within 10 |
+| Gold | 150 | — | — | 72% | 24% | 4% | Legendary+ within 8 |
+| Mythic | 500 | — | — | — | 88% | 12% | Mythic within 5 |
+
+**One roll decides the rarity; a second decides gear or a member card** (`BAL.crateCard`,
+22%). The **card bundle scales with the rarity already rolled** — 1 / 2 / 4 / 8 / 16 — so
+a card drop is worth **1.70 cards from a Bronze, 5.44 from a Gold, 8.96 from a Mythic**.
+That is what stops a Mythic crate ever paying a Bronze crate's card value.
+
+**Pity is a floor, not a second table.** When the counter runs out the same published odds
+are re-rolled with everything below `pityAt` zeroed — so the guarantee is exactly "at least
+this rarity", and the counter resets on any drop that meets it.
+
+**Gear from a crate is only ever for a chair that exists**, plus the rigs, which fit
+anyone. A crate cannot hand you a bass for a bassist you have not hired.
+
+### Star Rank
+
+| rank | cards (cumulative) | stat points | starCraft | outfit |
+|---|---|---|---|---|
+| ★1 | 0 | — | +0 | base |
+| ★2 | 2 | +2 | +2.0 | jacket panels |
+| ★3 | 6 | +4 | +3.5 | shoulder studs |
+| ★4 | 14 | +7 | +4.5 | trim + glow |
+| ★5 | 30 | +11 | +5.0 | aura |
+
+- **Cards always go to whoever is furthest behind** (`lowestStar()`, ties on fewest cards
+  then on the slot), so four members rise together instead of one running away. Measured:
+  eight card drops land 0,1,2,3,0,1,2,3.
+- **A big bundle can cross two ranks at once**, and `applyStar` pays the points for every
+  rank it crossed, not just the last one.
+- **`S.members[i].rarity` follows the star**, which is what makes the existing outfit
+  treatments (§3) the star cosmetic — no second system.
+- **Identity is never touched.** Name, look, bio and role are asserted byte-identical
+  across a ★1 → ★5 climb. A star rank changes what they can do, never who they are.
+
+### Where crates come from
+
+**A rank pays in crates.** `RANKS[].crate` used to be an odds tier that nothing read, and
+tilting published odds by rank would make the published odds a lie — so it is
+`RANKS[].gift` now: Local Act 2 Bronze, Regional 3, National 3 + 1 Gold, Global 2 Gold,
+Legend 1 Mythic. The gift is granted at the moment the rank changes rather than when the
+card is shown, because `rankUp()` runs twice when the card has to queue behind a reveal.
+
+**Picks buy them**, at the prices above — and **nothing grants Picks yet**: quests and
+career objectives are later build steps, and the Shop says so in as many words.
+
+**The open is the fifth reward moment** and borrows the other four's component (§13c).
+Layer two is the star bar filling rather than a counter easing, because a crate moves a
+*member*, not money, streams or fans.
 
 ## 9. PACING — why the curve is shaped the way it is
 
@@ -807,7 +871,10 @@ hear which part is yours. `AU.takeHit(yours, energy, good)`.
 - **Fans** — the rank currency, and the only number that never falls. See §4c.
 - **Gig tickets** — 2 a local day, up to 3 more from the ad stub. Not a currency you
   can buy or bank; see §4d.
-- **Picks** (premium) — crates, skips, streak saves.
+- **Picks** (premium) — crates (§8d), and later skips and streak saves. **Nothing grants
+  them yet**; crates reach a player through rank-ups until quests land.
+- **Parts** — from scrapping gear you are not playing, and the only thing that upgrades it.
+- **Member cards** — per member, and the only route to a star rank. Never bought.
 - **Legacy** (prestige) — permanent multipliers.
 - **VIP** — `S.vip` only raises the offline cap to 24h today. Nothing grants it yet;
   the Shop card is still a stub, so the 24h path is reachable only by setting the flag.
@@ -896,7 +963,9 @@ untouched.
 
 What the screen holds, top to bottom:
 - **Portrait, identity, bio.** The same `charSVG` as the stage, at 104x132, with the
-  role, an `LV n` chip, the rarity chip and their one line of bio.
+  role, an `LV n` chip, the star rank's name as the rarity chip, and their one line of bio.
+- **Star rank** — `★★★☆☆`, the craft it adds, how many cards to the next one and a bar,
+  plus the line that says a rank change never touches their name, face or instrument.
 - **What they bring** — the two things a member actually does today: their band
   multiplier (with the reminder that it lifts the *whole* catalogue, and what that
   catalogue currently earns) and their writing-card count, hint clarity and the next
@@ -954,20 +1023,21 @@ moments in the game showed no movement at all. Both now leave the easing alone.
 
 ## 14. SHOP — RESERVED, NOT FAKED
 
-Shop is your **Picks balance** (real state) and then `RESERVED`: one labelled rail per
-surface the shop will hold — Gear, Crates, Picks, Backstage Pass, Offers. Each names what
-it will contain, which BUILD ORDER step brings it, and shows hatched ghost tiles in the
-shape of the future content.
+Shop is your **Picks and Parts balance**, then the **three crates** — real, with their
+published odds and live pity counters on the card (§8d) — and then `RESERVED`: one labelled
+rail per surface still to come, Picks packs, Backstage Pass and Offers. Each names what it
+will contain, which BUILD ORDER step brings it, and shows hatched ghost tiles in the shape
+of the future content.
 
 **No rail mimics a product.** There are no prices on buttons and no buttons at all: a
 greyed-out `BUY ₪12` reads as *you cannot afford this*, which is a lie about something
 that does not exist. The rails carry the spec as text instead — Bronze 50 · Gold 150 ·
 Mythic 500 Picks, packs of 100 · 550 · 1200 · 3500, VIP's x2 income and 24h offline cap —
 so nothing is lost and nothing is pretended. When a surface ships it replaces its rail and
-the screen's shape does not move — **the Gear rail is gone for exactly that reason**: gear
-exists now, so reserving it would be the same lie the other way round. Crates carries the
-reference instead, and the balance row shows Picks **and Parts**, because Parts are real
-state that a real screen spends.
+the screen's shape does not move — **the Gear and Crates rails are both gone for exactly
+that reason**: they exist now, so reserving them would be the same lie the other way round.
+A crate's BUY *is* greyed out when you cannot afford it, and that is not the same lie: the
+thing is real, the price is real, and the balance is real.
 
 **The Home rail is declared, not empty** (`RAIL`, §13). Its three entries — daily, event,
 inbox — each read the state they will own (`S.daily.ready`, `S.event.live`,
@@ -1043,10 +1113,9 @@ does not move either.
   to level 60/Tour Bus while the same song still moves when its genre goes hot, and the
   catalogue at cap keeping an incoming Hit while rejecting an incoming flop.
 
-**Known gaps (deliberate, deferred):** crates as real drops — so gear exists (§8b) but
-**the only items in the game are the four starter instruments**, and there are no Parts to
-upgrade with; the rank's `crate` bonus is stored but unread; star rank and member cards, so
-**nothing grants a stat point yet**,
+**Known gaps (deliberate, deferred):** **nothing grants Picks yet** — quests and career
+objectives are stages 6 and 7 — so crates reach a player only through rank-ups;
+skills (the third craft source, and the Tier-1/Tier-2 abilities a ★3 and ★5 unlock);
 the *Daily* Gig and rival/multiplayer gigs (the regular ladder in §4d is built),
 six-cards-per-track-per-genre (128 signature cards ship, 384 do not),
 streaks, prestige, league, weekend events, real shop, LLM content,
@@ -1449,6 +1518,48 @@ coming back after. Twenty-four suites pass, no console errors, frame time median
 p95 17.1ms. `sv2` moved one assertion: it read the *player's* gear slot, which now
 legitimately holds a starter instrument, so it reads the stripped member's instead and
 asserts the saved instrument survives alongside.
+
+**Phase Two, stage 4 — crates, and the odds are on the card.** §8d is the system. Two
+stages have shipped machinery with no source — gear with only its starters, stats reading
+0 for everyone. This is the stage that fills both, and the thing it had to get right was
+not the drop table but the honesty of it.
+
+- **The published odds are the real odds**, and the suite proves it rather than asserting
+  it: 20,000 opens of each crate, every rarity within 1.6 points of its published row.
+  Gold and Mythic never roll Common or Rare, because their rows say 0.
+- **Pity is a floor, not a second table.** When the counter runs out the *same* odds are
+  re-rolled with everything below the guarantee zeroed. Nine forced Commons on a Bronze,
+  and the tenth open is Epic or better; the counter resets on any qualifying drop. The
+  counter is on the card **before** the purchase.
+- **The card bundle scales with the rarity already rolled** (1/2/4/8/16), which is what
+  makes a Mythic crate's card drop worth 8.96 cards against a Bronze's 1.70. Without that
+  a 500-Pick crate could hand out a 50-Pick crate's card value.
+- **Cards go to whoever is furthest behind.** Eight drops land 0,1,2,3,0,1,2,3 — four
+  members rise together rather than one running away.
+- **A star rank never touches identity.** Name, look, bio and role are asserted
+  byte-identical across a ★1 → ★5 climb; what changes is craft, stat points and the outfit
+  treatment that §3 already had.
+- **A rank pays in crates.** `RANKS[].crate` was an odds tier nothing read — and tilting
+  published odds by rank would make them not published. It is `gift` now, granted at the
+  moment the rank changes rather than when the card is shown, because `rankUp()` runs
+  twice whenever the card queues behind a reveal. The suite forces exactly that race.
+- **The open is the fifth reward moment** and reuses the other four's component, with the
+  star bar as layer two.
+
+**Picks still have no source**, and the Shop says so on the screen. Crates reach a player
+through rank-ups until quests and career objectives land in stages 6 and 7; that is the
+sequencing, and pretending otherwise would be the same lie the reserved rails exist to
+avoid.
+
+Suites: the new `cr` suite is 30 assertions — the three odds tables measured, the pity
+floor and its reset, the 22% split, the bundle by rarity, the card-value gap between
+crates, the full star ladder with its points and cosmetics, identity survival, the
+spread-to-the-furthest-behind rule, gear never dropping for an empty chair, the rank gift
+landing exactly once under a queued card, buy/hold/open in the Shop, the moment's three
+layers, and everything surviving a reload. Twenty-five suites pass, no console errors,
+frame time median 16.7ms / p95 17.2ms. The star card's progress bar started life as a
+`.statrail`, which broke `st` immediately: that class promises a name and a value and
+three suites read them. It is a `.starbar` now.
 
 **Removed along the way:** the tap-to-fill-tracks loop, Hook Moments, the Hype stat
 (Quality shifts chart odds instead), and weekly-seeded genre trends (replaced by the
