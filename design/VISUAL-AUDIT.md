@@ -58,7 +58,7 @@ work of 100+ distinct things.**
 
 ## 2. Asset inventory — everything that needs its own identity
 
-**196 marks**, in six weights. Nothing here is a new content table; every line already exists
+**123 marks**, in six weights. Nothing here is a new content table; every line already exists
 in the game as an entry with a name and a mechanic, and is missing only its picture.
 
 | # | family | count | weight | notes |
@@ -159,7 +159,7 @@ progression systems and locked-content previews.
 
 ## 5b. What shipping family D taught the rest of the pass
 
-Three rules came out of drawing the eight, and they apply to all 196:
+Three rules came out of drawing the eight, and they apply to the rest:
 
 1. **A mark is a solid silhouette with the dark lines inside it.** The chunky-outline style
    assumes a light ground. On `#0B0D12` a `#12131C` outline is 1.1:1 — it does nothing, so
@@ -178,7 +178,7 @@ Three rules came out of drawing the eight, and they apply to all 196:
 
 1. **Prototype one of each** — gear card, skill card, member card, crate, studio preview,
    venue, season milestone, shop offer, reward pop-up — and settle the language on those nine
-   before drawing 196 marks against a guess.
+   before drawing the rest against a guess.
 2. **Draw the art** into content tables.
 3. **Rebuild the screens** on it: the season road, the storefront, locked previews, Home.
 4. **Game feel**, with the reduced-motion and battery-saver switches.

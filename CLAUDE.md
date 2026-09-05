@@ -2366,11 +2366,11 @@ rest with no `fill="#"` on any of them.
 Thirty-five suites pass, no console errors.
 
 **Still to draw:** 20 instrument thumbnails, 8 rig parts, 24 skill icons, 3 crate geometries,
-8 studio previews, 8 venue scenes and 11 quest icons — the rest of the 196 in the inventory.
+8 studio previews, 8 venue scenes and 11 quest icons — 93 of the inventory's 123 marks.
 
 **`design/VISUAL-AUDIT.md`** is the placeholder audit and asset inventory for the visual
 content pass: fourteen surfaces where one glyph stands for many mechanically different
-things, the 196 marks that need drawing, and the constraints the pass does not get to break.
+things, the 123 marks that need drawing, and the constraints the pass does not get to break.
 
 **`design/GEMINI-PROMPTS.md`** is the art pass, batched: a preamble that carries the rules
 and the palette, then eight self-contained prompts — icons, guitars and basses, drum kits,
