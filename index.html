@@ -309,13 +309,13 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .demo[hidden]{display:none}
 /* ---- the one button: everything pressable shares its press and its type, and each
    rule below keeps only what differs — the fill, the size and the shadow tone ---- */
-.bigbtn,.buy,.ghost,.sbtn,.venue .vgo,#rvGo,#ruGo,#coGo,#grGo,#takeauto,#tixAd,#gone .ad,
+.bigbtn,.buy,.ghost,.sbtn,.venue .vgo,#rvGo,#ruGo,#coGo,#anGo,#grGo,#takeauto,#tixAd,#gone .ad,
 .mbox button{
   font-weight:800;border:0;cursor:pointer;
   transition:transform var(--m1) ease,box-shadow var(--m1) ease}
 .buy:active,.ghost:active,.sbtn:active,.venue .vgo:active,#takeauto:active,
 #tixAd:active,#gone .ad:active{transform:translateY(2px)}
-.bigbtn:active,#rvGo:active,#ruGo:active,#coGo:active,#grGo:active,.mbox button:active{transform:translateY(3px)}
+.bigbtn:active,#rvGo:active,#ruGo:active,#coGo:active,#anGo:active,#grGo:active,.mbox button:active{transform:translateY(3px)}
 
 .bigbtn{display:block;width:100%;padding:18px;border-radius:18px;font-size:17px;font-weight:800;
   letter-spacing:.11em;background:var(--accent);color:var(--onAccent);
@@ -596,13 +596,13 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 
 /* ===== REVEAL ===== */
 /* ---- the one full-screen panel: six moments, opened the same way ---- */
-#reveal,#gigs,#gigres,#rankup,#setup,#gone,#crateop{
+#reveal,#gigs,#gigres,#rankup,#setup,#gone,#crateop,#ann{
   position:fixed;inset:0;display:none;flex-direction:column}
-#reveal.on,#gigs.on,#gigres.on,#rankup.on,#setup.on,#gone.on,#crateop.on{display:flex}
+#reveal.on,#gigs.on,#gigres.on,#rankup.on,#setup.on,#gone.on,#crateop.on,#ann.on{display:flex}
 /* ---- and the one MOMENT: five rewards that all say the same three things — what it
    was, how much, and one button to take it. Ground, padding, eyebrow, headline, big
    number and button are shared; only the middle of each panel differs. ---- */
-#reveal,#gigres,#rankup,#gone,#crateop{align-items:center;justify-content:center;
+#reveal,#gigres,#rankup,#gone,#crateop,#ann{align-items:center;justify-content:center;
   padding:calc(var(--safe-t) + 22px) 24px calc(var(--safe-b) + 22px);
   background:radial-gradient(90% 62% at 50% 27%,var(--panel-top) 0%,var(--cream2) 55%,var(--panel-bot) 100%)}
 .meyebrow{font-size:10.5px;font-weight:800;letter-spacing:.22em;text-transform:uppercase;color:var(--dim2)}
@@ -769,6 +769,22 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   background:var(--panel);border:2px solid var(--line);font-size:12px;font-weight:700;color:var(--ink)}
 #ruList div b{font-weight:800}
 #ruList div i{flex:0 0 auto;width:8px;height:8px;border-radius:50%;background:var(--rc,var(--accent2))}
+
+/* ---- THE ANNOUNCEMENT. The sixth panel on the same component: a moment that is worth
+   the screen but is not a payout, so it has no counter to ease and nothing to bank.
+   One entry in `ANN` per kind; the panel itself never branches. ---- */
+#ann{z-index:40;gap:12px}
+#anIcon{width:96px;height:96px;border-radius:30px;display:grid;place-items:center;
+  background:var(--panel);border:3px solid var(--ac,var(--accent));
+  box-shadow:0 10px 0 rgba(0,0,0,.28);animation:rupop .55s cubic-bezier(.2,1.5,.4,1)}
+#anIcon.off{display:none}
+#anEye{color:var(--ac,var(--accent))}
+#anNum{color:var(--ac,var(--accent))}
+#anNum.off{display:none}
+#anBody{max-width:320px;text-align:center;font-size:12.5px;font-weight:600;line-height:1.55;
+  color:var(--dim);text-wrap:pretty}
+#anBody b{color:var(--ink);font-weight:800}
+#anBody.off{display:none}
 
 
 /* ===== SETUP / NAME ===== */
@@ -1110,6 +1126,15 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   <button id="coGo" class="mgo">TAKE IT</button>
 </div>
 
+<div id="ann">
+  <div id="anIcon"></div>
+  <div class="meyebrow" id="anEye">—</div>
+  <div id="anNum" class="num mnum">—</div>
+  <h3 id="anHead" class="mhead">—</h3>
+  <div id="anBody"></div>
+  <button id="anGo" class="mgo">NICE</button>
+</div>
+
 <div id="reveal">
   <button id="rvSkip">SKIP</button>
   <div id="rvGenre" class="meyebrow">—</div>
@@ -1400,6 +1425,13 @@ const TIERS = [
   { id:'viral', n:'VIRAL', mult:8,    c:PAL.gold, lo:2,   hi:10  },
   { id:'one',   n:'#1',    mult:20,   c:PAL.accent, lo:1,   hi:1   }
 ];
+/* why a first of each tier is worth the screen — read by the `first` announcement */
+const FIRST_WHY = {
+  hit:   'A Hit never decays. That song earns what it earns today for as long as you play.',
+  viral: 'Viral pays 8x a Solid and never decays — and it moved the genre it landed in.',
+  one:   'Number one. Twenty times a Solid, forever, and nothing you buy later can beat it ' +
+         'retroactively — you played for it.'
+};
 /* Quality -> chart odds. At Q90 hit+viral+#1 = 40%, as specified. */
 const ODDS = [
   { q:0,   w:[62,32,5,1,0] },
@@ -2097,7 +2129,9 @@ function passClaimAll(){
 function rollPass(){
   const s = seasonNum();
   if (s <= S.pass.season) return false;
+  const prev = S.pass.season, was = passTier();
   S.pass = { season:s, xp:0, free:[], paid:[], premium:false };
+  announce('season', { s:s % 100, prev:prev % 100, was });
   return true;
 }
 
@@ -2498,7 +2532,11 @@ const questRerolls = () => BAL.questReroll + (vipOn() ? BAL.questRerollVip : 0) 
 function qEvent(k, n){
   logEvent(k, n);                   // the activity log rides the same bus, and only this one
   const up = passGain(k);           // ...and so does the season pass
-  if (up) toast('🎟️ Season tier ' + passTier());
+  if (up){
+    const t = passTier();
+    if (t >= PASS.length) announce('passdone', { s:S.pass.season % 100, tiers:PASS.length });
+    else toast('🎟️ Season tier ' + t);
+  }
   if (!S.quests || !S.quests.list.length) return;
   let moved = false;
   S.quests.list.forEach(it => {
@@ -3559,7 +3597,7 @@ function newState(){
       });
     })(),
     studio:0, playtime:0, mute:false, seenReveal:false,
-    session:null, pending:null, payout:null, flags:{ gear:false },
+    session:null, pending:null, payout:null, flags:{ gear:false }, firsts:{},
     /* Phase Two content state. Declared here in one go so every later stage lands on a
        save shape that already exists, and deepDefaults() fills it into an older save. */
     gear:{ own:[], next:1 },                    // owned item instances; next instance id
@@ -4150,13 +4188,13 @@ const giftText = g => Object.keys(g).map(k => g[k] + ' ' + crateOf(k).n + (g[k] 
    order is a rule rather than an accident of which code path fired first:
 
        0  a reward moment      the reveal, a gig result, the offline haul, a crate open
-       1  progression          a rank-up
-       2  commercial           nothing today — offers are a Shop surface, not a pop-up
+       1  progression          a rank-up, and an announcement (§13e)
+       2  commercial           an offer, which the queue is what made safe to show at all
 
    `rankUp()` used to carry its own two-panel guard (`revealing || #gone`), which missed the
    gig result, the crate open and any modal. `POPS` is the list of panels that own the
    screen; `popBusy()` is the one thing every caller asks. */
-const POPS = ['#reveal', '#gigres', '#gone', '#rankup', '#crateop', '#modal', '#setup'];
+const POPS = ['#reveal', '#gigres', '#gone', '#rankup', '#crateop', '#ann', '#modal', '#setup'];
 const popBusy = () => revealing || !!take || !!gigRun ||
   POPS.some(id => { const n = $(id); return n && n.classList.contains('on'); });
 let popQ = [];
@@ -4189,6 +4227,85 @@ function rankUp(r){
   memEls.forEach(m => { if (m){ m.classList.remove('nod'); void m.offsetWidth; m.classList.add('nod'); } });
   confetti(3); AU.chord('big'); buzz([25, 60, 25, 60, 40]);
   save();
+}
+/* ===== ANNOUNCEMENTS =====
+   The sixth panel on §13c's component, and the one that is not a payout. Six moments in
+   the game are worth the screen and were only ever a toast: a streak milestone, a room
+   opening, your first Hit / Viral / #1, the weekly challenge, finishing the season track
+   and a new season starting. A toast is the right size for "+40 Picks"; it is the wrong
+   size for "you have never had a #1 before".
+
+   The rules that keep it from becoming a nag:
+   - **It is rare by construction.** Every kind is a first, a milestone or a weekly, so
+     nothing here can fire twice for the same thing — the once-only ones are flagged in
+     `S.firsts` and the rest are gated by the counters that already existed.
+   - **It never carries the reward.** Whatever it announces was already banked by
+     `grantReward` at the press; this only tells you. So dismissing it can never cost
+     anything, and an announcement that never renders loses nothing but the telling.
+   - **It queues at priority 1**, behind every reward moment, so it lands *after* the
+     reveal, the gig result or the crate that produced it — never on top of one, and
+     never on the lanes.
+
+   `ANN` is a table of one entry per kind. A field is a string or a function of the
+   moment's own data; the panel reads them and never branches. */
+const ANN = {
+  streak: { c:'accent', icon:'flag', cta:'KEEP IT GOING',
+    eye:'daily streak', num:d => d.n, head:d => d.n + ' DAYS IN A ROW',
+    body:d => 'Every one of them, all three quests. <b>' + d.say + '</b> — and a missed ' +
+              'day only ever costs you one, never the streak.' },
+  venue: { c:'accent2', icon:'pin', cta:'LET\'S PLAY IT',
+    eye:'a bigger room', head:d => d.n.toUpperCase(),
+    body:d => 'You cleared ' + esc(d.from) + '. <b>' + esc(d.n) + '</b> is open for good — ' +
+              d.d + ' stars, and it wants ' + esc(d.g) + '. Its three career objectives are ' +
+              'waiting in the venue brief.' },
+  first: { c:'gold', icon:'crown', cta:'FRAME IT',
+    eye:d => 'your first ' + d.t, num:d => '#' + d.chart, head:d => d.title.toUpperCase(),
+    body:d => '<b>' + esc(d.t) + '</b> at #' + d.chart + '. ' + d.why },
+  weekly: { c:'violet', icon:'check', cta:'NICE',
+    eye:'weekly challenge', head:d => d.n.toUpperCase(),
+    body:d => 'Done for the week. <b>' + d.say + '</b> — and a new challenge is dealt when ' +
+              'the week index moves, wherever you are in it.' },
+  passdone: { c:'gold', icon:'pass', cta:'NICE',
+    eye:d => 'season ' + d.s, head:'TRACK COMPLETE', num:d => d.tiers,
+    body:'Every tier on the season track, earned by playing. Nothing on it was ever for ' +
+         'sale and nothing on it touched a song you have already released.' },
+  season: { c:'accent2', icon:'pass', cta:'START IT',
+    eye:d => 'season ' + d.s, head:'A NEW SEASON',
+    body:d => 'Twenty tiers, dealt fresh. You finished season ' + d.prev + ' on tier ' +
+              d.was + '. XP comes from what you already do — there is no clock on this.' }
+};
+/* one entry point, and it is the only thing a call site has to know */
+function announce(kind, data){
+  const A = ANN[kind];
+  if (!A) return false;
+  pushPop(1, () => showAnn(A, data || {}));
+  return true;
+}
+function showAnn(A, d){
+  const v = x => (typeof x === 'function' ? x(d) : x);
+  const n = $('#ann');
+  n.style.setProperty('--ac', PAL[A.c] || PAL.accent);
+  const icon = ICON[A.icon];
+  $('#anIcon').classList.toggle('off', !icon);
+  $('#anIcon').innerHTML = icon ? ico(icon, { s:50, c:PAL[A.c] || PAL.accent, w:2 }) : '';
+  $('#anEye').textContent = v(A.eye);
+  const num = A.num == null ? null : v(A.num);
+  $('#anNum').classList.toggle('off', num == null);
+  if (num != null) $('#anNum').textContent = num;
+  $('#anHead').textContent = v(A.head);
+  const body = A.body == null ? '' : v(A.body);
+  $('#anBody').classList.toggle('off', !body);
+  $('#anBody').innerHTML = body;
+  $('#anGo').textContent = v(A.cta) || 'NICE';
+  n.classList.add('on');
+  confetti(2); AU.chord('big'); buzz([20, 50, 20]);
+}
+function closeAnn(){
+  $('#ann').classList.remove('on');
+  AU.chord('small'); bandNod();
+  renderTop(); renderIdle(); renderRail();
+  if (sheetTab) renderSheet(sheetTab);
+  drainPops();
 }
 function closeRankUp(){
   $('#rankup').classList.remove('on');
@@ -5293,7 +5410,10 @@ function collectGig(){
   reward({ m:p.m, f:p.f, big:p.out === 2 });   // the counter eases up; it is not snapped
   toast('💰 +' + fmt(p.m) + ' from the show');
   said.forEach(t => toast('🏆 ' + t));
-  if (p.cleared && VENUES[p.v + 1]) toast('🎪 ' + VENUES[p.v + 1].n + ' is open');
+  if (p.cleared && VENUES[p.v + 1]){
+    const V = VENUES[p.v + 1];
+    announce('venue', { n:V.n, from:VENUES[p.v].n, d:V.d, g:GENRES[V.g].n });
+  }
   drainPops();
 }
 
@@ -5371,7 +5491,11 @@ async function release(){
     $('#rvQuote').textContent = genQuote(); $('#rvQuote').classList.add('fadein'); }
   if (ti >= 3){ el.stage.classList.add('shake'); setTimeout(() => el.stage.classList.remove('shake'), 550); }
   if (ti === 3){ S.picks += 20; toast('🎁 Viral — +20 Picks'); }
-  if (ti === 4) toast('👑 Number one. That one never decays.');
+  // a first is worth the screen exactly once; it queues behind the reveal that made it
+  if (ti >= 2 && !S.firsts[T.id]){
+    S.firsts[T.id] = true;
+    announce('first', { t:T.n, title:p.title, chart, why:FIRST_WHY[T.id] });
+  }
   if (heat.changed) toast('📈 ' + GENRES[p.g].n + ' is now ' + heat.after);
   else if (heat.gain >= 6) toast('📈 You heated ' + GENRES[p.g].n + ' up');
   AU.chord(ti >= 2 ? 'big' : 'small');
@@ -6507,8 +6631,7 @@ function buy(act, i, node){
     if (!got) return;
     reward({});                                    // a quest pays Picks and Parts, not a counter
     toast('✅ ' + sayReward(got.pay));
-    got.miles.forEach(m => { AU.chord('big'); confetti(2);
-      toast('🔥 ' + m.at + '-day streak — ' + sayReward(m)); });
+    got.miles.forEach(m => announce('streak', { n:m.at, say:sayReward(m) }));
     if (S.quests.done.length === 3 && !got.miles.length) toast('🔥 Streak ' + S.quests.streak);
     renderRail();
   } else if (act === 'qroll'){
@@ -6517,8 +6640,9 @@ function buy(act, i, node){
   } else if (act === 'wclaim'){
     const got = claimWeekly();
     if (!got) return;
-    reward({ big:true }); confetti(3);
-    toast('🏆 Weekly challenge — ' + sayReward(got));
+    reward({ big:true });
+    const W = weeklyNow();
+    announce('weekly', { n:W ? W.n : 'Challenge', say:sayReward(got) });
     renderRail();
   } else if (act === 'skill'){
     const id = node && node.dataset.id;
@@ -6853,6 +6977,7 @@ function boot(){
   $('#setBtn').innerHTML = ico(ICON.cog, {s:17});
   $('#ruGo').addEventListener('click', closeRankUp);
   $('#coGo').addEventListener('click', closeCrate);
+  $('#anGo').addEventListener('click', closeAnn);
   $('#gigBtn').addEventListener('click', e => { e.stopPropagation(); openGigs(); });
   $('#gigClose').addEventListener('click', () => { if (gsel.v >= 0) backToList(); else closeGigs(); });
   $('#tixAd').addEventListener('click', e => { e.stopPropagation(); watchAd('ticket'); });

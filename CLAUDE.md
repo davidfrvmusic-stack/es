@@ -1124,8 +1124,8 @@ rule rather than an accident of which code path fired first:
 | priority | what |
 |---|---|
 | **0** | a **reward moment** — the reveal, a gig result, the offline haul, a crate open |
-| **1** | **progression** — a rank-up |
-| **2** | **commercial** — nothing, because an offer is a Shop surface and not a pop-up (§14) |
+| **1** | **progression** — a rank-up, and an **announcement** (§13e) |
+| **2** | **commercial** — the one offer a session, which this queue is what made safe (§14) |
 
 `POPS` is the list of panels that own the screen and `popBusy()` is the one thing every
 caller asks — it also counts a live take and a live show, so nothing can land on the lanes.
@@ -1135,6 +1135,40 @@ panel as it closes.
 `rankUp()` used to carry its own two-panel guard (`revealing || #gone`), which missed the gig
 result, the crate open and every modal — a rank-up could land on top of a crate you were
 opening. It queues now, and a crate opened while something else owns the screen queues too.
+
+## 13e. ANNOUNCEMENTS — the sixth panel, and the one that is not a payout
+
+Six moments were worth the screen and were only ever a toast. A toast is the right size for
+*+40 Picks*; it is the wrong size for *you have never had a #1 before*.
+
+| kind | fires when | how often |
+|---|---|---|
+| `streak` | a daily-streak milestone lands (3 / 7 / 14 / 30) | once each, on the way up past `quests.best` |
+| `venue` | a show clears a room and opens the next | once per room — `gig.cleared` only moves forward |
+| `first` | your **first** Hit, Viral or #1 | once each ever, flagged in `S.firsts` |
+| `weekly` | the weekly challenge is claimed | once a week |
+| `passdone` | the season track reaches tier 20 | once a season |
+| `season` | a new season is dealt | once every `seasonDays` |
+
+**`ANN` is a table of one entry per kind, and the panel never branches.** Each entry names an
+eyebrow, a headline, an optional big number, a body, a button, a palette token and an icon;
+every field is either a string or a function of that moment's own data. `announce(kind, data)`
+is the whole call-site API and `showAnn` is the whole renderer.
+
+**It reuses §13c's component** — the same ground, padding, `.meyebrow`, `.mhead`, `.mnum` and
+gold `.mgo` as the reveal, the gig result, the rank card, the offline haul and the crate open.
+Six panels, one stylesheet; the suite asserts `#ann` resolves identically to `#rankup`.
+
+Three rules keep it from becoming a nag:
+- **It is rare by construction.** Every kind is a first, a milestone or a weekly, so nothing
+  here can fire twice for the same thing. The once-only ones are flagged; the rest are gated
+  by counters that already existed.
+- **It never carries the reward.** Whatever it announces was already banked by `grantReward`
+  at the press. Dismissing it costs nothing, which is what makes it safe to queue at all.
+- **It queues at priority 1**, so it lands *after* the reveal, gig result or crate that
+  produced it — never over one, and never on the lanes. The first Hit is the clearest case:
+  `release()` announces while `revealing` is still true, and the card appears the moment
+  COLLECT closes the reveal.
 
 ## 14. SHOP, ADS, VIP, OFFERS AND THE INBOX
 
@@ -2184,6 +2218,43 @@ refusing without premium and paying everything on unlock, a season resetting for
 the economy invariant, the named chips and their badges, the screen with no button and no
 price on the reserved lane, the pop-up queueing behind a reward moment and landing after it,
 NOT NOW retiring it, and a reload. Thirty-four suites pass, no console errors.
+
+**The announcements — the sixth panel, and the moments that were only ever a toast.** Asked
+for directly: *where are the pop-ups?* Six things happen in this game that are worth the
+screen and were being reported in a rail that fades after two seconds — a streak milestone,
+a room opening, your first Hit / Viral / #1, the weekly challenge, the season track finished,
+a new season. §13e is the system.
+
+- **`ANN` is one entry per kind and the panel never branches.** Eyebrow, headline, optional
+  big number, body, button, palette token, icon — each a string or a function of that
+  moment's own data. `announce(kind, data)` is the whole call-site API.
+- **It is the same component as the other five** (§13c), so six panels still share one
+  stylesheet; the suite asserts `#ann` resolves to `#rankup`'s ground, padding and alignment,
+  and that its button is the same gold.
+- **It never carries the reward**, which is what makes it safe to queue: everything it
+  announces was already banked by `grantReward` at the press, so dismissing it costs nothing.
+- **It queues at priority 1**, so it lands *after* the reveal, gig result or crate that
+  produced it. The first Hit is the clearest case — `release()` announces while `revealing`
+  is still true and the card appears the moment COLLECT closes the reveal.
+- **Rare by construction.** Every kind is a first, a milestone or a weekly; the once-only
+  ones are flagged in the new `S.firsts`, the rest ride counters that already existed.
+
+Suites: the new `an` suite is 29 assertions — the table, queueing behind a reward moment and
+behind a live take, priority beating arrival order, each of the six kinds fired at its real
+call site, the milestone paying *before* it announces, a second Hit announcing nothing, a
+Solid never being a first, the season track announcing once and a wound-back clock announcing
+nothing, the panel matching `#rankup`, and the firsts surviving a reload. Six suites needed a
+line to dismiss it (`t3`, `rw`, `g1`, `ca`, `bp`, `cr`) — it is a real panel now, so a test
+that clicks past it has to close it, the same way `t2` already closes a rank-up.
+
+**Two stale expectations were failing before this work and are fixed here**, not caused by
+it: `qs` still expected one rail chip when the season pass added SEASON, and `pay` still
+expected five products when the Season Pass made it six. The earlier note claiming
+thirty-four suites passed was wrong on both counts; thirty-two did.
+
+**`design/VISUAL-AUDIT.md`** is the placeholder audit and asset inventory for the visual
+content pass: fourteen surfaces where one glyph stands for many mechanically different
+things, the 196 marks that need drawing, and the constraints the pass does not get to break.
 
 **`design/GEMINI-PROMPTS.md`** is the art pass, batched: a preamble that carries the rules
 and the palette, then eight self-contained prompts — icons, guitars and basses, drum kits,
