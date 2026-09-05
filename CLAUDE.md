@@ -949,8 +949,10 @@ hear which part is yours. `AU.takeHit(yours, energy, good)`.
   weekly challenge (5) and the streak milestones (2 / 3 / 5 / 8). Never from money and never
   from an ad; they buy **skills** (§8e) and nothing else.
 - **Legacy** (prestige) — permanent multipliers.
-- **VIP** — `S.vip` only raises the offline cap to 24h today. Nothing grants it yet;
-  the Shop card is still a stub, so the 24h path is reachable only by setting the flag.
+- **VIP** — `S.vipUntil`, a timestamp. Convenience only: the 24h offline cap, the ad
+  rewards posted to the Inbox daily, a Bronze Crate a day, one more quest swap and no ad
+  prompts. **Never an income, streams or craft multiplier.** The one in-game path is a
+  single free 24-hour trial, once ever, from Offers (§14).
 Formatting: 1.2K, 3.4M, 8.9B, 1.1T… Counters animate up.
 
 ## 13. UI (portrait, one-thumb)
@@ -964,9 +966,10 @@ itself, above and below the band, and Picks moved to the Shop where it is spent.
 
 Middle: the stage — 4 SVG characters, the active one stepped forward, in front of the
 **room their studio buys** (§8c) — with the SAVED pill floating top-right and `#rail`
-under it. **The rail draws one icon per system that
-has something waiting** (daily, event, inbox); none of those exist, so it renders
-nothing at all. That is the rule working, not a gap — nothing inactive is drawn.
+under it. **The rail draws one icon per system that has something waiting** — `daily`
+(the quest board, §15) and `inbox` (§14) are live and tap through to their own screens;
+`event` and `offers` draw only when their state says so. Nothing inactive is drawn, and a
+badge appears only when it is non-zero.
 
 Bottom, on HOME: the **Next Goal** card, one **demo line**, the **adaptive CTA** and
 **GIGS**.
@@ -1011,6 +1014,11 @@ the bottom 46% (min 300px) holding its header, meter, three lanes and AUTO-TAKE,
 with the stage and the song-sheet strip still visible above it. Each lane owns its
 own `pointerdown`; `jam()` returns early while a take is running, so the only input
 during a take is the lanes.
+**Three screens have no tab of their own** and are reached from where they belong: the
+character sheet from the stage (§13b), **Daily** from the rail's quest icon, and **Inbox**
+from the rail's inbox icon. Each is a detour — `sheetBack` remembers where it came from and
+the header button is `←` rather than `✕`.
+
 **Four tabs: HOME | BAND | MUSIC | SHOP.** HOME is not a screen — it is the stage with
 nothing over it, so the tab just calls `closeSheet()` and is the selected one at rest;
 that keeps one shell instead of a router. BAND is the screen above. MUSIC
@@ -1096,32 +1104,97 @@ Two counters were **snapping instead of moving**: `collectGig()` set `dispM = S.
 `collectGone()` set all three `disp*` to their new totals, so the single most rewarding
 moments in the game showed no movement at all. Both now leave the easing alone.
 
-## 14. SHOP — RESERVED, NOT FAKED
+## 14. SHOP, ADS, VIP, OFFERS AND THE INBOX
 
-Shop is your **Picks and Parts balance**, then the **three crates** — real, with their
-published odds and live pity counters on the card (§8d) — and then `RESERVED`: one labelled
-rail per surface still to come, Picks packs, Backstage Pass and Offers. Each names what it
-will contain, which BUILD ORDER step brings it, and shows hatched ghost tiles in the shape
-of the future content.
+Shop is, top to bottom: your **Picks / Parts / Hours** balance, **this session's offer** if
+there is one, the **three crates** (§8d), the **consumables**, the **rewarded ads**, the
+**VIP card**, and then `RESERVED` — the rails for surfaces that still do not exist.
 
-**No rail mimics a product.** There are no prices on buttons and no buttons at all: a
-greyed-out `BUY ₪12` reads as *you cannot afford this*, which is a lie about something
-that does not exist. The rails carry the spec as text instead — Bronze 50 · Gold 150 ·
-Mythic 500 Picks, packs of 100 · 550 · 1200 · 3500, VIP's x2 income and 24h offline cap —
-so nothing is lost and nothing is pretended. When a surface ships it replaces its rail and
-the screen's shape does not move — **the Gear and Crates rails are both gone for exactly
-that reason**: they exist now, so reserving them would be the same lie the other way round.
-A crate's BUY *is* greyed out when you cannot afford it, and that is not the same lie: the
-thing is real, the price is real, and the balance is real.
+### What Picks buy
 
-**The Home rail is declared, and one entry is live now** (`RAIL`, §13). Its three entries —
-daily, event, inbox — each read the state they own. `daily` is real as of §15: it shows
-whenever a board exists (which, once the system shipped, is always) and carries a badge of
-what is claimable, and tapping it opens the Daily screen. `event` and `inbox` still read
-state nothing writes, so their `when()` is falsy and they draw nothing — the rule working,
-not a gap. The badge is only drawn when it is non-zero, so a fully-claimed day is a bare
-icon rather than a "0".
+| item | Picks | cap |
+|---|---|---|
+| Bronze / Gold / Mythic Crate | 50 / 150 / 500 | — |
+| Gig ticket | 25 | 2 a day |
+| Quest swap | 15 | 2 a day |
+| Streak Freeze | 40 | 2 held |
 
+**A "skip" here is a consumable you would otherwise wait a day for** — a ticket, a swap.
+It never skips a timer, because nothing in this game runs on one. The daily caps sit on
+`S.shop`, rolled by the same monotonic `dayNum()` the tickets and the quest board use, so a
+wound-back clock buys nothing.
+
+### Rewarded ads — a labelled simulation, and nothing permanent
+
+| ad | pays | cap |
+|---|---|---|
+| Ticket | +1 gig ticket | 3 a day |
+| Picks | +10 Picks | 2 a day |
+| Offline x2 | doubles the pending offline haul | once per return |
+
+`ADS` is the table and `watchAd(id)` is the one component — a five-second countdown, no
+network, and **the reward lives in the terminal branch only**, so closing it early grants
+nothing. The gig panel's ad used to be its own function with the ticket hard-wired in; it is
+a table entry now. **No ad grants VIP, money, streams or craft** — the suite reads the `ADS`
+block out of the shipped file and asserts none of those words appear in it.
+
+### VIP — convenience, never advantage
+
+`S.vipUntil` is a timestamp (`vipOn()` still honours the old `S.vip` boolean). **No income
+multiplier, no streams multiplier, no craft bonus** — the suite measures `moneyRate()`,
+`totalSPS()` and `craftCap()` across turning it on and asserts all three are unchanged.
+
+| benefit | detail |
+|---|---|
+| a 24h offline cap instead of 8h | already wired, now off `vipOn()` |
+| the ad rewards, without the ads | **3 gig tickets + 20 Picks posted to the Inbox each day** — exactly what a free player collects from the two ad slots — and the offline x2 applied for you |
+| no ad prompts | the ad rows and the gig panel's ad button are hidden outright |
+| +1 quest swap | 2 free instead of 1 |
+| 1 Bronze Crate a day | content, not currency; it rides the same inbox post |
+| a VIP line on the Shop card | cosmetic |
+
+**Ads never grant VIP.** The only in-game path is a **single 24-hour trial, once ever**
+(`S.vipTrial`), offered from Offers. A real subscription is a Phase Three surface, and there
+is **no priced button** for it — a checkout that does not exist would be exactly the lie the
+reserved rails avoid.
+
+### Offers and the Inbox are separate, in every way
+
+- **Offers** is commercial, and it is a **surface, not an interruption**. The plan's rule is
+  "one commercial offer per session, shown once, dismissible" — a *cap* on offers, not a
+  mandate for a pop-up — so the offer is **one card at the top of the Shop**, with its own
+  CTA and NOT NOW, advertised by the rail's offers icon and by nothing else. **Nothing pops
+  up on the stage**: a modal landing while the player is deciding what to do next is exactly
+  what that cap exists to prevent, and the suite asserts no such function even exists.
+  `S.offers.sessionShown` records that it was put in front of the player this session;
+  dismissing writes the id to `S.offers.seen` and it never returns at all. There is **no
+  expiry countdown** anywhere, and no offer is shown before `BAL.offerAfter` (3) releases —
+  a pitch before the first record is a pitch at nothing. `OFFERS` holds exactly one entry,
+  the VIP trial, because it is the only offer that can actually do something today; a priced
+  offer with no checkout would not be shown at all.
+- **The Inbox** is delivery: VIP daily grants today, compensation and posted payouts later.
+  `inboxPost` / `inboxClaim` / `inboxClaimAll`, one screen off the rail, a TAKE per row and
+  TAKE EVERYTHING under them.
+- **They share no state.** `S.offers` is `{seen, sessionShown}` and `S.inbox` is an array;
+  Offers never writes to the Inbox and the Inbox never advertises. The suite asserts the
+  shape of both.
+
+### The rails that are left
+
+`RESERVED` is down to **two**: Picks packs and the Battle Pass, both marked **PHASE THREE**,
+both carrying their spec as text and **no button at all** — a greyed-out `BUY ₪12` reads as
+*you cannot afford this*, which is a lie about something that does not exist. The VIP and
+Offers rails are gone because those surfaces exist now, the same reason the Gear and Crates
+rails went in Concert Neon stage 8. A crate's or a consumable's BUY *is* greyed out when you
+cannot afford it, and that is not the same lie: the thing is real, the price is real, and the
+balance is real. The suite asserts the reserved rails still contain zero buttons and no
+currency glyph.
+
+**The Home rail carries four systems and draws the two that exist** (`RAIL`, §13): `daily`
+(the quest board, badge = claimable) and `inbox` (badge = posts waiting) are live; `event`
+(weekend events) and `offers` (which draws only while an unseen offer is available) read
+state that is usually or always empty. A badge is drawn only when it is non-zero, so a
+fully-claimed day is a bare icon rather than a "0".
 
 ## 15. DAILY QUESTS, STREAKS AND THE WEEKLY CHALLENGE
 
@@ -1262,9 +1335,10 @@ quest, a milestone, a career objective and the weekly challenge cannot drift apa
 **Known gaps (deliberate, deferred):**
 the *Daily* Gig and rival/multiplayer gigs (the regular ladder in §4d is built),
 six-cards-per-track-per-genre (128 signature cards ship, 384 do not),
-prestige, league, weekend events, real shop, LLM content,
+prestige, league, weekend events, a real checkout (Picks packs and a VIP subscription),
+LLM content,
 `sw.js` offline (and with it, true background storage-full notifications), a real
-cloud-save backend, any way to actually grant VIP.
+cloud-save backend.
 
 **Concert Neon, stage 1 — the palette is flipped.** The game is dark. What that pass
 touched beyond the token values, because a value swap alone would have broken them:
@@ -1794,6 +1868,53 @@ days with its milestone, a missed day costing one, a freeze spending itself, a t
 costing three, a wound-back clock dealing nothing, a milestone never re-firing, the weekly
 rotation and its one-Gold-Crate payout, the freeze cap, the swap, the rail badge, the screen,
 and a reload. Twenty-eight suites pass, no console errors.
+
+**Phase Two, stage 8 — the shop stopped being a promise.** §14 is the result. Four things
+were built and one was deliberately not:
+
+- **Consumables, not timer skips.** A gig ticket (25 Picks, 2/day) and a quest swap (15, 2/
+  day) are things you would otherwise wait a day for; a Streak Freeze (40) is capped by the
+  two you can hold. Nothing here skips a timer, because there are no timers to skip, and the
+  caps ride the same monotonic `dayNum()` as everything else.
+- **One ad component.** `watchGigAd()` was the ticket ad with its reward hard-wired into it;
+  `ADS` is a table and `watchAd(id)` is the component. The reward is in the terminal branch
+  only, and the suite reads the shipped `ADS` block and asserts the words `vipUntil`,
+  `S.money`, `S.streams` and `craft` do not appear anywhere in it.
+- **VIP loses nothing and gains no advantage.** Its daily grant is *exactly* what a free
+  player collects from the two ad slots — 3 tickets and 20 Picks — posted to the Inbox
+  instead of watched for. The suite measures `moneyRate()`, `totalSPS()` and `craftCap()`
+  across turning it on and asserts all three are byte-identical.
+- **Offers and the Inbox share no field.** One is commercial and lives on the Shop; the other
+  is delivery and lives on its own screen off the rail.
+- **Not built: a priced offer.** Rule 8 of the plan forbids fake timers, and §14's rule
+  forbids a product that cannot be bought. `OFFERS` therefore holds exactly one entry — the
+  free 24-hour VIP trial — and the Picks packs stay a reserved rail until there is a
+  checkout behind them.
+
+**The offer pop-up was built, and then deleted.** The first cut showed it as a modal a few
+seconds after boot. It immediately did two things that made the case against it: it opened
+*over the rewarded ad's own modal*, wiping the ad's countdown element out from under a live
+interval, and it blocked four test suites by landing on the stage mid-interaction — which is
+precisely what it would do to a player. Guarding it (calm moment only, three releases in,
+nothing else open) fixed the crash but not the premise, so the pop-up is gone and the offer
+is a Shop card. `watchAd`'s interval kept the lesson: it clears itself if the modal is closed
+under it, the same shape as the `hype()` and `gigTick()` guards.
+
+One real bug, found by the suite rather than by reading:
+- **`modal()`'s danger styling never applied.** The red confirm button's style attribute was
+  built inside a plain single-quoted string, so `${PAL.accent}` shipped as literal text and
+  the browser dropped the whole declaration. Every scrap and reset confirm had been drawing a
+  default button. `modal()` now takes `(html, btn, onOk, two, noLabel, onNo)` and builds both
+  buttons in the template literal.
+
+Suites: the new `sh` suite is 34 assertions — the three tables, the "no ad touches VIP or
+income" source read, buying and its caps and the daily reset, an ad granting nothing
+part-way and everything at the end, VIP's six benefits and its three non-benefits, the inbox
+post/claim/claim-all and its separation from Offers, the offer being a card rather than a
+pop-up (including that no pop-up function exists at all) and never returning once dismissed,
+the Shop's three consumables and its two ad rows disappearing under VIP, the reserved rails
+still carrying zero buttons and no currency glyph, and a reload. Twenty-nine suites pass, no
+console errors.
 
 **Removed along the way:** the tap-to-fill-tracks loop, Hook Moments, the Hype stat
 (Quality shifts chart odds instead), and weekly-seeded genre trends (replaced by the

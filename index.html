@@ -1233,6 +1233,19 @@ const BAL = {
     { at:30, hours:8, crate:'m', n:1 }
   ],
   weeklyPay: { crate:'g', n:1, hours:5 },
+  // WHAT PICKS BUY, AND WHAT AN AD IS WORTH. A consumable you would otherwise wait a day
+  // for — never a timer skip, because there are no timers. An ad never grants anything
+  // permanent and never grants VIP.
+  buyTicket: 25, buyTicketMax: 2,
+  buySwap: 15, buySwapMax: 2,
+  buyFreeze: 40,          // capped by freezeMax, the same two you can hold
+  adSecs: 5,              // the labelled simulated ad's countdown
+  adPicks: 10, adPicksMax: 2,
+  // VIP is convenience, never advantage: no income, no streams, no craft. The daily grant
+  // is EXACTLY what a free player collects by watching every ad, posted to the Inbox.
+  vipTickets: 3, vipPicks: 20,
+  vipTrialHours: 24,      // the single free trial, once ever, from Offers
+  offerAfter: 3,          // ...and no offer at all before this many releases
   // SKILLS — the third craft source. Hours only: never money, never an ad. Tier 2 wants
   // a *3 member and tier 3 a *5, so the crate ladder is what gates them.
   skillHours: [3, 6, 12],
@@ -2131,6 +2144,7 @@ const weeklyNow = () => WEEKLY.find(x => x.id === S.weekly.id) || null;
    and the weekly challenge cannot drift apart */
 function grantReward(r){
   if (!r) return;
+  if (r.tickets) S.gig.tickets += r.tickets;
   if (r.picks) S.picks += r.picks;
   if (r.parts) S.parts += r.parts;
   if (r.hours) S.hours += r.hours;
@@ -2138,6 +2152,7 @@ function grantReward(r){
 }
 function sayReward(r){
   const b = [];
+  if (r.tickets) b.push(r.tickets + (r.tickets === 1 ? ' Gig Ticket' : ' Gig Tickets'));
   if (r.picks) b.push(r.picks + ' Picks');
   if (r.parts) b.push(r.parts + ' Parts');
   if (r.hours) b.push(r.hours + (r.hours === 1 ? ' Studio Hour' : ' Studio Hours'));
@@ -2161,7 +2176,8 @@ const questClaimed = s => S.quests.done.indexOf(s) >= 0;
 const questsReady = () => S.quests.list.filter((it, s) => questDone(it) && !questClaimed(s)).length +
                           (weeklyDone() && !S.weekly.got ? 1 : 0);
 const weeklyDone = () => { const W = weeklyNow(); return !!W && S.weekly.prog >= W.tgt; };
-const questRerolls = () => BAL.questReroll + (vipOn() ? BAL.questRerollVip : 0);
+const questRerolls = () => BAL.questReroll + (vipOn() ? BAL.questRerollVip : 0) +
+  ((S.shop && S.shop.swaps) || 0);
 /* PROGRESS. One bus: the game calls qEvent at the moment a thing happens, and the day's
    board and the week's challenge both read it. No system polls anything. */
 function qEvent(k, n){
@@ -2241,6 +2257,171 @@ function rerollQuest(s){
   if (!pool.length) return false;
   q.reroll++;
   q.list[s] = questNew(pick(pool), s);
+  return true;
+}
+
+
+/* ===== WHAT PICKS BUY, WHAT ADS GIVE, AND WHAT VIP IS =====
+   Three rules hold this whole surface together, and each one is checked by the suite:
+   - **A "skip" is a consumable you would otherwise wait a day for** — a gig ticket, a
+     quest swap. It never skips a timer, because there are no timers to skip.
+   - **An ad never grants anything permanent, and never grants VIP.** Every ad here is a
+     labelled five-second simulation with no network, and the reward lands only in the
+     terminal branch.
+   - **VIP is convenience, never advantage.** No income multiplier, no streams multiplier,
+     no craft. What it gives is exactly what a free player gets from watching every ad,
+     handed over without the ads. */
+const SHOP_BUY = [
+  { id:'ticket', n:'Gig ticket', i:'mic', c:'accent', picks:() => BAL.buyTicket,
+    d:'One more show today. Tickets refill on their own tomorrow.',
+    cap:() => BAL.buyTicketMax, have:() => S.shop.tickets,
+    pay:() => { S.shop.tickets++; S.gig.tickets++; } },
+  { id:'swap',   n:'Quest swap',  i:'flag', c:'gold', picks:() => BAL.buySwap,
+    d:'Deal a different quest into one slot. Never the whole board.',
+    cap:() => BAL.buySwapMax, have:() => S.shop.swaps,
+    pay:() => { S.shop.swaps++; } },
+  { id:'freeze', n:'Streak Freeze', i:'crown', c:'violet', picks:() => BAL.buyFreeze,
+    d:'Holds your streak through one missed day. One is earned free every week.',
+    cap:() => BAL.freezeMax, have:() => S.quests.freeze,
+    pay:() => { S.quests.freeze++; } }
+];
+/* Every ad is the same five-second labelled stand-in, and the reward is in the terminal
+   branch only — closing it early grants nothing. No ad grants VIP or anything permanent. */
+const ADS = [
+  { id:'ticket', n:'+1 gig ticket', say:'One gig ticket, on the house.',
+    cap:() => BAL.gigAdMax, have:() => S.gig.ads,
+    pay:() => { S.gig.ads++; S.gig.tickets++; }, got:'+1' },
+  { id:'picks',  n:'+' + 10 + ' Picks', say:'Picks, for a crate or a consumable.',
+    cap:() => BAL.adPicksMax, have:() => S.shop.adPicks,
+    pay:() => { S.shop.adPicks++; S.picks += BAL.adPicks; }, got:'+10' }
+];
+const adOf = id => ADS.find(a => a.id === id) || null;
+const buyOf = id => SHOP_BUY.find(b => b.id === id) || null;
+const adLeft = a => Math.max(0, a.cap() - a.have());
+const buyLeft = b => Math.max(0, b.cap() - b.have());
+function buyPicks(id){
+  const b = buyOf(id);
+  if (!b || buyLeft(b) <= 0 || S.picks < b.picks()) return false;
+  S.picks -= b.picks();
+  b.pay();
+  return true;
+}
+/* ONE ad component. The gig panel's ad was this function with the ticket hard-wired into
+   it; the reward is a table entry now, and the panel calls watchAd('ticket'). */
+function watchAd(id){
+  const a = adOf(id);
+  if (!a || adLeft(a) <= 0 || vipOn()) return false;
+  let left = BAL.adSecs;
+  const body = n => `<h3>Rewarded ad (demo)</h3>
+    <p>No real ad and nothing leaves this device — this is a labelled stand-in for the
+    rewarded spot. ${esc(a.n)} lands when it finishes.</p>
+    <div class="big">${n}</div>`;
+  const m = $('#modal');
+  $('#mbox').innerHTML = body(left) + '<button id="mok" disabled style="opacity:.45">PLEASE WAIT</button>';
+  m.classList.add('on');
+  const iv = setInterval(() => {
+    const n = $('#mbox').querySelector('.big');
+    if (!n || !m.classList.contains('on')){ clearInterval(iv); return; }   // closed under us
+    left--;
+    if (left > 0){ n.textContent = left; return; }
+    clearInterval(iv);
+    a.pay();                       // the reward is HERE, in the terminal branch, and nowhere else
+    save(); renderTix(); renderTop();
+    if (sheetTab === 'shop') renderSheet('shop');
+    $('#mbox').innerHTML = `<h3>${esc(a.n)}</h3><p>${esc(a.say)}</p>
+      <div class="big">${a.got}</div><button id="mok">NICE</button>`;
+    $('#mok').onclick = () => m.classList.remove('on');
+    AU.chord('small'); buzz(18);
+  }, 1000);
+  return true;
+}
+/* VIP. A timestamp, and a list of conveniences — never a multiplier on anything.
+   The only in-game path is a single 24-hour trial, once ever, offered from Offers. */
+const vipLeft = () => Math.max(0, (S.vipUntil || 0) - Date.now()) / 1000;
+function startVipTrial(){
+  if (S.vipTrial || vipOn()) return false;
+  S.vipTrial = true;
+  S.vipUntil = Date.now() + BAL.vipTrialHours * 3600e3;
+  vipDaily();
+  return true;
+}
+/* the ad-equivalent grant: exactly what a free player collects by watching every ad,
+   posted to the Inbox rather than handed over silently */
+function vipDaily(){
+  if (!vipOn()) return false;
+  const d = dayNum();
+  if (S.shop.vipDay >= d) return false;
+  S.shop.vipDay = d;
+  inboxPost('vip', 'VIP daily', 'The ads, without the ads — plus a crate.',
+            { tickets:BAL.vipTickets, picks:BAL.vipPicks, crate:'b', n:1 });
+  return true;
+}
+/* THE INBOX — where a system posts you something. It is delivery, never a sales pitch:
+   nothing in here is an offer, and Offers never writes to it. */
+function inboxPost(kind, n, d, r){
+  S.inbox.push({ kind, n, d, r, at:Date.now() });
+  renderRail();
+  return S.inbox[S.inbox.length - 1];
+}
+function inboxClaim(i){
+  const it = S.inbox[i];
+  if (!it) return null;
+  grantReward(it.r);
+  S.inbox.splice(i, 1);
+  renderRail();
+  return it;
+}
+function inboxClaimAll(){
+  const got = S.inbox.slice();
+  got.forEach(it => grantReward(it.r));
+  S.inbox = [];
+  renderRail();
+  return got;
+}
+/* OFFERS — commercial, and separate from the Inbox in every way: its own state, its own
+   rail, its own screen, and no shared field. One per session, dismissible, no countdown.
+   There is exactly one entry, and it is one that actually DOES something: an offer whose
+   button cannot be pressed would be the same lie the reserved rails exist to avoid, so a
+   priced offer with no checkout is not shown at all until there is a checkout. */
+const OFFERS = [
+  { id:'viptrial', n:'Try VIP for a day', c:'violet', cta:'START THE 24-HOUR TRIAL',
+    d:'Free, once ever. The ad rewards without the ads, a 24-hour offline cap, an extra ' +
+      'quest swap and a Bronze Crate a day. No income multiplier — VIP never makes the ' +
+      'band earn more than yours does.',
+    ok:() => !S.vipTrial && !vipOn(),
+    go:() => { startVipTrial(); toast('👑 VIP for 24 hours — check your inbox'); } }
+];
+const offerNow = () => OFFERS.find(o => o.ok() && S.offers.seen.indexOf(o.id) < 0) || null;
+/* an offer exists AND this player has played enough to be pitched at — the rail and the
+   pop-up read the same one thing, so an icon can never promise what the guard refuses */
+const offerReady = () => S.released >= BAL.offerAfter && !!offerNow();
+function takeOffer(id){
+  const o = OFFERS.find(x => x.id === id);
+  if (!o || !o.ok()) return false;
+  if (S.offers.seen.indexOf(id) < 0) S.offers.seen.push(id);
+  o.go();
+  return true;
+}
+function dismissOffer(id){
+  if (S.offers.seen.indexOf(id) < 0) S.offers.seen.push(id);
+}
+/* An offer is a SURFACE, not an interruption. The plan's rule is "one commercial offer per
+   session, shown once, dismissible" — a cap on offers, not a mandate for a pop-up — and a
+   modal that lands on the stage while you are deciding what to do next is the thing that
+   cap exists to prevent. So the offer lives where the shopping is: one card at the top of
+   the Shop, with its own CTA and NOT NOW, advertised by the rail's offers icon and by
+   nothing else. `sessionShown` records that it has been put in front of the player this
+   session; dismissing writes the id to `seen` and it never returns at all. */
+function offerSeen(){
+  if (!S.offers.sessionShown) S.offers.sessionShown = true;
+  return true;
+}
+/* the daily caps on what Picks and ads can hand out, on the same monotonic day index as
+   the tickets and the quest board */
+function rollShop(){
+  const d = dayNum();
+  if (d <= S.shop.day) return false;
+  S.shop.day = d; S.shop.tickets = 0; S.shop.swaps = 0; S.shop.adPicks = 0;
   return true;
 }
 
@@ -3042,7 +3223,9 @@ function newState(){
     weekly:{ week:weekNum(), id:null, prog:0, done:false, got:false },
     career:{ obj:{} },
     offers:{ seen:[], sessionShown:false },
-    inbox:[], vipUntil:0, log:[],
+    /* daily caps on what Picks and ads hand out, on the same monotonic index as tickets */
+    shop:{ day:dayNum(), tickets:0, swaps:0, adPicks:0, vipDay:-1 },
+    inbox:[], vipUntil:0, vipTrial:false, log:[],
     lastSeen:Date.now(), created:Date.now()
   };
 }
@@ -3730,12 +3913,15 @@ const RAIL = [
   { id:'daily', icon:ICON.flag,  when:() => !!(S.quests && S.quests.list.length),
     badge:() => questsReady(),                       // rewards sitting unclaimed
     go:openQuests, say:'Three quests a day, and a streak' },
+  { id:'inbox', icon:ICON.crate, when:() => !!(S.inbox && S.inbox.length),
+    badge:() => S.inbox.length,                      // delivery: what a system sent you
+    go:openInbox, say:'Something is waiting in your inbox' },
   { id:'event', icon:ICON.globe, when:() => !!(S.event && S.event.live),
     badge:null,                                      // weekend event genres, build step 6
     say:'A weekend event is live' },
-  { id:'inbox', icon:ICON.crate, when:() => !!(S.inbox && S.inbox.length),
-    badge:() => S.inbox.length,                      // rewards posted to you, build step 7
-    say:'Something is waiting in your inbox' }
+  { id:'offers', icon:ICON.pass, when:offerReady,
+    badge:null,                                      // commercial, and last in the row
+    go:() => openTab('shop'), say:'There is an offer waiting in the Shop' }
 ];
 function renderRail(){
   el.rail.innerHTML = RAIL.filter(r => r.when()).map(r =>
@@ -3803,6 +3989,7 @@ function tick(){
     gigClock = 0;
     if (rollTickets()){ renderGigBtn(); if ($('#gigs').classList.contains('on')) renderTix(); save(); }
     if (rollQuests()){ renderRail(); if (sheetTab === 'quests') renderSheet('quests'); save(); }
+    if (rollShop() | vipDaily()){ if (sheetTab === 'shop') renderSheet('shop'); save(); }
   }
   trendClock += dt;
   if (trendClock >= 60){ stepTrends(Math.floor(trendClock / 60)); trendClock %= 60;
@@ -4380,6 +4567,7 @@ function renderTix(){
     ? 'Full for today · ' + BAL.gigFree + ' free every day'
     : 'Refills to ' + BAL.gigFree + ' in ' + dur(msToRefill() / 1000);
   const ad = $('#tixAd');
+  ad.hidden = vipOn();                 // VIP is the ad rewards without the ads: no prompt
   ad.innerHTML = ico(ICON.play, { s:13, w:2.4 }) +
     '<span>' + (left > 0 ? 'WATCH AD — GET 1 TICKET' : 'NO AD TICKETS LEFT') +
     '</span><span style="opacity:.7">' + left + '/' + BAL.gigAdMax + '</span>';
@@ -4389,28 +4577,6 @@ function renderTix(){
 }
 /* a labelled simulation — there is no ad, no network, and the ticket lands only
    when the fake spot finishes */
-function watchGigAd(){
-  if (S.gig.ads >= BAL.gigAdMax) return;
-  let left = 5;
-  const body = n => `<h3>Rewarded ad (demo)</h3>
-    <p>No real ad and nothing leaves this device — this is a labelled stand-in for the
-    rewarded spot. The ticket lands when it finishes.</p>
-    <div class="big">${n}</div>`;
-  const m = $('#modal');
-  $('#mbox').innerHTML = body(left) + '<button id="mok" disabled style="opacity:.45">PLEASE WAIT</button>';
-  m.classList.add('on');
-  const iv = setInterval(() => {
-    left--;
-    if (left > 0){ $('#mbox').querySelector('.big').textContent = left; return; }
-    clearInterval(iv);
-    S.gig.ads++; S.gig.tickets++;
-    save(); renderTix();
-    $('#mbox').innerHTML = `<h3>Ticket added</h3><p>One gig ticket, on the house.</p>
-      <div class="big">+1</div><button id="mok">NICE</button>`;
-    $('#mok').onclick = () => m.classList.remove('on');
-    AU.chord('small'); buzz(18);
-  }, 1000);
-}
 function renderVenues(){
   $('#gigList').innerHTML = VENUES.map((V, i) => {
     const open = venueOpen(i), done = i < S.gig.cleared, r = gigReward(i);
@@ -4977,6 +5143,7 @@ function renderSheet(t, soft){
               : t === 'member' ? htmlMember(memberView)
               : t === 'gear' ? htmlGear()
               : t === 'quests' ? htmlQuests()
+              : t === 'inbox' ? htmlInbox()
               : t === 'shop' ? htmlShop() : htmlSettings();
   b.scrollTop = sc;
 }
@@ -4987,15 +5154,12 @@ function renderSheet(t, soft){
    "you cannot afford this" rather than "this does not exist yet". Adding the real thing
    later means replacing one entry, not inventing a layout. */
 const RESERVED = [
-  { id:'picks', n:'Picks', i:'pick', c:'gold', w:'BUILD STEP 7',
-    d:'The premium currency, spent on crates, skips and streak saves. Packs of 100 · 550 · 1200 · 3500.',
+  { id:'picks', n:'Picks packs', i:'pick', c:'gold', w:'PHASE THREE',
+    d:'Buying Picks with money, in packs of 100 · 550 · 1200 · 3500. Picks themselves are real and earned; only the packs need a checkout, and there is no checkout.',
     t:['100','550','1200','3500'] },
-  { id:'vip', n:'Backstage Pass', i:'pass', c:'violet', w:'BUILD STEP 7',
-    d:'x2 income, a 24-hour offline cap instead of 8, no ads, and a Gold Crate a day. The offline half is the only piece already wired — nothing grants it yet.',
-    t:['MONTHLY'] },
-  { id:'offers', n:'Offers', i:'globe', c:'accent', w:'BUILD STEP 7',
-    d:'The Daily Deal and the seasonal Battle Pass track.',
-    t:['DAILY DEAL','BATTLE PASS'] }
+  { id:'pass', n:'Battle Pass', i:'pass', c:'violet', w:'PHASE THREE',
+    d:'A seasonal track of rewards, free and paid lanes, alongside Seasons and the League.',
+    t:['SEASON TRACK','PAID LANE'] }
 ];
 function htmlReserved(r){
   return `<div class="reserved">
@@ -5340,6 +5504,34 @@ function htmlGear(){
 const shortName = i => i < 0 ? '' : S.members[i].name.split(' ')[0];
 const equippedBy = id => S.members.findIndex(m => m.gear && (m.gear.inst === id || m.gear.rig === id));
 let gearBack = null;
+/* ===== THE INBOX SCREEN — delivery, and never a sales pitch ===== */
+function htmlInbox(){
+  let h = `<div class="sect">Inbox</div>`;
+  if (!S.inbox.length){
+    h += `<div class="hint" style="text-align:left;padding:2px 2px 12px">Nothing waiting.
+      Quest payouts, career rewards and VIP grants are posted here when a system has
+      something for you.</div>`;
+    return h;
+  }
+  S.inbox.forEach((it, i) => {
+    h += `<div class="card"><div class="av" style="--c1:${PAL.accent2}">
+      ${ico(ICON.crate, {c:PAL.onAccent, s:22})}</div>
+      <div class="info"><div class="t">${esc(it.n)}</div>
+      <div class="d">${esc(it.d)} · <b>${sayReward(it.r)}</b></div></div>
+      <button class="buy gold" data-act="inbox" data-i="${i}">TAKE</button></div>`;
+  });
+  if (S.inbox.length > 1)
+    h += `<button class="bigbtn gold" data-act="inboxall" data-i="-1">TAKE EVERYTHING</button>`;
+  h += `<div class="hint" style="text-align:left;padding:8px 2px 4px">Only deliveries land
+    here. Nothing in this list is an offer, and nothing in the Shop writes to it except a
+    grant you have already earned.</div>`;
+  return h;
+}
+function openInbox(){
+  sheetBack = sheetTab;
+  openScreen('inbox', 'Inbox');
+}
+
 /* ===== THE DAILY SCREEN — three quests, a streak, and one weekly challenge =====
    Reached from the Home rail. Everything it shows is state, never a countdown: the board
    changes when the day index does, and the screen says so in words. */
@@ -5435,7 +5627,8 @@ function htmlCrates(){
   h += `<div class="hint" style="text-align:left;padding:2px 2px 10px">The odds above are the
     real ones and the pity counter is the real counter — both are on the card before you
     spend, not in a footnote after. Picks come from <b>career objectives</b> in the gig
-    ladder, and crates also arrive with a rank-up.</div>`;
+    ladder and from <b>daily quests</b>; crates also arrive with a rank-up, a quest slot
+    and a streak milestone.</div>`;
   return h;
 }
 /* Opening is the fifth reward moment, and it borrows the other four's component. Layer
@@ -5485,10 +5678,73 @@ function closeCrate(){
 function htmlShop(){
   let h = `<div class="card"><div class="av" style="--c1:${PAL.gold}">${ico(ICON.pick, {c:PAL.onGold, s:22})}</div>
     <div class="info"><div class="t">${fmt(S.picks)} Picks · ${fmt(S.parts)} Parts · ${fmt(S.hours)} Hours</div>
-    <div class="d">Picks buy crates. Parts come from scrapping gear you are not playing,
-      and they are what upgrades it. Studio Hours come from career objectives in the gig
-      ladder and buy nothing yet — skills are the next build step.</div></div></div>`;
+    <div class="d">Earned, never bought.</div></div></div>
+    <div class="hint" style="text-align:left;padding:2px 2px 12px"><b>Picks</b> come from
+      career objectives and daily quests, and buy crates and the consumables below.
+      <b>Parts</b> come from scrapping gear you are not playing, and upgrade it.
+      <b>Studio Hours</b> come from objectives, the weekly challenge and streak milestones,
+      and buy skills.</div>`;
+  const o = offerReady() ? offerNow() : null;
+  if (o){ offerSeen();
+    h += `<div class="sect">Offer</div>
+    <div class="card" style="--c1:${PAL[o.c]}"><div class="av" style="--c1:${PAL[o.c]}">
+      ${ico(ICON.pass, {c:PAL.onAccent, s:22})}</div>
+      <div class="info"><div class="t">${esc(o.n)}</div>
+        <div class="d">Free, once ever.</div></div></div>
+    <div class="hint" style="text-align:left;padding:2px 2px 8px">${esc(o.d)}</div>
+    <button class="bigbtn" data-act="offer" data-i="-1" style="margin-bottom:4px">${o.cta}</button>
+    <button class="ghost" data-act="offerno" data-i="-1" style="min-height:40px">NOT NOW</button>
+    <div class="hint" style="text-align:left;padding:6px 2px 10px">One offer, here and
+      nowhere else — it never interrupts you on the stage. Dismiss it and it is gone for
+      good. There is no clock on it and nothing expires.</div>`; }
   h += htmlCrates();
+
+  h += `<div class="sect">Consumables</div>`;
+  SHOP_BUY.forEach(b => {
+    const left = buyLeft(b), can = left > 0 && S.picks >= b.picks();
+    h += `<div class="card ${left > 0 ? '' : 'locked'}">
+      <div class="av" style="--c1:${PAL[b.c]}">${ico(ICON[b.i], {c:PAL.onAccent, s:22})}</div>
+      <div class="info"><div class="t">${b.n}</div>
+      <div class="d">${b.d} · ${b.id === 'freeze' ? b.have() + ' of ' + b.cap() + ' held'
+                                                  : left + ' of ' + b.cap() + ' left today'}</div></div>
+      <button class="buy ${can ? '' : 'no'}" data-act="pbuy" data-i="-1" data-id="${b.id}">
+        BUY<small>${b.picks()} Picks</small></button></div>`;
+  });
+  h += `<div class="hint" style="text-align:left;padding:2px 2px 12px">A consumable is
+    something you would otherwise wait a day for. Nothing here skips a timer, because
+    nothing in this game runs on one.</div>`;
+
+  if (!vipOn()){
+    h += `<div class="sect">Free</div>`;
+    ADS.forEach(a => {
+      const left = adLeft(a);
+      h += `<div class="card ${left > 0 ? '' : 'locked'}">
+        <div class="av" style="--c1:${PAL.accent2}">${ico(ICON.play, {c:PAL.onAccent, s:20})}</div>
+        <div class="info"><div class="t">${a.n}</div>
+        <div class="d">A labelled ${BAL.adSecs}-second stand-in — no real ad, nothing leaves
+          this device · ${left} of ${a.cap()} left today</div></div>
+        <button class="buy ${left > 0 ? '' : 'no'}" data-act="ad" data-i="-1" data-id="${a.id}">
+          WATCH</button></div>`;
+    });
+    h += `<div class="card locked"><div class="av" style="--c1:${PAL.accent2}">
+      ${ico(ICON.play, {c:PAL.onAccent, s:20})}</div>
+      <div class="info"><div class="t">Offline x2</div>
+      <div class="d">Offered on the panel when you come back, once per return.</div></div></div>`;
+  }
+
+  h += `<div class="sect">VIP</div>
+    <div class="card"><div class="av" style="--c1:${PAL.violet}">${ico(ICON.crown, {c:PAL.onAccent, s:22})}</div>
+      <div class="info"><div class="t">${vipOn() ? 'Active · ' + dur(vipLeft()) + ' left' : 'Not active'}</div>
+      <div class="d">Convenience only — no income, streams or craft multiplier.</div></div></div>
+    <div class="hint" style="text-align:left;padding:2px 2px 12px">${BAL.vipTickets} gig
+      tickets and ${BAL.vipPicks} Picks posted to your inbox every day — <b>exactly what the
+      ads pay</b> — plus a Bronze Crate a day, the offline x2 applied for you, a
+      ${BAL.offlineCapVIP / 3600}h offline cap instead of ${BAL.offlineCap / 3600}h, one more
+      quest swap, and no ad prompts. <b>VIP never earns more than you do.</b><br><br>${
+      S.vipTrial ? 'The free trial has been used.' : 'The only way to get VIP today is the free 24-hour trial, once ever.'}
+      A subscription is a Phase Three surface and there is no checkout here — a priced button
+      with nothing behind it would be the same lie the rails below exist to avoid.</div>`;
+
   h += `<div class="sect">Reserved for later</div>`;
   RESERVED.forEach(r => h += htmlReserved(r));
   h += `<div class="hint">Every rail above says what it will hold and which build step brings
@@ -5609,6 +5865,34 @@ function buy(act, i, node){
     S.picks -= C.picks; grantCrate(C.k, 1);
     AU.chord('small'); buzz(12);
     toast('📦 ' + C.n + ' — open it when you like');
+  } else if (act === 'pbuy'){
+    const id = node && node.dataset.id;
+    if (!buyPicks(id)) return;
+    const b = buyOf(id);
+    AU.chord('small'); buzz([12, 30, 12]); renderRail(); renderTix();
+    toast('🎫 ' + b.n + ' — ' + b.picks() + ' Picks');
+  } else if (act === 'ad'){
+    watchAd(node && node.dataset.id);
+    return;                                        // the reward lands when the ad ends
+  } else if (act === 'offer'){
+    const o = offerNow();
+    if (!o || !takeOffer(o.id)) return;
+    reward({ big:true }); confetti(2); renderRail();
+  } else if (act === 'offerno'){
+    const o = offerNow();
+    if (!o) return;
+    dismissOffer(o.id); buzz(8); renderRail();
+  } else if (act === 'inbox'){
+    const it = inboxClaim(i);
+    if (!it) return;
+    reward({}); toast('📬 ' + sayReward(it.r));
+    renderTix();
+  } else if (act === 'inboxall'){
+    const got = inboxClaimAll();
+    if (!got.length) return;
+    reward({ big:true });
+    toast('📬 ' + got.length + ' collected');
+    renderTix();
   } else if (act === 'qclaim'){
     const got = claimQuest(i);
     if (!got) return;
@@ -5740,7 +6024,7 @@ function countTo(el, target, money){
 }
 function showGone(secs, songs, streams, money, fans){
   gone = { streams, money, songs, fans:fans || 0, doubled:false };
-  $('#goneAway').textContent = dur(secs) + ' away' + (S.vip ? ' · VIP 24h' : '');
+  $('#goneAway').textContent = dur(secs) + ' away' + (vipOn() ? ' · VIP 24h' : '');
   $('#goneCap').hidden = !S.capHit;
   $('#goneTitle').textContent = songs ? 'Your band kept working' : 'The catalogue kept streaming';
   $('#goneSongs').textContent = '0'; $('#goneStreams').textContent = '0'; $('#goneMoney').textContent = '0';
@@ -5748,6 +6032,7 @@ function showGone(secs, songs, streams, money, fans){
   const ad = $('#goneAd');
   ad.classList.remove('spent');
   ad.innerHTML = ico(ICON.play, {s:15, w:2.4}) + '<span>WATCH AD FOR x2</span>';
+  if (vipOn()) doubleGone(true);       // VIP is the ads without the ads — no prompt
   $('#gone').classList.add('on');
   requestAnimationFrame(() => {
     $('#goneSongs').textContent = songs;
@@ -5756,6 +6041,21 @@ function showGone(secs, songs, streams, money, fans){
     countTo($('#goneFans'), gone.fans);
   });
   if (S.capHit) markCapped(true);
+}
+/* the offline x2 — one place, whether the ad asked for it or VIP did. VIP applies it
+   automatically because VIP is the ad rewards without the ads. */
+function doubleGone(auto){
+  if (!gone || gone.doubled) return false;
+  gone.doubled = true;
+  gone.streams *= 2; gone.money *= 2; gone.fans *= 2;
+  countTo($('#goneStreams'), gone.streams);
+  countTo($('#goneMoney'), gone.money, true);
+  countTo($('#goneFans'), gone.fans);
+  const ad = $('#goneAd');
+  ad.classList.add('spent');
+  ad.innerHTML = '<span>' + (auto ? 'x2 — VIP' : 'x2 APPLIED') + '</span>';
+  if (!auto) buzz(20);
+  return true;
 }
 function collectGone(){
   if (!gone) return;
@@ -5817,13 +6117,15 @@ function settingsAct(what){
   save(); renderSheet('settings');
 }
 
-function modal(html, btn, onOk, danger){
+function modal(html, btn, onOk, two, noLabel, onNo){
   const m = $('#modal');
-  $('#mbox').innerHTML = html + `<button id="mok"${danger ? ' style="background:${PAL.accent};color:${PAL.onAccent};box-shadow:0 4px 0 ${PAL.accentSh}"' : ''}>${btn}</button>` +
-    (danger ? '<button id="mno" style="margin-top:8px;background:${PAL.mute};color:${PAL.dim};box-shadow:none">CANCEL</button>' : '');
+  $('#mbox').innerHTML = html +
+    `<button id="mok">${btn}</button>` +
+    (two ? `<button id="mno" style="margin-top:8px;background:${PAL.mute};color:${PAL.dim};box-shadow:none">${
+      noLabel || 'CANCEL'}</button>` : '');
   m.classList.add('on');
   $('#mok').onclick = () => { m.classList.remove('on'); if (onOk) onOk(); };
-  if (danger) $('#mno').onclick = () => m.classList.remove('on');
+  if (two) $('#mno').onclick = () => { m.classList.remove('on'); if (onNo) onNo(); };
 }
 
 /* ===== BOOT ===== */
@@ -5839,6 +6141,8 @@ function boot(){
   if (S.payout) bankPayout();          // they closed the tab on the reveal
   rollTickets();
   rollQuests();                        // deals today's board, and settles the streak
+  rollShop(); vipDaily();
+  S.offers.sessionShown = false;       // one commercial offer per session — see offerSeen()
   if (S.gig.active){                   // the tab shut mid-song: the ticket is gone, the show is not
     S.gig.active = null;
     toast('🎤 Last show was cut short — that one does not count');
@@ -5927,23 +6231,12 @@ function boot(){
   $('#coGo').addEventListener('click', closeCrate);
   $('#gigBtn').addEventListener('click', e => { e.stopPropagation(); openGigs(); });
   $('#gigClose').addEventListener('click', () => { if (gsel.v >= 0) backToList(); else closeGigs(); });
-  $('#tixAd').addEventListener('click', e => { e.stopPropagation(); watchGigAd(); });
+  $('#tixAd').addEventListener('click', e => { e.stopPropagation(); watchAd('ticket'); });
   $('#gigPlay').addEventListener('click', e => { e.stopPropagation(); startGig(); });
   $('#grGo').addEventListener('click', collectGig);
   el.rankbar.addEventListener('click', () => openTab('band'));
   $('#goneGo').addEventListener('click', collectGone);
-  $('#goneAd').addEventListener('click', () => {
-    if (!gone || gone.doubled) return;                  // stub: no ad, just the reward
-    gone.doubled = true;
-    gone.streams *= 2; gone.money *= 2; gone.fans *= 2;
-    countTo($('#goneStreams'), gone.streams);
-    countTo($('#goneMoney'), gone.money, true);
-    countTo($('#goneFans'), gone.fans);
-    const ad = $('#goneAd');
-    ad.classList.add('spent');
-    ad.innerHTML = '<span>x2 APPLIED</span>';
-    buzz(20);
-  });
+  $('#goneAd').addEventListener('click', () => doubleGone(false));
   $('#shClose').addEventListener('click', sheetOut);
   el.shBody.addEventListener('click', e => {
     const seg = e.target.closest('[data-mt]');
