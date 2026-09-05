@@ -879,7 +879,7 @@ streaks, prestige, league, weekend events, real shop, LLM content,
 `sw.js` offline (and with it, true background storage-full notifications), a real
 cloud-save backend, any way to actually grant VIP.
 
-**Phase Two, stage 1 — the palette is flipped.** The game is dark. What that pass
+**Concert Neon, stage 1 — the palette is flipped.** The game is dark. What that pass
 touched beyond the token values, because a value swap alone would have broken them:
 - **Members take the four instrument colours** the direction names — drums coral, bass
   teal, guitar gold, vocals violet. The vocalist used to wear `--ink`, which is now
@@ -901,7 +901,7 @@ touched beyond the token values, because a value swap alone would have broken th
   near-white).
 - The PWA `theme-color` is `#0B0D12`.
 
-**Phase Two, stage 2 — one button, one panel, one surface, one meter, one pill.**
+**Concert Neon, stage 2 — one button, one panel, one surface, one meter, one pill.**
 A pure refactor: the shared declarations moved into grouped base rules placed ahead of
 the specific ones, and each specific rule kept only what actually differs.
 
@@ -938,7 +938,7 @@ letter-spacing, padding and white-space for every element, with all nine panels 
 four dock states forced open and names, looks, market heat and songs pinned. Stage 2
 differs on **0 of 928 nodes**.
 
-**Phase Two, stage 3 — five tabs became four, and one of them is the way out.**
+**Concert Neon, stage 3 — five tabs became four, and one of them is the way out.**
 `Band | Gear | Catalog | Shop | League` had two tabs leading to stubs and no way back to
 the stage except the ✕. Now `HOME | BAND | MUSIC | SHOP`:
 - **HOME** is not a screen. `openTab('home')` calls `closeSheet()`, and `closeSheet()`
@@ -981,7 +981,7 @@ screen geometry, the absent grab/scrim/✕ and the Settings exception, and five 
 now leave a screen by pressing HOME rather than the ✕. Twelve suites pass, no console
 errors.
 
-**Phase Two, stage 4 — a Home worth returning to.** Home used to be whatever was left
+**Concert Neon, stage 4 — a Home worth returning to.** Home used to be whatever was left
 over: the stage as a permanent backdrop, and a dock that said the band's name, how many
 songs were out, and drew four progress bars for four people who share one output. None
 of it told the player what to do next.
@@ -1008,7 +1008,7 @@ COLLECT actually banking a held payout and the label falling back afterwards), t
 line, the empty rail, the absent chip row, and WRITE A SONG still opening the genre
 pick. Thirteen suites pass, no console errors, frame time unchanged.
 
-**Phase Two, stage 5 — rhythm play that reads at speed.** The HUD was three separate
+**Concert Neon, stage 5 — rhythm play that reads at speed.** The HUD was three separate
 feedback positions, a header still counting money mid-song, a take panel and a gig panel
 that looked identical, and notes that could bleed out of the lane you were aiming at.
 
@@ -1040,7 +1040,7 @@ against a judgement and letting go after, every tier boundary, and a milestone s
 exactly once. Fifteen suites pass, no console errors, frame time median 16.7ms / p95
 17.1ms.
 
-**Phase Two, stage 6 — the members became people you can open.** A member used to be a
+**Concert Neon, stage 6 — the members became people you can open.** A member used to be a
 row in a list with a LEVEL UP button bolted to its right edge. Now they have a screen
 (§13b), reached by tapping them on the stage.
 
@@ -1065,7 +1065,7 @@ because money accrues between two reads), the disabled state when short, an empt
 routing to Band, and a mid-session member tap still counting as a jam. Sixteen suites
 pass, no console errors, frame time median 16.7ms / p95 17.0ms.
 
-**Phase Two, stage 7 — every reward legible: what, how much, where it went.** §13c has
+**Concert Neon, stage 7 — every reward legible: what, how much, where it went.** §13c has
 the result. What is worth knowing about the build:
 
 - **The four moments were four stylesheets.** Reveal, gig result, rank up and offline each
@@ -1096,8 +1096,8 @@ totals afterwards (i.e. still easing, not snapped). It also asserts the four pan
 resolve identically and that every collect button is the same gold. Seventeen suites pass,
 no console errors, frame time median 16.7ms / p95 17.1ms.
 
-**Phase Two, stage 8 — reserved surfaces, and Phase Two is done.** The last stage is the
-one that makes the next phases cheap: every surface Phase Three needs is drawn, labelled
+**Concert Neon, stage 8 — reserved surfaces, and the pass is done.** The last stage is the
+one that makes the next phases cheap: every surface Phase Two needs is drawn, labelled
 and honest about not existing yet.
 
 - **Shop stopped pretending to be a shop.** It had nine `.card locked` rows with `₪12`,
@@ -1118,13 +1118,13 @@ money, so a **rank-up card can land on any frame**, and it is modal. The suite n
 an open rank-up immediately before every tab press. Fourteen consecutive runs pass. The
 game behaviour is correct — a rank-up is meant to interrupt.
 
-**Phase Two is complete.** Eight stages: tokenise, flip, consolidate, navigate, Home, HUD,
+**The Concert Neon pass is complete.** Eight stages: tokenise, flip, consolidate, navigate, Home, HUD,
 character sheet, moments, reserved surfaces. Eighteen suites pass, no console errors,
-frame time median 16.7ms / p95 17.2ms, and a `chartbreaker.v3` save written before Phase
-Two still loads — no `newState()` field was added or removed across the whole phase, and
+frame time median 16.7ms / p95 17.2ms, and a `chartbreaker.v3` save written before the
+pass still loads — no `newState()` field was added or removed across the whole phase, and
 no balance number moved.
 
-**The craft rework (post-Phase-Two).** The direction changed after Phase Two shipped:
+**The craft rework (after the pass).** The direction changed once Concert Neon shipped:
 *every upgrade — gear, studio, member, skills — enhances the Quality of the song, and
 Quality makes better songs rather than better streams.* That inverted the economy, and
 §6 / §6b / §8 / §9 are the rewrite. In short: `bandMult` and `studioMult` left `songSPS`
@@ -1136,6 +1136,39 @@ now ends at Pro Studio / Regional instead of Tour Bus / Global.
 Three decisions were the user's, taken before any of it was built: the tier pays and
 Quality nudges (rather than tier-only); nothing retroactive, so only new songs benefit; and
 a week of steady play should land mid-ladder.
+
+**Phase Two, stage 0 — the save layer, before any content lands on it.** Phase Two is the
+content phase (stats, gear, crates, skills, quests, shop); Phase Three is Live Rival Gigs,
+a backend, Seasons and Clans. Stage 0 adds no feature — it fixes the thing every later
+stage depends on, which is that a newer version can add a field and an older save gets it.
+
+- **`Object.assign` aliases, and that broke nested defaults.** `load()` did
+  `base = newState(); s = Object.assign(base, d)` — after which `base.gig` **is** `d.gig`,
+  so the follow-up `Object.assign(base.gig, d.gig)` was `assign(x, x)` and a newly-added
+  nested default arrived `undefined`. `deepDefaults(saved, defaults)` walks instead, never
+  mutating the defaults, and the three hand-written `Object.assign` lines for `flags`,
+  `gig` and `cloud` are gone with it.
+- **The same aliasing was padding `heat` with `undefined`.** `base.heat` was the save's own
+  short array, so a pre-16-genre save got `heat[10..15] = undefined` → every new genre read
+  COLD and `stepTrends` produced `NaN`. With `base` pristine the pad reads real seeded heat.
+- **`studioMult()` is deleted.** It referenced `BAL.studioStep`, which the craft rework
+  removed, so calling it would have returned `NaN`. Zero call sites; dead since the rework.
+- **`weekNum()`** joins `dayNum()` — a monotonic week index for the weekly challenge, with
+  the same wound-back-clock protection.
+- **The whole Phase Two save shape is declared now**, so no later stage has to migrate:
+  `gear{own,next}` `cards[4]` `star[4]` `pts[4]` `spend[4]` `skills[4][]` `hours` `parts`
+  `crates{own,pity,opened}` `quests{day,list,done,reroll,streak,freeze,best}`
+  `weekly{week,id,prog,done}` `career{obj}` `offers{seen,sessionShown}` `inbox[]`
+  `vipUntil` `log[]`, plus `gear{inst,rig}` on each member. Nothing reads any of it yet.
+  `S.vip` stays until Stage 8 replaces it with `vipUntil`.
+
+The new `sv2` suite is the proof: it patches `newState()` to add a synthetic future field
+at four depths (top level, inside `gig`, three deep inside `crates.own`, and on a member),
+strips subtrees whole and in part from a real save, hands one field the wrong shape
+entirely, truncates `heat` to ten genres, and asserts every default arrives while every
+saved value survives — plus that two `load()` calls share no subtree and the defaults are
+not mutated. Twenty assertions, all pass. Twenty suites pass in total, no console errors,
+frame time median 16.7ms / p95 17.2ms.
 
 **Removed along the way:** the tap-to-fill-tracks loop, Hook Moments, the Hype stat
 (Quality shifts chart odds instead), and weekly-seeded genre trends (replaced by the
@@ -1149,7 +1182,7 @@ base payout rate, levels, ownership, songs, time away) rather than discarded.
   at start-up from `getComputedStyle(document.documentElement)`, so `:root` is the single
   source of truth for the whole game — there is no second list to keep in sync. Never
   write a colour literal below the `PALETTE` banner; repoint a token instead.
-  As of Phase Two stage 0 the stylesheet holds **zero** raw hex outside `:root` (the
+  As of Concert Neon stage 0 the stylesheet holds **zero** raw hex outside `:root` (the
   `theme-color` meta is the one attribute exception), and every scattered literal in the
   script — 73 quoted, 32 inside template strings — became a `PAL.*` reference.
 - The remaining literals are all **content, not palette**: `SKIN` and `HAIRC` (skin and

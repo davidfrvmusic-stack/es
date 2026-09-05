@@ -2104,11 +2104,25 @@ function newState(){
         let n = genName();
         for (let k = 0; k < 30 && used.includes(n); k++) n = genName();
         used.push(n);
-        return { lvl:1, rarity:0, owned:false, name:n, bio:pick(GEN.bios), look:newLook(), solo:0 };
+        return { lvl:1, rarity:0, owned:false, name:n, bio:pick(GEN.bios), look:newLook(), solo:0,
+                 gear:{ inst:null, rig:null } };
       });
     })(),
     studio:0, playtime:0, mute:false, seenReveal:false,
     session:null, pending:null, payout:null, flags:{ gear:false },
+    /* Phase Two content state. Declared here in one go so every later stage lands on a
+       save shape that already exists, and deepDefaults() fills it into an older save. */
+    gear:{ own:[], next:1 },                    // owned item instances; next instance id
+    cards:[0,0,0,0], star:[1,1,1,1], pts:[0,0,0,0],
+    spend:[{w:0,s:0,t:0,m:0},{w:0,s:0,t:0,m:0},{w:0,s:0,t:0,m:0},{w:0,s:0,t:0,m:0}],
+    skills:[[],[],[],[]],
+    hours:0, parts:0,
+    crates:{ own:{ b:0, g:0, m:0 }, pity:{ b:0, g:0, m:0 }, opened:0 },
+    quests:{ day:dayNum(), list:[], done:[], reroll:0, streak:0, freeze:0, best:0 },
+    weekly:{ week:weekNum(), id:null, prog:0, done:false },
+    career:{ obj:{} },
+    offers:{ seen:[], sessionShown:false },
+    inbox:[], vipUntil:0, log:[],
     lastSeen:Date.now(), created:Date.now()
   };
 }
@@ -2127,18 +2141,35 @@ function save(){
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch(e){}
   if (sheetTab === 'settings') renderSheet('settings');
 }
+/* Fill in whatever a newer version added, at every depth — and never touch the
+   defaults object while doing it.
+   `Object.assign(base, d)` *aliases*: afterwards `base.gig` IS `d.gig`, so the
+   follow-up `Object.assign(base.gig, d.gig)` is assign(x, x) and a newly-added
+   nested default silently arrives as undefined. Worse, `base.heat` is then the
+   save's own short array, so padding it pushed `undefined` into every genre added
+   since — which reads COLD and turns stepTrends into NaN. This walks instead, so
+   `base` stays pristine and is still a real source of defaults afterwards. */
+const cloneDeep = v => (v === null || typeof v !== 'object') ? v : JSON.parse(JSON.stringify(v));
+const plainObj = v => v !== null && typeof v === 'object' && !Array.isArray(v);
+function deepDefaults(t, def){
+  if (!plainObj(t)) return cloneDeep(def);              // missing, or the wrong shape
+  for (const k in def){
+    const dv = def[k];
+    if (plainObj(dv)) t[k] = deepDefaults(t[k], dv);
+    else if (t[k] === undefined || (Array.isArray(dv) && !Array.isArray(t[k]))) t[k] = cloneDeep(dv);
+  }
+  return t;
+}
 function load(){
   let raw = null;
   try { raw = localStorage.getItem(SAVE_KEY); } catch(e){}
   if (raw){
     try {
-      const d = JSON.parse(raw), base = newState(), s = Object.assign(base, d);
-      s.members = MEMBERS.map((m,i) => Object.assign(base.members[i], (d.members||[])[i] || {}));
+      const d = JSON.parse(raw), base = newState();
+      const s = deepDefaults(d, base);                     // older saves get gigs for free
+      s.members = MEMBERS.map((m,i) => deepDefaults((s.members||[])[i], base.members[i]));
       s.members.forEach(m => { if (!m.look) m.look = newLook(); });
-      s.flags = Object.assign(base.flags, d.flags || {});
-      s.gig = Object.assign(base.gig, d.gig || {});          // older saves get gigs for free
       if (!Array.isArray(s.gig.first)) s.gig.first = [];
-      s.cloud = Object.assign(base.cloud, d.cloud || {});
       // new genres append, so pad an older save's heat rather than wiping what it had
       if (!Array.isArray(s.heat)){ s.heat = base.heat; s.heatVel = base.heatVel; s.heatT = Date.now(); }
       else while (s.heat.length < GENRES.length){
@@ -2206,7 +2237,6 @@ const craftCap = () => clamp(BAL.craftFloor + craft(), BAL.craftFloor, 100);
 /* an unattended demo is graded by the same ceiling — the band cannot exceed itself */
 const soloQ = () => clamp(Math.round(rndi(BAL.soloQ[0], BAL.soloQ[1]) * craftCap() / 100), 1, 100);
 const upCost = i => Math.floor(MEMBERS[i].lvlCost * Math.pow(BAL.costGrow, S.members[i].lvl - 1));
-const studioMult = () => Math.pow(BAL.studioStep, S.studio);
 const ownedCount = () => S.members.filter(m => m.owned).length;
 const boughtCount = () => S.members.filter((m,i) => m.owned && i !== S.you).length;
 const nextMemberPrice = () => BAL.memberPrices[Math.min(boughtCount(), BAL.memberPrices.length - 1)]
@@ -2215,6 +2245,9 @@ const nextMemberPrice = () => BAL.memberPrices[Math.min(boughtCount(), BAL.membe
    forward — winding the device clock back cannot buy another refill. */
 function dayNum(t){ const d = new Date(t || Date.now()); return Math.floor(
   (d.getTime() - d.getTimezoneOffset() * 60000) / 86400000); }
+/* the same monotonic idea one step up: a week index that a wound-back clock cannot
+   move forward past what the save already holds (weekly challenges, build step 7) */
+function weekNum(t){ return Math.floor(dayNum(t) / 7); }
 function rollTickets(){
   const g = S.gig, d = dayNum();
   if (d > g.day){ g.day = d; g.tickets = BAL.gigFree; g.ads = 0; return true; }
