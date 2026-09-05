@@ -37,8 +37,9 @@
   --gold:#FFC247; --gold-dk:#C68E27;
   --accent2:#20D6C7; --accent2-dk:#15998F;
   --violet:#8C6CFF; --violet-dk:#6247C4;
-  --blue:#5B8FD9; --onGold:#0B0D12;
-  --ok:#47D982; --bad:#FF4D4D;
+  --blue:#5B8FD9; --blue-dk:#3D6396; --onGold:#0B0D12;
+  --ok:#47D982; --ok-dk:#2E9457; --bad:#FF4D4D;
+  --ice:#7FD4FF; --ice-dk:#3E7FA8;   /* the one hue the accents do not hold — Streak Freeze */
   /* ---- washes: on dark, a wash is a tinted dark, not a pastel ---- */
   --accent-w:#2A1620; --accent2-w:#0F2A2C; --gold-w:#2A2417;
   --bad-w:#2E1517; --sel-w:#0F2A2C; --now-w:#2A2417;
@@ -605,6 +606,17 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 #reveal,#gigres,#rankup,#gone,#crateop,#ann{align-items:center;justify-content:center;
   padding:calc(var(--safe-t) + 22px) 24px calc(var(--safe-b) + 22px);
   background:radial-gradient(90% 62% at 50% 27%,var(--panel-top) 0%,var(--cream2) 55%,var(--panel-bot) 100%)}
+.curtag{display:inline-flex;align-items:center;gap:5px;color:var(--cc,var(--ink));
+  font-weight:800;line-height:1;white-space:nowrap}
+.curtag svg{flex:0 0 auto;display:block}
+.curtag b{font-weight:800;color:var(--ink)}
+.curtag i{font-style:normal;font-size:9.5px;font-weight:800;letter-spacing:.12em;color:var(--dim3)}
+.rwline{display:inline-flex;flex-wrap:wrap;gap:var(--s2) var(--s3);align-items:center}
+.curbal{display:flex;gap:var(--s2)}
+.curbal .curtag{flex:1 1 0;min-width:0;flex-wrap:wrap;justify-content:center;
+  background:var(--cream2);border-radius:var(--r2);padding:9px 4px;font-size:16px}
+.curbal .curtag i{flex:0 0 100%;text-align:center;margin-top:3px;font-size:9px}
+.buy small svg{vertical-align:-2px;margin-right:3px}
 .meyebrow{font-size:10.5px;font-weight:800;letter-spacing:.22em;text-transform:uppercase;color:var(--dim2)}
 .mhead{font-size:30px;font-weight:800;letter-spacing:-.6px;text-align:center;line-height:1.1;text-wrap:pretty}
 .mnum{font-size:56px;font-weight:800;letter-spacing:-2.5px;line-height:1}
@@ -1238,7 +1250,8 @@ const PAL = (() => {
     gold:t('gold'), goldDk:t('gold-dk'),
     accent2:t('accent2'), accent2Dk:t('accent2-dk'),
     violet:t('violet'), violetDk:t('violet-dk'),
-    blue:t('blue'), ok:t('ok'), bad:t('bad'),
+    blue:t('blue'), blueDk:t('blue-dk'), ok:t('ok'), okDk:t('ok-dk'),
+    ice:t('ice'), iceDk:t('ice-dk'), bad:t('bad'),
     faceInk:t('face-ink'),
     accentW:t('accent-w'), accent2W:t('accent2-w'), goldW:t('gold-w'),
     badW:t('bad-w'), selW:t('sel-w'), nowW:t('now-w')
@@ -1989,6 +2002,101 @@ function newCover(){
 }
 
 
+/* ===== CURRENCY MARKS =====
+   Eight currencies had two glyphs between them: Money and Picks each had one, and Parts,
+   Studio Hours, Gig Tickets and Streak Freeze were bare numbers next to a word. `CURRENCY`
+   is the table that fixes it — one entry per currency, never a branch, the same shape as
+   `ICON` above but drawn as two-tone objects rather than 2px line art.
+
+   THE RULE THIS GROUND FORCES: a mark is a **solid silhouette with the dark lines inside
+   it**. The obvious way to draw a chunky game icon is a bright fill inside a near-black
+   outline, and on this game's #0B0D12 stage that outline is 1.1:1 — it does nothing, so a
+   mark built from thin strokes over one simply disappears by 18px. Fills carry the shape;
+   `--onAccent` is only ever an interior detail.
+
+   COLOURS ARE THE ONES §2 ALREADY RESERVES. Money is coral and Streams is teal because the
+   palette table says so, and Picks is violet because Picks is the premium currency and
+   violet is what premium means here. Distinctness comes from the silhouette, which is what
+   "never colour alone" asks for; only `freeze` carries a literal, and it is content in the
+   same sense as `GENRES.c` — a ninth hue the palette does not hold. */
+const CURRENCY = {
+  money: { n:'Money', one:'Money', s:'MONEY', c:'accent', d:'the spend currency',
+    a:(x, y, k) => `<rect x="2" y="5" width="20" height="14" rx="2.5" fill="${y}"/>
+      <rect x="3.6" y="6.6" width="16.8" height="10.8" rx="1.6" fill="${x}"/>
+      <circle cx="12" cy="12" r="3.2" fill="${y}"/><circle cx="12" cy="12" r="1.4" fill="${x}"/>
+      <path d="M5.6 8.8v6.4M18.4 8.8v6.4" stroke="${k}" stroke-width="1.5" stroke-linecap="round"/>` },
+  streams: { n:'Streams', one:'Stream', s:'STREAMS', c:'accent2', d:'reach',
+    a:(x, y, k) => `<rect x="2.5" y="13" width="3.4" height="7" rx="1.7" fill="${y}"/>
+      <rect x="7.1" y="9" width="3.4" height="11" rx="1.7" fill="${x}"/>
+      <rect x="11.7" y="4" width="3.4" height="16" rx="1.7" fill="${x}"/>
+      <rect x="16.3" y="7.5" width="3.4" height="12.5" rx="1.7" fill="${y}"/>
+      <path d="M13.4 8.4v7.2" stroke="${k}" stroke-width="1.4" stroke-linecap="round" opacity=".55"/>` },
+  fans: { n:'Fans', one:'Fan', s:'FANS', c:'blue', d:'the only number that never falls',
+    a:(x, y, k) => `<circle cx="6.2" cy="8.6" r="2.9" fill="${y}"/>
+      <path d="M1.4 19.4c0-2.9 2.1-4.9 4.8-4.9s4.8 2 4.8 4.9Z" fill="${y}"/>
+      <circle cx="17.8" cy="8.6" r="2.9" fill="${y}"/>
+      <path d="M13 19.4c0-2.9 2.1-4.9 4.8-4.9s4.8 2 4.8 4.9Z" fill="${y}"/>
+      <circle cx="12" cy="7.4" r="3.9" fill="${x}"/>
+      <path d="M5.6 20.6c0-3.7 2.8-6.3 6.4-6.3s6.4 2.6 6.4 6.3Z" fill="${x}"/>
+      <path d="M12 14.3v6.3" stroke="${k}" stroke-width="1.4" opacity=".45"/>` },
+  picks: { n:'Picks', one:'Pick', s:'PICKS', c:'violet', d:'premium — crates and consumables',
+    a:(x, y, k) => `<path d="M4.2 6.4C6.5 4.2 17.5 4.2 19.8 6.4c2 1.9 1.3 5.6-2.2 10.4-2 2.7-4.1
+        4.6-5.6 4.6s-3.6-1.9-5.6-4.6C2.9 12 2.2 8.3 4.2 6.4Z" fill="${y}"/>
+      <path d="M6 7.9C8 6.3 16 6.3 18 7.9c1.6 1.4 1 4.4-1.9 8.4-1.6 2.2-3.4 3.7-4.1 3.7
+        s-2.5-1.5-4.1-3.7C5 12.3 4.4 9.3 6 7.9Z" fill="${x}"/>
+      <path d="M8.2 9.2c2-.9 5.6-.9 7.6 0" stroke="${k}" stroke-width="1.5"
+        stroke-linecap="round" opacity=".5"/>` },
+  parts: { n:'Parts', one:'Part', s:'PARTS', c:'dim', d:'scrapped gear, and the only thing that upgrades it',
+    a:(x, y, k) => `<rect x="9.4" y="2.2" width="5.2" height="5" rx="1.4" fill="${y}"/>
+      <rect x="9.4" y="16.8" width="5.2" height="5" rx="1.4" fill="${y}"/>
+      <rect x="2.2" y="9.4" width="5" height="5.2" rx="1.4" fill="${y}"/>
+      <rect x="16.8" y="9.4" width="5" height="5.2" rx="1.4" fill="${y}"/>
+      <rect x="4.1" y="4.1" width="4.6" height="4.6" rx="1.3" fill="${y}"/>
+      <rect x="15.3" y="4.1" width="4.6" height="4.6" rx="1.3" fill="${y}"/>
+      <rect x="4.1" y="15.3" width="4.6" height="4.6" rx="1.3" fill="${y}"/>
+      <rect x="15.3" y="15.3" width="4.6" height="4.6" rx="1.3" fill="${y}"/>
+      <circle cx="12" cy="12" r="8.6" fill="${y}"/>
+      <circle cx="12" cy="12" r="5.4" fill="${x}"/>
+      <path d="M12 7.8 15.6 9.9v4.2L12 16.2 8.4 14.1V9.9Z" fill="${k}" opacity=".8"/>` },
+  hours: { n:'Studio Hours', one:'Studio Hour', s:'HOURS', c:'gold', d:'buys skills, and nothing else',
+    a:(x, y, k) => `<circle cx="12" cy="12" r="9.4" fill="${y}"/>
+      <circle cx="12" cy="12" r="7.2" fill="${x}"/>
+      <path d="M12 7.1v5.2l3.4 2" stroke="${k}" stroke-width="2.1" stroke-linecap="round"
+        stroke-linejoin="round"/>
+      <path d="M12 2.6v1.9M12 19.5v1.9M2.6 12h1.9M19.5 12h1.9" stroke="${y}" stroke-width="2.2"
+        stroke-linecap="round"/>` },
+  tickets: { n:'Gig Tickets', one:'Gig Ticket', s:'TICKETS', c:'ok', d:'2 a local day',
+    a:(x, y, k) => `<path d="M2.4 6.4h19.2v3.4a2.2 2.2 0 0 0 0 4.4v3.4H2.4v-3.4a2.2 2.2 0 0 0
+        0-4.4Z" fill="${y}"/>
+      <path d="M4 8h9.4v8H4v-2.3a2.2 2.2 0 0 0 0-3.4Z" fill="${x}"/>
+      <path d="M16.4 7.6v8.8" stroke="${k}" stroke-width="1.5" stroke-linecap="round"
+        stroke-dasharray="1.9 2.1"/>
+      <path d="M6.2 11h5M6.2 13.4h3" stroke="${k}" stroke-width="1.4" stroke-linecap="round"
+        opacity=".55"/>` },
+  freeze: { n:'Streak Freeze', one:'Streak Freeze', s:'FREEZE', c:'ice', d:'spends itself instead of a day',
+    a:(x, y, k) => `<path d="M12 1.8 20.8 6.9v10.2L12 22.2 3.2 17.1V6.9Z" fill="${y}"/>
+      <path d="M12 4.4 18.6 8.2v7.6L12 19.6 5.4 15.8V8.2Z" fill="${x}"/>
+      <path d="M12 6.4v11.2M7.2 9.2l9.6 5.6M16.8 9.2l-9.6 5.6" stroke="${k}" stroke-width="1.6"
+        stroke-linecap="round"/>
+      <path d="M12 8.9 10.2 7.6M12 8.9l1.8-1.3M12 15.1l-1.8 1.3M12 15.1l1.8 1.3" stroke="${k}"
+        stroke-width="1.4" stroke-linecap="round" opacity=".8"/>` }
+};
+/* each mark names its bright token and its shade token, so there is no string built from
+   a name and no literal anywhere below the PALETTE banner */
+const CUR_SHADE = { accent:'accentDk', accent2:'accent2Dk', gold:'goldDk', violet:'violetDk',
+                    blue:'blueDk', ok:'okDk', ice:'iceDk', dim:'dim3' };
+const curCol = k => PAL[CURRENCY[k].c];
+const curDark = k => PAL[CUR_SHADE[CURRENCY[k].c]] || PAL.dim3;
+/* one builder, and it is the only place a currency is drawn */
+const curIco = (k, o) => { const C = CURRENCY[k]; if (!C) return '';
+  const s = (o && o.s) || 20;
+  return `<svg width="${s}" height="${s}" viewBox="0 0 24 24" aria-hidden="true">${
+    C.a((o && o.c) || curCol(k), (o && o.c2) || curDark(k), PAL.onAccent)}</svg>`; };
+/* mark + amount, the one shape a currency is ever written in outside prose */
+const curTag = (k, n, o) => `<span class="curtag" style="--cc:${curCol(k)}">${
+  curIco(k, { s:(o && o.s) || 17 })}<b>${n}</b>${
+  (o && o.lab) ? '<i>' + CURRENCY[k].s + '</i>' : ''}</span>`;
+
 /* ===== ICONS (inline SVG on a 24px grid — no emoji in persistent chrome) ===== */
 const ico = (d, o) => `<svg width="${(o&&o.s)||20}" height="${(o&&o.s)||20}" viewBox="0 0 24 24" fill="none"
   stroke="${(o&&o.c)||'currentColor'}" stroke-width="${(o&&o.w)||2}" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
@@ -2496,6 +2604,21 @@ function grantReward(r){
   if (r.parts) S.parts += r.parts;
   if (r.hours) S.hours += r.hours;
   if (r.crate) grantCrate(r.crate, r.n || 1);
+}
+function rewardHTML(r){
+  const b = [];
+  if (r.tickets) b.push(curTag('tickets', r.tickets));
+  if (r.picks)   b.push(curTag('picks', r.picks));
+  if (r.parts)   b.push(curTag('parts', r.parts));
+  if (r.hours)   b.push(curTag('hours', r.hours));
+  if (r.crate)   b.push(`<span class="curtag" style="--cc:${crateOf(r.crate).c}">${
+    ico(ICON.crate, { s:16, c:crateOf(r.crate).c })}<b>${r.n || 1}</b><i>${
+    crateOf(r.crate).n.split(' ')[0].toUpperCase()}</i></span>`);
+  if (r.vipDays) b.push(`<span class="curtag" style="--cc:${PAL.violet}">${
+    ico(ICON.crown, { s:16, c:PAL.violet })}<b>${r.vipDays}d</b><i>VIP</i></span>`);
+  if (r.premium) b.push(`<span class="curtag" style="--cc:${PAL.violet}">${
+    ico(ICON.pass, { s:16, c:PAL.violet })}<b>PAID LANE</b></span>`);
+  return b.length ? '<span class="rwline">' + b.join('') + '</span>' : '';
 }
 function sayReward(r){
   const b = [];
@@ -5058,8 +5181,8 @@ function closeGigs(){
 }
 function renderTix(){
   const g = S.gig, left = BAL.gigAdMax - g.ads;
-  $('#tixIco').innerHTML = ico(ICON.pass, { c:PAL.onAccent, s:20 });
-  $('#gtIco').innerHTML = ico(ICON.pass, { c:PAL.accent, s:18 });
+  $('#tixIco').innerHTML = curIco('tickets', { s:20, c:PAL.onAccent, c2:PAL.onAccent });
+  $('#gtIco').innerHTML = curIco('tickets', { s:18 });
   $('#tixN').textContent = g.tickets + (g.tickets === 1 ? ' ticket' : ' tickets');
   $('#tixSub').textContent = g.tickets >= BAL.gigFree
     ? 'Full for today · ' + BAL.gigFree + ' free every day'
@@ -6075,7 +6198,7 @@ function htmlPass(){
     const cell = lane => {
       const got = passHas(lane, i), can = passOpen(lane, i);
       return `<div class="pcell ${got ? 'got' : can ? 'can' : ''}">
-        <span>${sayReward(row[lane])}</span>
+        <span>${rewardHTML(row[lane]) || sayReward(row[lane])}</span>
         ${got ? '<em>TAKEN</em>'
           : can ? `<button class="buy gold" data-act="pass" data-i="${i}" data-lane="${lane}">TAKE</button>`
           : done && lane === 'paid' ? '<em>PAID LANE</em>' : ''}</div>`;
@@ -6141,7 +6264,7 @@ function htmlInbox(){
     h += `<div class="card"><div class="av" style="--c1:${PAL.accent2}">
       ${ico(ICON.crate, {c:PAL.onAccent, s:22})}</div>
       <div class="info"><div class="t">${esc(it.n)}</div>
-      <div class="d">${esc(it.d)} · <b>${sayReward(it.r)}</b></div></div>
+      <div class="d">${esc(it.d)}</div>${rewardHTML(it.r)}</div>
       <button class="buy gold" data-act="inbox" data-i="${i}">TAKE</button></div>`;
   });
   if (S.inbox.length > 1)
@@ -6171,7 +6294,7 @@ function htmlQuests(){
       <div class="av" style="--c1:${got ? PAL.gold : done ? PAL.gold : PAL.elev}">
         ${ico(got ? ICON.check : ICON.flag, {c:got || done ? PAL.onGold : PAL.dim2, s:20})}</div>
       <div class="info"><div class="t">${T ? T.n(it.tgt) : '—'}</div>
-        <div class="d">${sayReward(pay)}</div>
+        <div class="d">${rewardHTML(pay) || sayReward(pay)}</div>
         <span class="qbar ${done ? 'ok' : ''}">
           <i style="width:${Math.round(clamp(it.prog / it.tgt, 0, 1) * 100)}%"></i></span>
         <div class="qrow"><span class="qn">${Math.min(it.prog, it.tgt)} / ${it.tgt}</span></div>
@@ -6207,7 +6330,7 @@ function htmlQuests(){
       <div class="av" style="--c1:${got || done ? PAL.gold : PAL.violet}">
         ${ico(got ? ICON.check : ICON.pass, {c:got || done ? PAL.onGold : PAL.onAccent, s:22})}</div>
       <div class="info"><div class="t">${W.n(W.tgt)}</div>
-        <div class="d">${sayReward(BAL.weeklyPay)}</div>
+        <div class="d">${rewardHTML(BAL.weeklyPay) || sayReward(BAL.weeklyPay)}</div>
         <span class="qbar ${done ? 'ok' : ''}">
           <i style="width:${Math.round(clamp(S.weekly.prog / W.tgt, 0, 1) * 100)}%"></i></span>
         <div class="qrow"><span class="qn">${Math.min(S.weekly.prog, W.tgt)} / ${W.tgt}</span></div>
@@ -6239,13 +6362,13 @@ function htmlCrates(){
     h += `<div class="card crow" style="--c1:${C.c}">
       <div class="av" style="--c1:${C.c}">${ico(ICON.crate, {c:PAL.onAccent, s:22})}</div>
       <div class="info"><div class="t">${C.n}${have ? ' · ' + have : ''}</div>
-        <div class="d">${C.picks} Picks · ${pct(BAL.crateCard * 100)} member card</div>
+        <div class="d">${curTag('picks', C.picks)} · ${pct(BAL.crateCard * 100)} member card</div>
         <div class="odds">${C.odds.map((o, i) => o ? `<span style="color:${RARITY[i].c}">${RARITY[i].n} ${pct(o)}</span>` : '').join('')}</div>
         <div class="pity">${RARITY[C.pityAt].n} or better guaranteed in ${left}</div>
       </div>
       <div style="display:flex;flex-direction:column;gap:5px">
         ${have ? `<button class="buy" data-act="copen" data-i="0" data-k="${C.k}">OPEN</button>` : ''}
-        <button class="buy ${can ? '' : 'no'}" data-act="cbuy" data-i="0" data-k="${C.k}">BUY<small>${C.picks}</small></button>
+        <button class="buy ${can ? '' : 'no'}" data-act="cbuy" data-i="0" data-k="${C.k}">BUY<small>${curIco('picks', { s:12, c:PAL.onAccent, c2:PAL.onAccent })}${C.picks}</small></button>
       </div></div>`;
   });
   h += `<div class="hint" style="text-align:left;padding:2px 2px 10px">The odds above are the
@@ -6301,9 +6424,9 @@ function closeCrate(){
   drainPops();
 }
 function htmlShop(){
-  let h = `<div class="card"><div class="av" style="--c1:${PAL.gold}">${ico(ICON.pick, {c:PAL.onGold, s:22})}</div>
-    <div class="info"><div class="t">${fmt(S.picks)} Picks · ${fmt(S.parts)} Parts · ${fmt(S.hours)} Hours</div>
-    <div class="d">Earned, never bought.</div></div></div>
+  let h = `<div class="curbal">${
+      ['picks', 'parts', 'hours'].map(k => curTag(k, fmt(S[k]), { s:24, lab:1 })).join('')}</div>
+    <div class="hint" style="text-align:left;padding:8px 2px 4px">Earned, never bought.</div>
     <div class="hint" style="text-align:left;padding:2px 2px 12px"><b>Picks</b> come from
       career objectives and daily quests, and buy crates and the consumables below.
       <b>Parts</b> come from scrapping gear you are not playing, and upgrade it.
@@ -6313,7 +6436,7 @@ function htmlShop(){
   if (o){ offerSeen();
     h += `<div class="sect">Offer</div>
     <div class="card" style="--c1:${PAL[o.c]}"><div class="av" style="--c1:${PAL[o.c]}">
-      ${ico(ICON.pass, {c:PAL.onAccent, s:22})}</div>
+      ${ico(ICON.crown, {c:PAL.onAccent, s:22})}</div>
       <div class="info"><div class="t">${esc(o.n)}</div>
         <div class="d">Free, once ever.</div></div></div>
     <div class="hint" style="text-align:left;padding:2px 2px 8px">${esc(o.d)}</div>
@@ -6333,7 +6456,7 @@ function htmlShop(){
       <div class="d">${b.d} · ${b.id === 'freeze' ? b.have() + ' of ' + b.cap() + ' held'
                                                   : left + ' of ' + b.cap() + ' left today'}</div></div>
       <button class="buy ${can ? '' : 'no'}" data-act="pbuy" data-i="-1" data-id="${b.id}">
-        BUY<small>${b.picks()} Picks</small></button></div>`;
+        BUY<small>${curIco('picks', { s:12, c:PAL.onAccent, c2:PAL.onAccent })}${b.picks()}</small></button></div>`;
   });
   h += `<div class="hint" style="text-align:left;padding:2px 2px 12px">A consumable is
     something you would otherwise wait a day for. Nothing here skips a timer, because

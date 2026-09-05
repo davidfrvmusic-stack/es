@@ -933,6 +933,11 @@ follows the card's energy; the other three tracks get a muted click, so you can 
 hear which part is yours. `AU.takeHit(yours, energy, good)`.
 
 ## 12. CURRENCIES
+
+**Every currency has its own mark** (`CURRENCY`, §12b). Eight of them had two glyphs
+between them — Money and Picks each had one, and Parts, Studio Hours, Gig Tickets and
+Streak Freeze were bare numbers next to a word.
+
 - **Streams** — reach. Accumulates from the rate above; drives Legacy at prestige.
 - **Money** — the spend currency. Members, levels, royalties, studios.
 - **Fans** — the rank currency, and the only number that never falls. See §4c.
@@ -955,6 +960,43 @@ hear which part is yours. `AU.takeHit(yours, energy, good)`.
   single free 24-hour trial, once ever, from Offers (§14) — plus, once a checkout exists, the
   30-day Backstage Pass in `PAY`.
 Formatting: 1.2K, 3.4M, 8.9B, 1.1T… Counters animate up.
+
+## 12b. THE CURRENCY MARKS
+
+`CURRENCY` is the table, one entry per currency and never a branch, the same shape as
+`ICON` but drawn as two-tone objects rather than 2px line art. `curIco(k, o)` is the only
+place a currency is drawn and `curTag(k, n, o)` is the only shape an amount is written in
+outside prose. `rewardHTML(r)` is `sayReward(r)`'s visual twin — same order, same entries,
+one mark each; `sayReward` stays for toasts, which are `textContent` and take no markup.
+
+**The rule this ground forces: a mark is a solid silhouette with the dark lines *inside*
+it.** The obvious way to draw a chunky game icon is a bright fill inside a near-black
+outline — and on `#0B0D12` that outline is **1.1:1**, so it does nothing, and a mark built
+from thin strokes over one is gone by 18px. Fills carry the shape; `--onAccent` is only ever
+an interior detail. The suite measures both halves of that: the total filled area of every
+mark, and that no mark's ink (stroke included) leaves its 24×24 box.
+
+**The colours are the ones §2 already reserves.** Money is coral and Streams is teal because
+the palette table says so; Picks is violet because Picks is the premium currency and violet
+is what premium means here. Four tokens were added to `:root` rather than written as
+literals — `--blue-dk`, `--ok-dk`, and `--ice` / `--ice-dk`, the one hue the accents do not
+hold, for Streak Freeze. Distinctness comes from the silhouette, which is what §2's "never
+colour alone" asks for anyway.
+
+| currency | mark | token |
+|---|---|---|
+| Money | banknote | `--accent` |
+| Streams | ascending play bars | `--accent2` |
+| Fans | a crowd of three | `--blue` |
+| Picks | a guitar pick | `--violet` |
+| Parts | an eight-tooth cog | `--dim` |
+| Studio Hours | a clock | `--gold` |
+| Gig Tickets | a perforated stub | `--ok` |
+| Streak Freeze | an ice crystal | `--ice` |
+
+**Where they land:** the Shop balance (three tiles with a mark, a value and a label, in
+place of the string `1.24K Picks · 86 Parts · 12 Hours`), every crate and consumable price,
+both gig-ticket counters, and every reward row on Daily, the season track and the Inbox.
 
 ## 13. UI (portrait, one-thumb)
 
@@ -2251,6 +2293,47 @@ that clicks past it has to close it, the same way `t2` already closes a rank-up.
 it: `qs` still expected one rail chip when the season pass added SEASON, and `pay` still
 expected five products when the Season Pass made it six. The earlier note claiming
 thirty-four suites passed was wrong on both counts; thirty-two did.
+
+**The visual content pass, family one — the eight currency marks.** §12b is the system, and
+`design/VISUAL-AUDIT.md` is the audit that called for it: eight currencies sharing two
+glyphs, four of them with no mark at all.
+
+Four marks arrived drawn (money, streams, picks, parts). **Money was kept as drawn and the
+gear behind parts was kept as an idea; streams and picks were redrawn and the other four
+drawn to match**, for two measured reasons:
+- **Picks read as a map pin, not a guitar pick** — a pick is widest at the top with rounded
+  shoulders, and the supplied shape narrowed there. My own first prototype had the identical
+  bug, which is what made it worth naming as a rule.
+- **Streams read as a wifi bar, and disappeared by 18px.** It was thin strokes over a
+  `#12131C` outline, and that outline is 1.1:1 on this game's ground — the reason the
+  solid-silhouette rule in §12b exists at all. Money survived the same treatment only
+  because it is a solid block.
+- **The supplied parts gear ran 0→24 with a 1.8 stroke**, so it was clipped on all four
+  edges. It is redrawn inside 2.2…21.8 with no transform, and the suite now measures every
+  mark's ink against its box.
+- **Three of the four supplied colours contradict §2**, which is checked in: coral *is*
+  money, teal *is* streams, and the supplied Picks red (`#FF5252`) is within one step of
+  `--accent`, the colour reserved for the primary action — a Picks count would have read as
+  a button. The shapes are kept; the colours are the reserved tokens.
+
+One collision the change created and then fixed: the Offers card's avatar was `ICON.pass`, a
+rounded card with a bar, which sat two rows under the new banknote and read as the same
+object. An offer is premium, so it is the crown now.
+
+Suites: the new `cy` suite is 19 assertions — the table and its eight entries, every colour
+resolving through a token with all eight distinct, **no colour literal anywhere in the
+table**, no mark's ink leaving its 24×24 box (stroke included — the assertion that caught the
+supplied gear), every mark carrying real filled area rather than being a stroke drawing, both
+builders, `rewardHTML` drawing one mark per currency it pays while `sayReward` still answers
+in words, the Shop balance being three tiles rather than one string, every crate price and
+BUY carrying the Picks mark, the ticket counters drawing a ticket, and a reload. `t2` gained
+the same announcement-dismissal line the other six suites took — its `tab()` helper already
+cleared a rank-up before every press, and an announcement lands the same way.
+
+Thirty-five suites pass, no console errors, frame time median 16.7ms / p95 17.7ms.
+
+**Still to draw:** 20 instrument thumbnails, 8 rig parts, 24 skill icons, 3 crate geometries,
+8 studio previews, 8 venue scenes and 11 quest icons — the rest of the 196 in the inventory.
 
 **`design/VISUAL-AUDIT.md`** is the placeholder audit and asset inventory for the visual
 content pass: fourteen surfaces where one glyph stands for many mechanically different

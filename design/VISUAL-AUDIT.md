@@ -65,7 +65,7 @@ in the game as an entry with a name and a mechanic, and is missing only its pict
 | A | **Instrument thumbnails** | 20 | 48×48 silhouette | 5 kits · 5 basses · 5 guitars · 5 mics. Must read as *that* instrument: a Flying V is a V, a Thunderbird is a Thunderbird |
 | B | **Rig part thumbnails** | 8 | 48×48 silhouette | Practice Amp · 4×12 Stack · Pedalboard · Tape Echo · Compressor Rack · Wedge Monitor · DI Box · Tube Preamp |
 | C | **Skill icons** | 24 | 24px grid, legible at 18 | one per skill, reflecting the *ability*, listed in §3 below |
-| D | **Currency marks** | 8 | 24px grid | Money · Streams · Fans · Picks · Parts · Studio Hours · Gig Tickets · Streak Freeze |
+| D | ~~**Currency marks**~~ | 8 | 24px grid | **BUILT** — `CURRENCY` in `index.html`, §12b. Money · Streams · Fans · Picks · Parts · Studio Hours · Gig Tickets · Streak Freeze |
 | E | **Crates** | 3 | 96×96 object | different **geometry**, not one box in three colours |
 | F | **Studio previews** | 8 | wide mini-scene | reuse `ROOM`'s own builders at small scale — the preview is literally the room you are buying |
 | G | **Venue mini-scenes** | 8 | wide mini-scene | stage + crowd silhouette + the room's own scale |
@@ -155,6 +155,20 @@ progression systems and locked-content previews.
 - **Every ₪ price stays a non-pressable rail until a provider exists** (§14).
 
 ---
+
+## 5b. What shipping family D taught the rest of the pass
+
+Three rules came out of drawing the eight, and they apply to all 196:
+
+1. **A mark is a solid silhouette with the dark lines inside it.** The chunky-outline style
+   assumes a light ground. On `#0B0D12` a `#12131C` outline is 1.1:1 — it does nothing, so
+   anything built from thin strokes over one is gone by 18px.
+2. **Measure the ink against the box, not by eye.** The first parts gear ran 0→24 with a
+   1.8 stroke and was clipped on all four edges; nobody spots that at 24px, and the suite
+   spots it every time.
+3. **The silhouette carries the identity; the token carries the colour.** Where a supplied
+   colour and §2 disagree, §2 wins — it is checked in, and a currency wearing the primary
+   action colour is a real bug rather than a taste question.
 
 ## 6. Order of work
 
