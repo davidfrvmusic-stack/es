@@ -952,7 +952,8 @@ hear which part is yours. `AU.takeHit(yours, energy, good)`.
 - **VIP** — `S.vipUntil`, a timestamp. Convenience only: the 24h offline cap, the ad
   rewards posted to the Inbox daily, a Bronze Crate a day, one more quest swap and no ad
   prompts. **Never an income, streams or craft multiplier.** The one in-game path is a
-  single free 24-hour trial, once ever, from Offers (§14).
+  single free 24-hour trial, once ever, from Offers (§14) — plus, once a checkout exists, the
+  30-day Backstage Pass in `PAY`.
 Formatting: 1.2K, 3.4M, 8.9B, 1.1T… Counters animate up.
 
 ## 13. UI (portrait, one-thumb)
@@ -970,6 +971,13 @@ under it. **The rail draws one icon per system that has something waiting** — 
 (the quest board, §15) and `inbox` (§14) are live and tap through to their own screens;
 `event` and `offers` draw only when their state says so. Nothing inactive is drawn, and a
 badge appears only when it is non-zero.
+
+**The rail owns a row rather than floating over the band.** It used to be absolutely
+positioned at the stage's top-right, which was fine while it drew nothing — and put two
+buttons squarely on top of the fourth member the moment two systems started filling it. The
+band is four wide and fills the stage, so there is no corner for an overlay to live in. It
+reserves its own right-aligned row under the band name now, and fades out for a session like
+the two labels either side of it.
 
 Bottom, on HOME: the **Next Goal** card, one **demo line**, the **adaptive CTA** and
 **GIGS**.
@@ -1199,16 +1207,52 @@ reserved rails avoid.
   Offers never writes to the Inbox and the Inbox never advertises. The suite asserts the
   shape of both.
 
+### PAYMENTS — every edit point in one banner
+
+**Nothing charges anybody and nothing reaches the network.** There is no provider SDK in the
+file and the no-network rule (§17) still holds byte for byte. What exists is the *shape* a
+checkout drops into, so wiring one up is four edits in one place instead of a hunt.
+
+**To connect a real provider, edit exactly these four things:**
+
+| # | edit | what it is |
+|---|---|---|
+| 1 | `PAYMENTS` | provider, env (`none` / `sandbox` / `live`), publishable key, currency |
+| 2 | `PAY[].sku` | the product ids as they read in that provider's dashboard |
+| 3 | `checkout(id)` | open their sheet; resolve `{ok:true, txn}` on success, `{ok:false}` on cancel |
+| 4 | `restorePurchases()` | ask what this account owns; return product ids |
+
+**Everything under those four already works and is covered by the suite.** `PAY` is the
+catalogue — four Picks packs (100 / 550 / 1200 / 3500) and a 30-day Backstage Pass — and each
+entry's `give` is a reward *in the same shape every other system pays in*, so a pack, a quest
+and a career objective all land through `grantReward()`. `grantProduct(id, txn)` is the
+entitlement path a webhook would call; **the same transaction id is never paid twice**, which
+is what makes `applyRestore()` safe to run on every boot. A **consumable is never restored** —
+a spent pack of Picks would be minted currency — while a subscription is.
+
+**`checkout()` never grants anything itself.** `buyProduct()` calls it, and only on
+`{ok:true}` calls `grantProduct()`. That keeps one place an item is handed over, whatever the
+provider does.
+
 ### The rails that are left
 
-`RESERVED` is down to **two**: Picks packs and the Battle Pass, both marked **PHASE THREE**,
-both carrying their spec as text and **no button at all** — a greyed-out `BUY ₪12` reads as
-*you cannot afford this*, which is a lie about something that does not exist. The VIP and
-Offers rails are gone because those surfaces exist now, the same reason the Gear and Crates
-rails went in Concert Neon stage 8. A crate's or a consumable's BUY *is* greyed out when you
-cannot afford it, and that is not the same lie: the thing is real, the price is real, and the
-balance is real. The suite asserts the reserved rails still contain zero buttons and no
-currency glyph.
+`RESERVED` is gone as a hand-written table: **the two remaining rails are built from `PAY`**,
+so the reserved copy and the real store can never disagree about what exists. While
+`payOn()` is false the Shop shows them as rails — the spec as text, **no button at all** —
+because a greyed-out `BUY $1.99` on a product with no checkout behind it reads as *you cannot
+afford this*, which is a lie about something that cannot be bought at all. Set a provider and
+**the same table renders as real product cards with real prices and a RESTORE PURCHASES
+button, and the screen's shape does not move** — the suite asserts the section order is
+identical either way. Sandbox is labelled SANDBOX on the screen.
+
+A crate's or a consumable's BUY *is* greyed out when you cannot afford it, and that is not the
+same lie: the thing is real, the price is real, and the balance is real. The VIP and Offers
+rails are gone because those surfaces exist now, the same reason the Gear and Crates rails
+went in Concert Neon stage 8.
+
+Settings carries a **Purchases** row: whether payments are connected, how many receipts are on
+the device, and RESTORE when a provider is set. It says plainly that no request leaves the
+device.
 
 **The Home rail carries four systems and draws the two that exist** (`RAIL`, §13): `daily`
 (the quest board, badge = claimable) and `inbox` (badge = posts waiting) are live; `event`
@@ -1400,8 +1444,8 @@ subscription) that are reserved rails today.
 **Known gaps (deliberate, deferred):**
 the *Daily* Gig and rival/multiplayer gigs (the regular ladder in §4d is built),
 six-cards-per-track-per-genre (128 signature cards ship, 384 do not),
-prestige, league, weekend events, a real checkout (Picks packs and a VIP subscription),
-LLM content,
+prestige, league, weekend events, a real payment provider (the surface is built — §14 — and
+`PAYMENTS.provider` is `null`), LLM content,
 `sw.js` offline (and with it, true background storage-full notifications), a real
 cloud-save backend.
 
@@ -2031,6 +2075,49 @@ log, banner, the VIP trial flag), the daily board is dealt and the week has a ch
 every owned member is holding their starter instrument, and the band still writes and still
 earns.
 
+**After Phase Two — the payment surface, and two stage bugs.** Not a stage of the plan: the
+two things the screenshots turned up, plus the scaffolding a checkout will land on.
+
+- **`PAYMENTS` / `PAY` / `checkout()` / `restorePurchases()`** — §14. Nothing charges anybody
+  and nothing reaches the network; what exists is the shape a provider drops into, so wiring
+  one up is four edits in one banner. The catalogue, the grant path, the receipt ledger and
+  the restore rules are real and tested; `RESERVED` is now *derived from `PAY`*, so the
+  reserved copy and the real store cannot disagree about what exists.
+- **The rail was sitting on the fourth member.** Absolute positioning at the stage's
+  top-right was fine while the rail drew nothing, and wrong the moment two systems filled it.
+  It owns a row now (§13). That exposed a second, older bug: `#band` used `align-items:center`
+  with an unclamped portrait, so a member taller than the band spilled its **name tag down
+  onto the studio line**. The fix is two modes — `stretch` plus a clamp at rest so the four
+  members *fit*, `flex-end` unclamped while playing so the stepped-forward member *overflows*,
+  which is the whole treatment. Clamping in both modes collapsed the band to a single pixel,
+  because the portrait's intrinsic height is also what stops `#band` shrinking once the
+  focused member leaves the flow.
+- **Two members could share a first name.** `genName()` deduped on the full name and only
+  against *owned* members — but the stage tag shows the first name only, and the setup screen
+  draws a name before anybody is owned. It dedupes on `firstOf()` across every slot now.
+
+**A correction to the stage 9 entry above: it said thirty-one suites passed, and thirty did.**
+`cr` had been referencing `rankQueue`, which stage 9 deleted when the pop-up queue replaced
+it, and the regression run did not surface the crash. It reads `popQ` / `drainPops()` now.
+
+Suites: the new `pay` suite is 18 assertions — the catalogue, no provider meaning no button
+anywhere, the grant path paying through `grantReward`, the same transaction id never paying
+twice, a subscription turning VIP on for 30 days, a checkout wired in and granting exactly
+once, a cancelled sheet granting nothing, restore re-granting a subscription and never a
+spent pack, the same table rendering as a store with the screen's shape unchanged, the
+payment banner containing no request or SDK or URL, no network request at any point, and a
+receipt surviving a reload. The new `ui` suite is 11 — the rail drawing two icons in the flow
+and covering no member, every name tag clearing the studio line, a 40px touch target, the
+rail fading for a session while the stepped-forward member still fills the stage, and no
+duplicate first name across 900 fresh bands, setup draws and hires. Thirty-three suites pass,
+no console errors.
+
+**`design/ASSET-BRIEF.md`** is the document to hand to whoever draws the next batch of art.
+It carries the hard rules, the paste-ready output shape, the palette, the 24px icon grid, the
+character head anchors, the full instrument anchor contract with its exact coordinates, the
+rig and room boxes, and the colour-only tables — everything needed to add an icon, a guitar,
+a hairstyle or a room without breaking a pivot.
+
 **Removed along the way:** the tap-to-fill-tracks loop, Hook Moments, the Hype stat
 (Quality shifts chart odds instead), and weekly-seeded genre trends (replaced by the
 live heat cycle). Time-gated member unlocks are gone too —
@@ -2062,8 +2149,10 @@ base payout rate, levels, ownership, songs, time away) rather than discarded.
   (`/* ===== AUDIO ===== */` etc.) and add new systems as new banners.
 - Tunables live in the tables near the top of the script — `BAL`, `MEMBERS`,
   `RARITY`, `STATS`, `STUDIOS`, `TIERS`, `ODDS`, `GENRES`, `GCARDS`, `RANKS`, `CARDS`, `PATTERNS`. Never inline a balance
-  number in logic. `INSTR`, `RIG`, `ROOM`, `GEAR` and `PASSIVE` are content tables of the
-  same kind — one entry per thing, never a branch. The craft knobs (`craftFloor`, `craftMember`, `craftLvl`, `craftExp`,
+  number in logic. `INSTR`, `RIG`, `ROOM`, `GEAR`, `PASSIVE`, `SKILLS`, `QUESTS`, `WEEKLY`,
+  `CRATES`, `CAREER`, `SHOP_BUY`, `ADS`, `OFFERS`, `PAY`, `COLORWAY` and `LOOK_PARTS` are
+  content tables of the same kind — one entry per thing, never a branch. **Art is authored
+  against `design/ASSET-BRIEF.md`**, which carries every box, anchor and output shape. The craft knobs (`craftFloor`, `craftMember`, `craftLvl`, `craftExp`,
   `craftStudio`) and `qNudge` are the two levers that shape the whole curve — moving either
   means re-running the simulation (§9). `GOALS`, `RAIL` and `HYPE_TIERS` are the same idea for content rather
   than balance: an ordered table you extend by adding an entry, never by adding a branch. Studio costs are on the *money* scale, which accrues roughly 10x

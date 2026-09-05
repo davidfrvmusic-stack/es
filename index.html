@@ -140,11 +140,16 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   box-shadow:0 3px 0 var(--cream);letter-spacing:.2em}
 #bandChip,#studioChip{transition:opacity var(--m2) ease}
 #stage.playing #bandChip,#stage.playing #studioChip{opacity:0}
-/* the side rail carries one icon per system with something waiting. Nothing is waiting
-   today — daily, events and inbox do not exist yet — so it draws nothing at all. */
-#rail{position:absolute;top:34px;right:10px;z-index:3;display:flex;flex-direction:column;gap:8px}
+/* The rail carries one icon per system with something waiting. It used to float over the
+   stage at top-right, which put it squarely on top of the fourth member once two systems
+   started filling it — the band is four wide and fills the stage, so there is no corner for
+   an overlay to live in. It reserves its own row under the band name instead, and steps
+   aside while you play like the two labels either side of it. */
+#rail{position:relative;z-index:3;flex:0 0 auto;display:flex;justify-content:flex-end;
+  gap:8px;padding:4px 12px 0;transition:opacity var(--m2) ease}
 #rail:empty{display:none}
-.railbtn{position:relative;width:44px;height:44px;border-radius:14px;background:var(--panel);
+#stage.playing #rail{opacity:0;pointer-events:none}
+.railbtn{position:relative;width:40px;height:40px;border-radius:13px;background:var(--panel);
   border:2px solid var(--line);display:grid;place-items:center}
 .railbtn:active{transform:translateY(2px)}
 .railbtn b{position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;padding:0 4px;
@@ -221,8 +226,18 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   30%,50%,70%{transform:translateX(-8px)}40%,60%{transform:translateX(8px)}}
 
 /* ===== BAND ===== */
-#band{position:relative;z-index:2;flex:1 1 auto;min-height:0;display:flex;align-items:center;
+/* Two modes, because the stage wants opposite things in them.
+   AT REST the four members must FIT: `stretch` gives each one the band's height, which is
+   what lets the portrait clamp against it and leave its name tag room — otherwise the tags
+   spill onto the studio line and the heads run up under the rail.
+   WHILE PLAYING the stepped-forward member must OVERFLOW: `flex-end` with no clamp lets it
+   grow up over the room, which is the whole treatment. (Clamping in both modes collapsed
+   the band to a pixel, because the portrait's intrinsic height is also what stops `#band`
+   shrinking once the focused member leaves the flow.) */
+#band{position:relative;z-index:2;flex:1 1 auto;min-height:0;display:flex;align-items:flex-end;
   justify-content:center;gap:2px;padding:10px 10px 4px}
+#stage:not(.playing) #band{align-items:stretch}
+#stage:not(.playing) .mem svg{max-height:calc(100% - 15px)}
 .mem{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
   transition:transform .4s cubic-bezier(.2,1.3,.4,1),opacity .35s ease;transform-origin:bottom center}
 .mem svg{width:100%;height:auto;max-height:100%;display:block;overflow:visible}
@@ -941,8 +956,8 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
     <div class="crowd"></div>
     <div id="flash"></div>
     <div id="savedTag"><i></i>SAVED</div>
-    <div id="rail"></div>
     <div id="bandChip">—</div>
+    <div id="rail"></div>
     <div id="band"></div>
     <div id="studioChip">Garage</div>
 
@@ -1883,11 +1898,17 @@ function genBand(){
        : p === 2 ? N + ' & the ' + A + ' ' + N2 + 's' : p === 3 ? A.toUpperCase() + '//' + N.toUpperCase()
        : 'The ' + N + 's';
 }
+/* The stage tag shows a first name only, so two members sharing one reads as a duplicate
+   even when the full names differ — dedupe on the part the player actually sees. */
+const firstOf = n => String(n || '').split(' ')[0];
 function genName(){
-  const taken = S ? S.members.filter(m => m.owned).map(m => m.name) : [];
+  // every slot, not just the owned ones: a name sitting in an empty slot is real the
+  // moment that slot is hired, and the setup screen draws the player's name before
+  // anyone is owned at all
+  const taken = S ? S.members.map(m => firstOf(m.name)) : [];
   for (let i = 0; i < 40; i++){
     const n = pick(GEN.first) + ' ' + pick(GEN.last);
-    if (!taken.includes(n)) return n;
+    if (!taken.includes(firstOf(n))) return n;
   }
   return pick(GEN.first) + ' ' + pick(GEN.last);
 }
@@ -1972,6 +1993,115 @@ function accSVG(acc, col){
     default: return '';
   }
 }
+
+/* ===== PAYMENTS — every edit point in one place =====
+   NOTHING HERE CHARGES ANYBODY, and nothing here reaches the network: there is no
+   provider SDK in this file and the no-network rule (§17) still holds byte for byte.
+   What this is, is the shape a real checkout drops into, so that wiring one up is four
+   edits in one banner instead of a hunt through the Shop.
+
+   TO CONNECT A REAL PROVIDER, EDIT EXACTLY THESE FOUR THINGS:
+
+     1. `PAYMENTS`      — who you are: provider, env, key, currency.
+     2. `PAY[].sku`     — the product ids as they read in that provider's dashboard.
+     3. `checkout(id)`  — open their sheet; resolve `{ok:true, txn}` on success.
+     4. `restorePurchases()` — ask them what this account owns, hand back product ids.
+
+   Everything else already works and is covered by the suite: `grantProduct()` pays the
+   entitlement out through the same `grantReward()` every other system uses, `S.purchases`
+   records the receipt, a repeated transaction id is refused, and the Shop renders from
+   `PAY` either way.
+
+   THE RULE THAT DOES NOT MOVE (§14): while `payOn()` is false the Shop shows these as
+   *reserved rails* — the spec as text, no button, no price on a pressable surface.
+   A greyed-out BUY on a product with no checkout behind it is exactly the lie the
+   reserved rails exist to avoid. Set a provider and the same table renders as real
+   cards; the screen's shape does not move. */
+const PAYMENTS = {
+  provider: null,        // null | 'stripe' | 'revenuecat' | 'play' | 'appstore'
+  env: 'none',           // 'none' | 'sandbox' | 'live'
+  publicKey: '',         // publishable key only — a secret key must never reach a client
+  currency: 'USD',
+  symbol: '$',
+  restoreOnBoot: true    // ask the provider what is owned, once, on load
+};
+/* payOn() gates the UI; payLive() is the one that means real money is moving. Sandbox is
+   deliberately "on" so the whole flow can be exercised before a single charge exists. */
+const payOn = () => !!PAYMENTS.provider && PAYMENTS.env !== 'none';
+const payLive = () => payOn() && PAYMENTS.env === 'live';
+
+/* The catalogue. `give` is a reward in the same shape every other system pays in, so a
+   pack, a quest and a career objective all land through `grantReward()`.
+   `kind`: 'consumable' is bought again and again and is NOT restorable; 'sub' is an
+   entitlement with a duration and IS restorable. */
+const PAY = [
+  { id:'picks_100',  sku:'', kind:'consumable', n:'100 Picks',   price:'1.99',
+    d:'Two Bronze Crates and change.',            give:{ picks:100 } },
+  { id:'picks_550',  sku:'', kind:'consumable', n:'550 Picks',   price:'9.99',
+    d:'A Gold Crate, three Bronze, and a week of consumables.', give:{ picks:550 },
+    tag:'BEST VALUE' },
+  { id:'picks_1200', sku:'', kind:'consumable', n:'1200 Picks',  price:'19.99',
+    d:'Two Mythic Crates.',                       give:{ picks:1200 } },
+  { id:'picks_3500', sku:'', kind:'consumable', n:'3500 Picks',  price:'49.99',
+    d:'Seven Mythic Crates.',                     give:{ picks:3500 } },
+  { id:'vip_month',  sku:'', kind:'sub',        n:'Backstage Pass', price:'4.99',
+    per:'month', d:'VIP for as long as it runs — the ad rewards without the ads, a 24h ' +
+    'offline cap, an extra quest swap and a Bronze Crate a day. No income multiplier.',
+    give:{ vipDays:30 } }
+];
+const payOf = id => PAY.find(x => x.id === id) || null;
+const payPrice = P => PAYMENTS.symbol + P.price + (P.per ? '/' + P.per : '');
+const ownedSub = id => (S.purchases || []).some(r => r.id === id && r.kind === 'sub');
+
+/* THE GRANT PATH — real, and the same one a provider's webhook would call.
+   `txn` is the provider's transaction id: the same one is never paid twice, which is what
+   makes a restore safe to run on every boot. */
+function grantProduct(id, txn){
+  const P = payOf(id);
+  if (!P) return null;
+  const t = txn || ('local-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8));
+  if ((S.purchases || []).some(r => r.txn === t)) return null;      // already paid out
+  grantReward(P.give);
+  S.purchases.push({ id, kind:P.kind, txn:t, at:Date.now() });
+  logEvent('purchase', id);
+  return P;
+}
+/* 3. REPLACE THIS. Open the provider's sheet and resolve when it closes:
+      success -> { ok:true, txn:'<their transaction id>' }
+      cancel  -> { ok:false }
+   It must never grant anything itself — `buyProduct` calls `grantProduct` on success, so
+   the entitlement path stays the one place an item is handed over. */
+async function checkout(id){
+  if (!payOn()) return { ok:false, why:'no-provider' };
+  return { ok:false, why:'not-implemented' };
+}
+/* 4. REPLACE THIS. Ask the provider what this account owns and return the product ids;
+   consumables are excluded by the caller, so returning everything is safe. */
+async function restorePurchases(){
+  if (!payOn()) return [];
+  return [];
+}
+/* the one path a press takes, so the UI can never grant something checkout() refused */
+async function buyProduct(id){
+  const P = payOf(id);
+  if (!P || !payOn()) return null;
+  const r = await checkout(id);
+  if (!r || !r.ok) return null;
+  return grantProduct(id, r.txn);
+}
+/* re-grant the non-consumables a provider says are owned. Consumables are never restored:
+   a pack of Picks was spent, and handing it over again would mint currency. */
+async function applyRestore(){
+  const ids = await restorePurchases();
+  const got = [];
+  ids.forEach(id => {
+    const P = payOf(id);
+    if (!P || P.kind === 'consumable') return;
+    if (grantProduct(id, 'restore-' + id)) got.push(P);
+  });
+  return got;
+}
+
 /* ===== THE ACTIVITY LOG — local, capped, and it never leaves this device =====
    No network exists in this game and none is added here: `S.log` is a ring buffer of the
    last BAL.logMax things you did, kept in the same localStorage save as everything else,
@@ -2214,6 +2344,7 @@ const weeklyNow = () => WEEKLY.find(x => x.id === S.weekly.id) || null;
    and the weekly challenge cannot drift apart */
 function grantReward(r){
   if (!r) return;
+  if (r.vipDays) S.vipUntil = Math.max(S.vipUntil || 0, Date.now()) + r.vipDays * 864e5;
   if (r.tickets) S.gig.tickets += r.tickets;
   if (r.picks) S.picks += r.picks;
   if (r.parts) S.parts += r.parts;
@@ -2227,6 +2358,7 @@ function sayReward(r){
   if (r.parts) b.push(r.parts + ' Parts');
   if (r.hours) b.push(r.hours + (r.hours === 1 ? ' Studio Hour' : ' Studio Hours'));
   if (r.crate) b.push((r.n || 1) + ' ' + crateOf(r.crate).n + ((r.n || 1) > 1 ? 's' : ''));
+  if (r.vipDays) b.push(r.vipDays + ' days of VIP');
   return b.join(' · ');
 }
 const questNew = (q, s) => ({ id:q.id, tgt:Math.max(1, q.tgt(s)), prog:0 });
@@ -3298,8 +3430,8 @@ function newState(){
       const used = [];
       return MEMBERS.map(() => {
         let n = genName();
-        for (let k = 0; k < 30 && used.includes(n); k++) n = genName();
-        used.push(n);
+        for (let k = 0; k < 30 && used.includes(firstOf(n)); k++) n = genName();
+        used.push(firstOf(n));
         return { lvl:1, rarity:0, owned:false, name:n, bio:pick(GEN.bios), look:newLook(), solo:0,
                  gear:{ inst:null, rig:null } };
       });
@@ -3321,6 +3453,7 @@ function newState(){
     /* daily caps on what Picks and ads hand out, on the same monotonic index as tickets */
     shop:{ day:dayNum(), tickets:0, swaps:0, adPicks:0, vipDay:-1 },
     inbox:[], vipUntil:0, vipTrial:false, log:[], logOff:false, banner:true,
+    purchases:[],                               // receipts; see the PAYMENTS banner
     lastSeen:Date.now(), created:Date.now()
   };
 }
@@ -5277,13 +5410,17 @@ function renderSheet(t, soft){
    mimics the product with a price and a dead button, because a greyed-out BUY reads as
    "you cannot afford this" rather than "this does not exist yet". Adding the real thing
    later means replacing one entry, not inventing a layout. */
-const RESERVED = [
-  { id:'picks', n:'Picks packs', i:'pick', c:'gold', w:'PHASE THREE',
-    d:'Buying Picks with money, in packs of 100 · 550 · 1200 · 3500. Picks themselves are real and earned; only the packs need a checkout, and there is no checkout.',
-    t:['100','550','1200','3500'] },
-  { id:'pass', n:'Battle Pass', i:'pass', c:'violet', w:'PHASE THREE',
-    d:'A seasonal track of rewards, free and paid lanes, alongside Seasons and the League.',
-    t:['SEASON TRACK','PAID LANE'] }
+/* The two rails left are the two things a checkout would sell, and they are built from
+   `PAY` so the reserved copy and the real store can never disagree about what exists. */
+const reservedRails = () => [
+  { id:'picks', n:'Picks packs', i:'pick', c:'gold', w:'NEEDS A CHECKOUT',
+    d:'Buying Picks with money, in packs of ' +
+      PAY.filter(P => P.kind === 'consumable').map(P => P.n.split(' ')[0]).join(' · ') +
+      '. Picks themselves are real and earned; only the packs need a checkout, and there is no checkout.',
+    t: PAY.filter(P => P.kind === 'consumable').map(P => P.n.split(' ')[0]) },
+  { id:'pass', n:PAY.find(P => P.kind === 'sub').n, i:'pass', c:'violet', w:'NEEDS A CHECKOUT',
+    d:PAY.find(P => P.kind === 'sub').d + ' The 24-hour trial in Offers is the only way to hold it today.',
+    t:['MONTHLY'] }
 ];
 function htmlReserved(r){
   return `<div class="reserved">
@@ -5655,7 +5792,7 @@ function htmlGear(){
     ${Math.round(BAL.gearDupBonus * 100)}% more.</div>`;
   return h;
 }
-const shortName = i => i < 0 ? '' : S.members[i].name.split(' ')[0];
+const shortName = i => i < 0 ? '' : firstOf(S.members[i].name);
 const equippedBy = id => S.members.findIndex(m => m.gear && (m.gear.inst === id || m.gear.rig === id));
 let gearBack = null;
 /* ===== THE INBOX SCREEN — delivery, and never a sales pitch ===== */
@@ -5900,12 +6037,33 @@ function htmlShop(){
       A subscription is a Phase Three surface and there is no checkout here — a priced button
       with nothing behind it would be the same lie the rails below exist to avoid.</div>`;
 
-  h += `<div class="sect">Reserved for later</div>`;
-  RESERVED.forEach(r => h += htmlReserved(r));
-  h += `<div class="hint">Every rail above says what it will hold and which build step brings
-    it. None of them is a product with the price greyed out — a disabled BUY reads as
-    &ldquo;you cannot afford this&rdquo;, and that would be a lie about a thing that does not
-    exist. When one ships it replaces its rail; the shape of this screen does not move.</div>`;
+  if (payOn()){
+    // a provider is wired in, so these are real products at real prices
+    h += `<div class="sect">Store${payLive() ? '' : ' <span style="color:var(--gold);font-weight:700">SANDBOX</span>'}</div>`;
+    PAY.forEach(P => {
+      const owned = P.kind === 'sub' && ownedSub(P.id);
+      h += `<div class="card"><div class="av" style="--c1:${P.kind === 'sub' ? PAL.violet : PAL.gold}">
+        ${ico(P.kind === 'sub' ? ICON.pass : ICON.pick, {c:PAL.onAccent, s:22})}</div>
+        <div class="info"><div class="t">${esc(P.n)}${P.tag ? ' <span class="rar" style="color:' + PAL.gold + '">' + P.tag + '</span>' : ''}</div>
+        <div class="d">${esc(P.d)}</div></div>
+        ${owned ? '<div class="rar">ACTIVE</div>'
+                : `<button class="buy" data-act="pay" data-i="-1" data-id="${P.id}">
+                     BUY<small>${payPrice(P)}</small></button>`}</div>`;
+    });
+    h += `<button class="ghost" data-act="restore" data-i="-1" style="min-height:40px">RESTORE PURCHASES</button>
+      <div class="hint" style="text-align:left;padding:6px 2px 12px">${payLive()
+        ? 'Charges are real.' : 'Sandbox — no card is charged.'} Restoring re-grants a
+        subscription this account owns; a spent pack of Picks is never handed back.</div>`;
+  } else {
+    h += `<div class="sect">Reserved for later</div>`;
+    reservedRails().forEach(r => h += htmlReserved(r));
+    h += `<div class="hint">Every rail above says what it will hold and what it is waiting on.
+      Neither is a product with the price greyed out — a disabled BUY reads as &ldquo;you
+      cannot afford this&rdquo;, and that would be a lie about a thing that cannot be bought
+      at all. The catalogue behind them is real and lives in <b>PAY</b>; set a provider in
+      <b>PAYMENTS</b> and the same list renders as a store without this screen changing
+      shape.</div>`;
+  }
   return h;
 }
 function htmlSettings(){
@@ -5949,6 +6107,19 @@ function htmlSettings(){
     <div class="st"><b>Last saved ${since < 2 ? 'just now' : since + 's ago'}</b>
       <span>Autosaves every 5s, and on every purchase, release and rename</span></div>
     <button class="sbtn" data-set="savenow">SAVE NOW</button></div>`;
+  h += '<div class="sect">Purchases</div>';
+  const pu = S.purchases || [];
+  h += `<div class="srow"><div class="si" style="--c1:${PAL.mute}">${ico(ICON.shop, {c:PAL.dim, s:20})}</div>
+    <div class="st"><b>${payOn() ? (payLive() ? 'Payments live' : 'Payments in sandbox')
+                                 : 'Payments not connected'}</b>
+      <span>${pu.length ? pu.length + (pu.length === 1 ? ' receipt on this device' : ' receipts on this device')
+                        : 'Nothing has ever been charged'}</span></div>
+    ${payOn() ? '<button class="sbtn" data-set="restore">RESTORE</button>'
+              : '<span class="synced" style="color:var(--dim3)">NONE</span>'}</div>`;
+  h += `<div class="hint" style="padding:0 4px 14px">There is no payment provider in this
+    build and no request leaves the device. The catalogue and the grant path are real and
+    tested; connecting a provider is four edits in the <b>PAYMENTS</b> banner.</div>`;
+
   h += '<div class="sect">Cloud save</div>';
   h += `<div class="srow"><div class="si" style="--c1:${PAL.mute}">${ico(ICON.cloud, {c:PAL.dim, s:20})}</div>
     <div class="st"><b>${c.on ? esc(c.email) : 'Not signed in'}</b>
@@ -6064,6 +6235,24 @@ function buy(act, i, node){
     const it = itemOf(i), k = +(node && node.dataset.k) || 0;
     if (!it) return;
     toast('🔒 ' + COLORWAY[k].n + ' needs a ' + RARITY[k].n + ' ' + gearName(it));
+    return;
+  } else if (act === 'pay'){
+    const id = node && node.dataset.id;
+    buyProduct(id).then(P => {
+      if (!P) return;
+      reward({ big:true }); confetti(3);
+      toast('🧾 ' + P.n + ' — ' + sayReward(P.give));
+      renderTop(); renderTix(); save();
+      if (sheetTab === 'shop') renderSheet('shop');
+    });
+    return;                                        // the provider's sheet owns the press
+  } else if (act === 'restore'){
+    applyRestore().then(got => {
+      toast(got.length ? '🧾 Restored ' + got.map(P => P.n).join(', ')
+                       : '🧾 Nothing to restore');
+      renderTop(); save();
+      if (sheetTab === 'shop') renderSheet('shop');
+    });
     return;
   } else if (act === 'pbuy'){
     const id = node && node.dataset.id;
@@ -6299,6 +6488,10 @@ function settingsAct(what){
         Notification.requestPermission().then(() => renderSheet('settings'));
       }
     } catch(e){}
+  } else if (what === 'restore'){
+    applyRestore().then(got => { toast(got.length ? '🧾 Restored ' + got.length : '🧾 Nothing to restore');
+      save(); renderSheet('settings'); });
+    return;
   } else if (what === 'banner'){
     S.banner = !S.banner;
     applyBanner();
@@ -6352,6 +6545,7 @@ function boot(){
   rollTickets();
   rollQuests();                        // deals today's board, and settles the streak
   rollShop(); vipDaily();
+  if (payOn() && PAYMENTS.restoreOnBoot) applyRestore().then(g => { if (g.length) save(); });
   S.offers.sessionShown = false;       // one commercial offer per session — see offerSeen()
   if (S.gig.active){                   // the tab shut mid-song: the ticket is gone, the show is not
     S.gig.active = null;
