@@ -1215,6 +1215,10 @@ const BAL = {
   // under any performance; a maxed one can, and only by very nearly not missing.
   flawAcc: 0.90,          // every take graded at least this accurate
   flawBonus: 2,           // ...and the same again for all-x4 and all-pocket
+  // SKILLS — the third craft source. Hours only: never money, never an ad. Tier 2 wants
+  // a *3 member and tier 3 a *5, so the crate ladder is what gates them.
+  skillHours: [3, 6, 12],
+  skillStar: [1, 3, 5],
   // STATS — four jobs. None of them multiplies streams or touches a released song.
   statWriteCraft: 0.10,   // WRITING: craft per point...
   statWriteHint: 0.004,   // ...and the floor under this member's hint accuracy
@@ -1428,7 +1432,8 @@ const fitOf = (a,b) => clamp(1 - cdist(a,b) / DSCALE, 0, 1);
 /* `i` is the member making this decision — their gear tilts the weights a little.
    Polish-heavy and grit-heavy are read off the genre's own vector, so no table. */
 function cardPoints(card, genre, prev, i){
-  const gf = fitOf(card.v, genre.v) * (1 + (i != null && genre.v[2] > 0.2 ? fx(i, 'fitPolish') : 0));
+  const gf = fitOf(card.v, genre.v) * (1 + (i != null ? fx(i, 'fitAll') : 0)
+                                         + (i != null && genre.v[2] > 0.2 ? fx(i, 'fitPolish') : 0));
   let ch;
   if (!prev.length) ch = gf;
   else { let d = 0; for (const p of prev) d += cdist(card.v, p.v); ch = clamp(1 - (d/prev.length)/DSCALE, 0, 1); }
@@ -1876,6 +1881,7 @@ const ICON = {
   flag:'<path d="M6 21V3.5"/><path d="M6 4.5h11l-2 3.5 2 3.5H6z"/>',
   crown:'<path d="M4 18h16"/><path d="M4 15.5 3 7l5 3.5L12 4l4 6.5L21 7l-1 8.5z"/>',
   home:'<path d="M3.5 10.5 12 4l8.5 6.5V20H3.5z"/><path d="M9.5 20v-5h5v5"/>',
+  check:'<path d="M4.5 12.5 9.5 18 20 6"/>',
   music:'<circle cx="7" cy="17.5" r="3"/><circle cx="18" cy="15" r="3"/><path d="M10 17.5V6.5l11-2.5v11"/>',
   fans:'<circle cx="9" cy="8.5" r="3.2"/><path d="M3 19c0-3.3 2.7-5 6-5s6 1.7 6 5"/><path d="M16 6.2a3.2 3.2 0 0 1 0 5.6M18 4.2a6 6 0 0 1 0 9.6"/>'
 };
@@ -2485,6 +2491,9 @@ function fx(i, key){
     const g = archOf(it.a), p = g && g.fx && PASSIVE[g.fx];
     if (p && p.k === key && (!p.when || p.when())) n += p.v;
   });
+  // a learned skill is the same shape as a passive and lands on the same key, so every
+  // site that already reads one reads the other with no branch of its own
+  skillsOwned(i).forEach(sk => { if (sk.k === key) n += sk.v; });
   return n;
 }
 function fxBand(key){
@@ -2938,13 +2947,80 @@ function load(){
 /* level^0.55, not level: the multiplier applies to every song at once, so a linear
    gain here beats an exponential cost curve and the game finishes in an hour. */
 const memberSPS = i => MEMBERS[i].sps * Math.pow(S.members[i].lvl, BAL.lvlExp);
+/* ===== SKILLS — the third craft source, and the only thing Studio Hours buy =====
+   Six per member in three tiers. Tier 1 is open to anyone; Tier 2 wants a ★3 member and
+   Tier 3 a ★5, so the crate ladder gates the skill ladder and money never can. Hours come
+   from career objectives, the weekly challenge and streak milestones — never from money
+   and never from an ad.
+   One entry, one effect, and never a branch: `s` grants a stat, `k` is the SAME effect key
+   a gear passive uses, so every skill lands on a site that already exists. */
+const SKILLS = [
+  // DRUMS — the clock the rest of the band plays against
+  { id:'steady',  role:0, tier:0, n:'Steady Hand',   d:'+8 SKILL',                        s:'s', v:8 },
+  { id:'breath',  role:0, tier:0, n:'Deep Breath',   d:'+8 STAMINA',                      s:'m', v:8 },
+  { id:'click',   role:0, tier:1, n:'Click Track',   d:'Perfect window +3%',              k:'perfWin',    v:0.03 },
+  { id:'second',  role:0, tier:1, n:'Second Wind',   d:'Show fatigue −12%',               k:'fatCut',     v:0.12 },
+  { id:'pocketp', role:0, tier:2, n:'Pocket Player', d:'IN THE POCKET at 7 in a row',     k:'pocketAt',   v:1 },
+  { id:'machine', role:0, tier:2, n:'Machine',       d:'A miss on stage costs 20% less',  k:'gigMissCut', v:0.20 },
+  // BASS — the part nobody notices until it is not there
+  { id:'root',    role:1, tier:0, n:'Root Notes',    d:'+8 WRITING',                      s:'w', v:8 },
+  { id:'groove',  role:1, tier:0, n:'Groove',        d:'+8 SKILL',                        s:'s', v:8 },
+  { id:'lockin',  role:1, tier:1, n:'Lock In',       d:'Coherence weight +6%',            k:'coher',      v:0.06 },
+  { id:'sustain', role:1, tier:1, n:'Sustain',       d:'The crowd cools 8% slower',       k:'hypeHold',   v:0.08 },
+  { id:'foundat', role:1, tier:2, n:'Foundation',    d:'+4 craft',                        k:'craft',      v:4 },
+  { id:'walking', role:1, tier:2, n:'Walking Line',  d:'Take → Quality +6%',              k:'takeQ',      v:0.06 },
+  // GUITAR — the hook, and the front of the stage
+  { id:'chords',  role:2, tier:0, n:'Chord Shapes',  d:'+8 WRITING',                      s:'w', v:8 },
+  { id:'presence',role:2, tier:0, n:'Stage Presence',d:'+8 STAGE',                        s:'t', v:8 },
+  { id:'sigtone', role:2, tier:1, n:'Signature Tone',d:'Genre fit +5%',                   k:'fitAll',     v:0.05 },
+  { id:'feedback',role:2, tier:1, n:'Feedback',      d:'+8 hype at the top of a show',    k:'hypeStart',  v:8 },
+  { id:'writer',  role:2, tier:2, n:'Songwriter',    d:'+4 craft',                        k:'craft',      v:4 },
+  { id:'solo',    role:2, tier:2, n:'Solo',          d:'Encore threshold −5 hype',        k:'encoreCut',  v:5 },
+  // VOCALS — the room, and the person holding it
+  { id:'bcontrol',role:3, tier:0, n:'Breath Control',d:'+8 STAMINA',                      s:'m', v:8 },
+  { id:'project', role:3, tier:0, n:'Projection',    d:'+8 STAGE',                        s:'t', v:8 },
+  { id:'phrasing',role:3, tier:1, n:'Phrasing',      d:'Hint accuracy floor +4%',         k:'hintFloor',  v:0.04 },
+  { id:'crowdw',  role:3, tier:1, n:'Crowd Work',    d:'Venue-fit floor +0.06',           k:'fitFloor',   v:0.06 },
+  { id:'front',   role:3, tier:2, n:'Front Person',  d:'Crowd milestones land 5 earlier', k:'milestoneCut', v:5 },
+  { id:'vrange',  role:3, tier:2, n:'Range',         d:'+4 craft',                        k:'craft',      v:4 }
+];
+const skillOf = id => SKILLS.find(x => x.id === id) || null;
+const skillsFor = i => SKILLS.filter(x => x.role === i);
+/* what this member has actually learned */
+const skillsOwned = i => ((S.skills && S.skills[i]) || []).map(skillOf).filter(Boolean);
+const hasSkill = (i, id) => ((S.skills && S.skills[i]) || []).indexOf(id) >= 0;
+const skillHours = sk => BAL.skillHours[clamp(sk.tier, 0, BAL.skillHours.length - 1)];
+const skillStarNeed = sk => BAL.skillStar[clamp(sk.tier, 0, BAL.skillStar.length - 1)];
+/* a skill's stat grant reaches statOf; its effect key reaches fx() beside the gear
+   passives, which is why no new read site exists anywhere in this stage */
+function skillStat(i, k){
+  let n = 0;
+  skillsOwned(i).forEach(sk => { if (sk.s === k) n += sk.v; });
+  return n;
+}
+function skillLocked(i, sk){
+  if (!S.members[i] || !S.members[i].owned) return 'not in the band';
+  if ((S.star[i] || 1) < skillStarNeed(sk)) return starStr(skillStarNeed(sk)) + ' needed';
+  return '';
+}
+function buySkill(i, id){
+  const sk = skillOf(id);
+  if (!sk || sk.role !== i || hasSkill(i, id)) return false;
+  if (skillLocked(i, sk)) return false;
+  const cost = skillHours(sk);
+  if (S.hours < cost) return false;
+  S.hours -= cost;
+  S.skills[i].push(id);
+  return true;
+}
+const skillsLearned = () => S.skills.reduce((a, x) => a + x.length, 0);
 /* ===== STATS — four jobs, and not one of them is "more streams" =====
    WRITING  raises craft, and puts a floor under how often this member reads a card right.
    SKILL    turns a played take into Quality, and buys a little timing window.
    STAGE    is the room: hype gain, and how forgiving a venue is about your genre.
    STAMINA  is long shows only — see gigFatigue(). It never touches songwriting.
-   Points come from Star Rank (build step 4), gear (step 2) and skills (step 5); until
-   those land every stat is 0 and every formula below is a no-op. */
+   Points come from three places and are read in exactly one: Star Rank spends through
+   S.spend, gear through gearStat, and a learned skill through skillStat. */
 const STATS = [
   { k:'w', n:'WRITING', d:'Craft, and how often they read a card right' },
   { k:'s', n:'SKILL',   d:'What a played take is worth in Quality' },
@@ -2955,8 +3031,6 @@ function statOf(i, k){
   const sp = S.spend && S.spend[i];
   return (sp && sp[k] || 0) + gearStat(i, k) + skillStat(i, k);
 }
-/* skills are a later build step; declared here so statOf has one shape */
-const skillStat = () => 0;
 /* what a member's two equipped items are worth in one stat. Clean Signal (the DI box)
    is the one passive that amplifies the other slot rather than adding to it. */
 function gearStat(i, k){
@@ -2977,7 +3051,8 @@ function bandStat(k){
 /* a low-level member is an unreliable narrator — WRITING is what makes them reliable
    before their level does */
 const hintAcc = i => clamp(Math.max(0.5 + 0.035 * S.members[i].lvl,
-                                    0.5 + BAL.statWriteHint * statOf(i, 'w')), 0.5, 0.97);
+                                    0.5 + BAL.statWriteHint * statOf(i, 'w') +
+                                          fx(i, 'hintFloor')), 0.5, 0.97);
 /* SKILL widens the hit windows a little. Capped hard: this is accessibility, not a
    difficulty setting, and the grade is still accuracy. */
 const winScale = i => 1 + Math.min(BAL.statSkillWinMax,
@@ -3001,7 +3076,7 @@ function craft(){
   let c = 0;
   for (let i = 0; i < 4; i++) if (S.members[i].owned) c += memberCraft(i);
   c += BAL.craftStudio * S.studio;
-  return c;                        // gear (build step 2) and skills (step 5) add here
+  return c;                        // gear and skills reach this through memberCraft's fx()
 }
 /* The best song this band could make if you played the session perfectly — and it
    APPROACHES 100 rather than reaching it. Craft alone tops out just short of the top of
@@ -3970,14 +4045,15 @@ function tapLane(L){
   const step = BAL.multSteps.indexOf(take.streak) >= 0;
   feed(perfect ? 'PERFECT' : 'GOOD', perfect ? JUDGE.perfect : JUDGE.good,
        step ? take.streak + ' IN A ROW · x' + multFor(take.streak) : '');
-  if (perfect && take.streak === BAL.pocketStreak) pocket();
+  if (perfect && take.streak === pocketAt(take.track)) pocket();
   renderMult(); renderMeter();
 }
 function missNote(wrongLane){
   const t = now() - take.t0;
   take.streak = 0;
   const soft = 1 - fx(take.track, 'meterCut'), shield = 1 - fx(take.track, 'wrongCut');
-  if (take.mode === 'gig') hype(-(wrongLane ? BAL.hypeWrong * shield : BAL.hypeMiss));
+  const stage = 1 - fx(take.track, 'gigMissCut');            // Machine: a stage miss stings less
+  if (take.mode === 'gig') hype(-(wrongLane ? BAL.hypeWrong * shield : BAL.hypeMiss) * stage);
   else take.meter -= (wrongLane ? BAL.meterMiss / 2 * shield : BAL.meterMiss) * soft;
   if (t - take.lastMiss > 0.4){
     take.lastMiss = t;
@@ -4267,7 +4343,7 @@ function nextGigSection(){
   gigRun.k++;
   const g = gigRun;
   if (g.k >= g.songs.length){
-    if (!g.encore && g.hype >= BAL.gigEncoreAt){ g.encore = true; return gigSection(g.songs[0], BAL.gigEncoreSecs, true); }
+    if (!g.encore && g.hype >= encoreAt()){ g.encore = true; return gigSection(g.songs[0], BAL.gigEncoreSecs, true); }
     return finishGig();
   }
   gigSection(g.songs[g.k], g.secs, false);
@@ -4329,11 +4405,18 @@ const HYPE_TIERS = [
   { at:70, n:'LOUD',       say:"THEY'RE SINGING IT BACK" },
   { at:90, n:'ON FIRE',    say:'THIS PLACE IS GOING OFF' }
 ];
+/* Front Person pulls every milestone but the first one down, so the room announces
+   itself earlier — one helper, so the label and the shout can never disagree. */
+const tierAt = (k, cut) => k ? Math.max(1, HYPE_TIERS[k].at -
+  (cut === undefined ? fxBand('milestoneCut') : cut)) : 0;
 function hypeTier(h){
-  let i = 0;
-  HYPE_TIERS.forEach((t, k) => { if (h >= t.at) i = k; });
+  let i = 0, cut = fxBand('milestoneCut');    // read once: this runs on every note
+  HYPE_TIERS.forEach((t, k) => { if (h >= tierAt(k, cut)) i = k; });
   return i;
 }
+/* the two thresholds a skill moves, each read in exactly one place */
+const encoreAt = () => Math.max(1, BAL.gigEncoreAt - fxBand('encoreCut'));
+const pocketAt = i => Math.max(2, BAL.pocketStreak - fx(i, 'pocketAt'));
 /* every POSITIVE hype move goes through the room multiplier — STAGE lifts it, fatigue
    cuts it. Losses are never scaled: a miss costs what a miss costs. */
 const hypeGain = n => hype(n * (gigRun ? gigRun.hypeMul : 1));
@@ -4365,7 +4448,7 @@ function gigTick(t){
   if (dt < 0.25) return;
   take.lastSec = t;
   const gain = (BAL.hypeBase + BAL.hypeSong * take.norm + BAL.hypeFit * take.fit) * gigRun.hypeMul;
-  hype((gain - BAL.hypeDrift) * dt);
+  hype((gain - BAL.hypeDrift * (1 - fxBand('hypeHold'))) * dt);   // Sustain holds the room
   renderHype();
 }
 function renderHype(){
@@ -4790,7 +4873,10 @@ function htmlMember(i){
   h += spent ? `<button class="ghost" data-act="respec" data-i="${i}" style="min-height:40px">
       RESPEC · FREE</button>`
     : `<div class="hint" style="text-align:left;padding:0 2px 4px">Points arrive with Star Rank —
-      duplicate member cards from crates. Spending them is always free to undo.</div>`;
+      duplicate member cards from crates. Gear and skills add to these rails directly.
+      Spending a point is always free to undo.</div>`;
+
+  h += htmlSkills(i);
 
   h += `<div class="sect">Gear <span style="color:var(--dim3);font-weight:700">${fmt(S.parts)} parts</span></div>
     <div class="gearrow">
@@ -4815,6 +4901,35 @@ function htmlMember(i){
     <button class="ghost" data-act="rename" data-i="${i}" style="margin-top:9px;min-height:44px">RENAME</button>
     <div class="hint">${ok ? '' : fmt(c - S.money) + ' more to go.'} A level does not pay you
       anything directly. It raises what this band can write — and better songs chart higher.</div>`;
+  return h;
+}
+/* SKILLS — six per member, three tiers, bought with Studio Hours and gated on Star Rank.
+   Every row says what it costs, what it does and what is holding it, before the press. */
+function htmlSkills(i){
+  const star = S.star[i] || 1;
+  let h = `<div class="sect">Skills <span style="color:var(--dim3);font-weight:700">${fmt(S.hours)} hours</span></div>`;
+  for (let t = 0; t < BAL.skillHours.length; t++){
+    const cost = BAL.skillHours[t], need = BAL.skillStar[t], gated = star < need;
+    h += `<div class="hint" style="text-align:left;padding:2px 2px 6px;letter-spacing:.1em;
+      text-transform:uppercase;font-size:10px;color:var(--dim3)">Tier ${t + 1} · ${cost} hours each${
+      need > 1 ? ` · ${starStr(need)}${gated ? ' — not yet' : ''}` : ''}</div>`;
+    skillsFor(i).filter(x => x.tier === t).forEach(sk => {
+      const got = hasSkill(i, sk.id), can = !gated && S.hours >= cost;
+      h += `<div class="card ${got || can ? '' : 'locked'}">
+        <div class="av" style="--c1:${got ? MEMBERS[i].c1 : PAL.elev}">
+          ${ico(got ? ICON.check : ICON.music, {c:got ? PAL.onAccent : PAL.dim2, s:20})}</div>
+        <div class="info"><div class="t">${sk.n}</div>
+        <div class="d">${sk.d}${got ? ' · <b>learned</b>'
+          : gated ? ' · needs ' + starStr(need)
+          : S.hours < cost ? ' · ' + (cost - S.hours) + ' more hours' : ''}</div></div>
+        ${got ? '<div class="rar">LEARNED</div>'
+              : `<button class="buy ${can ? '' : 'no'}" data-act="skill" data-i="${i}"
+                   data-id="${sk.id}">LEARN<small>${cost}h</small></button>`}</div>`;
+    });
+  }
+  h += `<div class="hint" style="text-align:left;padding:0 2px 4px">Studio Hours come from
+    career objectives at the venues — never from money and never from an ad. A skill is
+    permanent: it raises what this band can do, and never what a released song earns.</div>`;
   return h;
 }
 function htmlBand(){
@@ -5223,6 +5338,13 @@ function buy(act, i, node){
     S.picks -= C.picks; grantCrate(C.k, 1);
     AU.chord('small'); buzz(12);
     toast('📦 ' + C.n + ' — open it when you like');
+  } else if (act === 'skill'){
+    const id = node && node.dataset.id;
+    if (!buySkill(i, id)) return;
+    const sk = skillOf(id);
+    buildBand();                                   // craft skills move the ceiling now
+    AU.chord('small'); buzz([12, 30, 12]);
+    toast('🎓 ' + shortName(i) + ' learned ' + sk.n);
   } else if (act === 'stat'){
     // a stat point is never spent on the player's behalf, and never costs money
     const k = node && node.dataset.k;

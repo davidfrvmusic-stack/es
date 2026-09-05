@@ -498,8 +498,8 @@ immediate payoff before you have any catalogue.
 
 ## 6b. CRAFT — the one thing every upgrade buys
 
-Member levels, star rank, the studio, and later gear and skills all feed **one number**:
-how good a song this band is capable of making.
+Member levels, star rank, the studio, gear and skills all feed **one number**: how good a
+song this band is capable of making.
 
     craft     = Σ owned members (craftMember + craftLvl × level^craftExp
                                  + starCraft[star] + statWriteCraft × WRITING
@@ -542,9 +542,10 @@ curve that grows at 1.25, so no amount of levelling runs away with the ceiling.
 ## 6c. STATS — four jobs, and not one of them is streams
 
 Every member carries `WRITING / SKILL / STAGE / STAMINA` (`STATS`, and `statOf(i, k)` is
-the one place they are read). Points come from Star Rank, gear and skills — all later
-build steps — so today every stat is 0 and every formula below is a no-op that the
-content stages switch on. **None of them multiplies streams or touches a released song.**
+the one place they are read). Points come from three places and reach that one reader
+through three helpers: Star Rank spends through `S.spend`, gear through `gearStat`, and a
+learned skill through `skillStat`. **None of them multiplies streams or touches a released
+song.**
 
 | stat | what it drives | knob |
 |---|---|---|
@@ -593,6 +594,8 @@ earns.** The only thing that multiplies income is the royalty rate, and fans cap
   grants stat points. It replaced rarity's old 1→8 craft *multiplier* (§6c). See §8d.
 - **Gear** — 2 slots per member, visible on the character, and 28 archetypes that are
   builds rather than skins. See §8b.
+- **Skills** — 6 per member in three tiers, bought with Studio Hours and gated on ★3 and
+  ★5. See §8e.
 - **Studios** — Garage → Bedroom → Rehearsal → Pro Studio → Label HQ → Tour Bus →
   Stadium → Space. Each adds `BAL.craftStudio` (1.8) craft, and each one is a **room you
   can see** — see §8c.
@@ -748,12 +751,54 @@ tilting published odds by rank would make the published odds a lie — so it is
 Legend 1 Mythic. The gift is granted at the moment the rank changes rather than when the
 card is shown, because `rankUp()` runs twice when the card has to queue behind a reveal.
 
-**Picks buy them**, at the prices above — and **nothing grants Picks yet**: quests and
-career objectives are later build steps, and the Shop says so in as many words.
+**Picks buy them**, at the prices above, and Picks come from the **Own the room** career
+objective in each venue (§4d). Daily quests are the second source and are a later build
+step; the Shop says so in as many words.
 
 **The open is the fifth reward moment** and borrows the other four's component (§13c).
 Layer two is the star bar filling rather than a counter easing, because a crate moves a
 *member*, not money, streams or fans.
+
+## 8e. SKILLS — the third craft source, and the only thing Hours buy
+
+**24 skills, six per member, three tiers.** Tier 1 costs `BAL.skillHours[0]` (3) Studio
+Hours and is open to anyone; Tier 2 costs 6 and wants a **★3** member; Tier 3 costs 12 and
+wants **★5**. That is 42 Hours a member, **168 for a full band** — and the gate is the
+crate ladder, never money. A skill is permanent and cannot be refunded (a stat *point*
+can, because the player allocates it; a skill is a purchase with a published price).
+
+| role | Tier 1 | Tier 2 | Tier 3 |
+|---|---|---|---|
+| **drums** | *Steady Hand* +8 SKILL · *Deep Breath* +8 STAMINA | *Click Track* perfect window +3% · *Second Wind* show fatigue −12% | *Pocket Player* IN THE POCKET at 7 · *Machine* a stage miss costs 20% less |
+| **bass** | *Root Notes* +8 WRITING · *Groove* +8 SKILL | *Lock In* coherence +6% · *Sustain* the crowd cools 8% slower | *Foundation* +4 craft · *Walking Line* take → Quality +6% |
+| **guitar** | *Chord Shapes* +8 WRITING · *Stage Presence* +8 STAGE | *Signature Tone* genre fit +5% · *Feedback* +8 starting hype | *Songwriter* +4 craft · *Solo* encore threshold −5 |
+| **vocals** | *Breath Control* +8 STAMINA · *Projection* +8 STAGE | *Phrasing* hint floor +4% · *Crowd Work* venue-fit floor +0.06 | *Front Person* crowd milestones land 5 earlier · *Range* +4 craft |
+
+**A skill is one entry with one effect, and it lands on a site that already exists.** Each
+carries either `s` — a stat it grants, read by `skillStat` inside `statOf` — or `k`, **the
+same effect key a gear passive uses**, summed by the same `fx(i, key)` / `fxBand(key)`.
+Eleven of the fourteen keys were already being read for gear; the whole stage added exactly
+three new read sites, each a one-line helper next to the constant it replaces:
+
+    tierAt(k)   HYPE_TIERS[k].at − milestoneCut   (Front Person; tier 0 never moves)
+    encoreAt()  BAL.gigEncoreAt − encoreCut       (Solo)
+    pocketAt(i) BAL.pocketStreak − pocketAt       (Pocket Player, floored at 2)
+
+plus `gigMissCut` inside `missNote` and `hypeHold` on the drift term in `gigTick`.
+
+**Studio Hours have exactly one source and exactly one sink.** They come from the *Bring
+the right song* career objective (§4d), 1–3 a room, and later from the weekly challenge and
+streak milestones; they are **never bought with money and never granted by an ad**. They
+buy skills and nothing else.
+
+**Nothing here reaches a released song.** The suite asserts a released song's `songSPS` is
+byte-identical before and after all 24 are learned, while `craftCap` moves — which is the
+same rule §6 states for every other upgrade.
+
+The screen is a section on the character sheet, under Stats and above Gear: three tier
+headings carrying the cost and the star gate, six rows each naming the skill and what it
+does, and a LEARN button that greys out with the reason on the row — *needs ★3*, or how
+many more hours to go.
 
 ## 9. PACING — why the curve is shaped the way it is
 
@@ -898,7 +943,7 @@ hear which part is yours. `AU.takeHit(yours, energy, good)`.
 - **Parts** — from scrapping gear you are not playing, and the only thing that upgrades it.
 - **Member cards** — per member, and the only route to a star rank. Never bought.
 - **Studio Hours** — from the **Bring the right song** career objective, 1–3 a room. Never
-  from money and never from an ad; they buy skills (build step 5).
+  from money and never from an ad; they buy **skills** (§8e) and nothing else.
 - **Legacy** (prestige) — permanent multipliers.
 - **VIP** — `S.vip` only raises the offline cap to 24h today. Nothing grants it yet;
   the Shop card is still a stub, so the 24h path is reachable only by setting the flag.
@@ -996,8 +1041,10 @@ What the screen holds, top to bottom:
   card level unlocks.
 - **Stats** — WRITING / SKILL / STAGE / STAMINA, four real rails now (§6c), each with its
   value, a one-line note on what it drives, a `+` while the member has unspent points, and
-  a free `RESPEC` once anything is spent. They read 0 for everyone until Star Rank, gear
-  and skills start granting points — which is the honest number, not an invented one.
+  a free `RESPEC` once anything is spent. Star Rank grants the points; gear and skills add
+  to the same rails directly, so a starter instrument alone already moves them.
+- **Skills** — three tier headings with their cost and star gate, six rows, one LEARN
+  button each, and the reason on the row when it is greyed (§8e).
 - **Gear** — two slots, `INSTRUMENT` and `RIG`. A filled slot is a solid card in the
   item's rarity colour carrying its name, rarity, upgrade level and points; an empty one
   stays dashed. Tapping either opens the **gear screen** — a detour off a detour, so
@@ -1137,9 +1184,9 @@ does not move either.
   to level 60/Tour Bus while the same song still moves when its genre goes hot, and the
   catalogue at cap keeping an incoming Hit while rejecting an incoming flop.
 
-**Known gaps (deliberate, deferred):** skills — the third craft source, what Studio Hours
-are for, and the Tier-1/Tier-2 abilities a ★3 and ★5 unlock;
-daily quests and weekly challenges (the second Picks source, and streaks);
+**Known gaps (deliberate, deferred):**
+daily quests and weekly challenges (the second Picks source, the second Hours source, and
+streaks);
 the *Daily* Gig and rival/multiplayer gigs (the regular ladder in §4d is built),
 six-cards-per-track-per-genre (128 signature cards ship, 384 do not),
 streaks, prestige, league, weekend events, real shop, LLM content,
@@ -1608,6 +1655,39 @@ Suites: the new `ca` suite is 17 assertions — the reward ladders, every object
 against the cases that should and should not pass it, the brief before and after, held vs
 banked, the replay, a show the tab closed on, and the open count. Twenty-six suites pass, no console errors,
 frame time median 16.7ms / p95 17.2ms.
+
+**Phase Two, stage 5 — 24 skills, and the third craft source is real.** Two stages shipped
+machinery ahead of its supply on purpose; this one closes the loop the other way round.
+Career objectives (stage 6, taken first) grant Studio Hours, and Hours now have the one
+thing they buy. §8e is the system.
+
+- **Eleven of the fourteen effect keys already existed.** A skill declares either `s`, a
+  stat, or `k`, *the same effect key a gear passive declares* — so `fx(i, key)` grew one
+  loop over the member's learned skills and every site that already read a passive reads a
+  skill for free. The stage added three new helpers (`tierAt`, `encoreAt`, `pocketAt`) and
+  two inline reads (`gigMissCut`, `hypeHold`), each one replacing a bare constant at the
+  place it was already being read.
+- **The gate is the crate ladder, not money.** Tier 2 wants ★3 and Tier 3 wants ★5, so a
+  skill is downstream of member cards; the price is Studio Hours, which no amount of money
+  or ad-watching can produce.
+- **A skill is permanent and a stat point is not.** A point is allocation and RESPEC is
+  free; a skill is a purchase at a published price. Making both refundable would make the
+  Hours meaningless, and making neither would make the rails a trap.
+- **Nothing here reaches a released song**, and the suite proves it rather than asserting
+  it: a released song's `songSPS` is identical before and after all 24 are learned, while
+  `craftCap` moves from Q49 to Q75 on the same band.
+
+One naming collision left deliberately: the bass gear passive on the 5-String is *Range*
+(coherence) and the vocalist's Tier-3 skill is also *Range* (+4 craft). They live in
+different tables, on different members, and both names are the right word for the thing.
+
+Suites: the new `sk` suite is 32 assertions — the table (24, unique, six a member, two a
+tier, one effect each), the costs and both star gates, buying refused for hours, rank,
+role and repeats, **every one of the fourteen effects measured at its own site** (including
+Walking Line through a real take and Machine through a real miss on a real stage), all 24
+learned costing exactly 168 hours, the released-song invariant, the sheet's six rows with
+only the affordable ones live, LEARN spending the hours and lighting the stat rail, and
+everything surviving a reload. Twenty-seven suites pass, no console errors.
 
 **Removed along the way:** the tap-to-fill-tracks loop, Hook Moments, the Hype stat
 (Quality shifts chart odds instead), and weekly-seeded genre trends (replaced by the
