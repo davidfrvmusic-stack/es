@@ -422,6 +422,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   font-size:11.5px;font-weight:800;background:var(--accent2);color:var(--onAccent);box-shadow:0 3px 0 var(--accent2-dk)}
 .buy.no{background:var(--mute);color:var(--dim2);box-shadow:none}
 .buy.alt{background:var(--mute);color:var(--dim);min-width:0;padding:9px 12px;box-shadow:none}
+.buy.gold{background:var(--gold);color:var(--onGold);box-shadow:0 3px 0 var(--gold-dk)}
 .buy small{display:block;font-size:10px;font-weight:700;opacity:.9}
 .buy:active{box-shadow:none}
 .locked{opacity:.72;border-style:dashed;border-color:var(--line2)}
@@ -464,8 +465,12 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   background:var(--elev);color:var(--ink);font-weight:900;font-size:15px;line-height:1}
 .statrail .sadd:active{transform:translateY(2px)}
 .stathint{font-size:9.5px;color:var(--dim3);margin:-3px 0 9px 84px}
-.starbar{display:block;height:7px;border-radius:99px;background:var(--elev);overflow:hidden;margin-top:6px}
-.starbar i{display:block;height:100%;border-radius:99px;background:var(--accent2)}
+.starbar,.qbar{display:block;height:7px;border-radius:99px;background:var(--elev);overflow:hidden;margin-top:6px}
+.starbar i,.qbar i{display:block;height:100%;border-radius:99px;background:var(--accent2)}
+.qbar.ok i{background:var(--gold)}
+.qrow{display:flex;align-items:center;gap:8px;margin:8px 2px 2px}
+.qrow .qn{flex:1;font-size:9.5px;font-weight:800;letter-spacing:.11em;color:var(--dim3)}
+.qdone{opacity:.7}
 .gearrow{display:flex;gap:var(--s2)}
 .gearslot{flex:1;min-height:76px;border-radius:var(--r2);background:var(--panel);
   border:2px dashed var(--line2);display:grid;place-items:center;gap:3px;color:var(--dim3);
@@ -1215,6 +1220,19 @@ const BAL = {
   // under any performance; a maxed one can, and only by very nearly not missing.
   flawAcc: 0.90,          // every take graded at least this accurate
   flawBonus: 2,           // ...and the same again for all-x4 and all-pocket
+  // DAILY QUESTS. Three a day, one reward each, and a streak that bends rather than
+  // breaks. The day and the week are dayNum()/weekNum(), so nothing here is a countdown.
+  questPay: [{ picks:10 }, { picks:18, parts:8 }, { crate:'b', n:1 }],
+  questReroll: 1,         // free rerolls a day — one QUEST, never the board
+  questRerollVip: 1,      // ...and VIP gets one more (build step 8)
+  freezeMax: 2,           // Streak Freezes held at once; one is earned every week
+  streakMiles: [          // fired once each, on the way UP past the previous best
+    { at:3,  hours:2, crate:'b', n:1 },
+    { at:7,  hours:3, crate:'g', n:1 },
+    { at:14, hours:5, picks:60 },
+    { at:30, hours:8, crate:'m', n:1 }
+  ],
+  weeklyPay: { crate:'g', n:1, hours:5 },
   // SKILLS — the third craft source. Hours only: never money, never an ad. Tier 2 wants
   // a *3 member and tier 3 a *5, so the crate ladder is what gates them.
   skillHours: [3, 6, 12],
@@ -1958,11 +1976,10 @@ function careerClaim(v, ids){
     if (!c || careerDone(v, id)) return;
     (S.career.obj[v] = S.career.obj[v] || {})[id] = true;
     const r = c.pay(v);
-    if (r.crate) grantCrate(r.crate, r.n);
-    if (r.hours) S.hours += r.hours;
-    if (r.picks) S.picks += r.picks;
+    grantReward(r);
     said.push(c.say(v));
   });
+  if (said.length) qEvent('career', said.length);
   return said;
 }
 /* how many objectives are still open anywhere — the quest pool in build step 7 reads this
@@ -2027,6 +2044,7 @@ function applyStar(i){
 }
 /* One open: spend the crate, roll the rarity, then gear or cards at that rarity. */
 function openCrate(k){
+  if (crateHeld(k) > 0) qEvent('crate', 1);
   const C = crateOf(k);
   if (!C || crateHeld(k) <= 0) return null;
   S.crates.own[k]--;
@@ -2050,6 +2068,180 @@ function openCrate(k){
 function grantCrate(k, n){
   if (!crateOf(k)) return;
   S.crates.own[k] += (n || 1);
+}
+
+/* ===== DAILY QUESTS AND THE WEEKLY CHALLENGE =====
+   Three a day, one reward each, and a streak that bends instead of breaking. Two rules
+   shape the whole system:
+   - **Every type declares `ok()`, and an ineligible type is never dealt.** "Open a crate"
+     is not offered to a player who owns none, a career quest retires when nothing is left
+     to clear, and a gig quest wants a ticket. A board is always dealable because the
+     always-eligible types (write, Quality, pocket, perfect, level) can fill it.
+   - **Nothing here is on a timer you can watch tick.** The day and the week are the
+     monotonic dayNum()/weekNum() indices, so a wound-back clock buys nothing and there is
+     no countdown anywhere — the reset is a real change of state, not a bar draining. */
+const QUESTS = [
+  { id:'write',   k:'release', tgt:s => [1, 2, 3][s], ok:() => true,
+    n:t => 'Release ' + t + (t === 1 ? ' song' : ' songs') },
+  { id:'qual',    k:'quality', mode:'max', ok:() => true,
+    tgt:() => Math.max(20, Math.round(craftCap() * 0.82 / 5) * 5),
+    n:t => 'Write a song at Q' + t + ' or better' },
+  { id:'pocket',  k:'pocket',  tgt:s => [2, 3, 4][s], ok:() => true,
+    n:t => 'Get IN THE POCKET ' + t + ' times' },
+  { id:'perfect', k:'perfect', tgt:s => [2, 3, 4][s], ok:() => true,
+    n:t => 'Land ' + t + ' perfect takes' },
+  { id:'level',   k:'level',   tgt:s => [1, 1, 2][s], ok:() => true,
+    n:t => t === 1 ? 'Level a member up' : 'Level members up ' + t + ' times' },
+  { id:'hit',     k:'hit',     tgt:s => [1, 1, 2][s], ok:() => S.released > 0,
+    n:t => 'Land ' + t + ' Hit' + (t === 1 ? '' : 's') + ' or better' },
+  { id:'gig',     k:'gig',     tgt:s => [1, 1, 2][s],
+    ok:() => S.songs.length > 0 && (S.gig.tickets > 0 || careerOpen() > 0),
+    n:t => 'Play ' + t + ' show' + (t === 1 ? '' : 's') },
+  { id:'sold',    k:'sold',    tgt:() => 1,
+    ok:() => S.songs.length > 0 && S.gig.tickets > 0,
+    n:() => 'Sell out a room' },
+  { id:'career',  k:'career',  tgt:s => Math.min(careerOpen(), [1, 1, 2][s]),
+    ok:() => careerOpen() > 0,
+    n:t => 'Clear ' + t + ' career objective' + (t === 1 ? '' : 's') },
+  { id:'crate',   k:'crate',   tgt:s => Math.min(cratesHeld(), [1, 1, 2][s]),
+    ok:() => cratesHeld() > 0,
+    n:t => 'Open ' + t + ' crate' + (t === 1 ? '' : 's') },
+  { id:'skill',   k:'skill',   tgt:() => 1, ok:() => skillBuyable(),
+    n:() => 'Learn a skill' }
+];
+/* the five that can always be dealt, whatever state the save is in — so three slots can
+   always be filled without ever offering something the player cannot act on */
+const QUEST_ALWAYS = ['write', 'qual', 'pocket', 'perfect', 'level'];
+const questType = id => QUESTS.find(q => q.id === id) || null;
+const cratesHeld = () => CRATES.reduce((a, C) => a + crateHeld(C.k), 0);
+const skillBuyable = () => SKILLS.some(sk => S.members[sk.role].owned && !hasSkill(sk.role, sk.id)
+  && !skillLocked(sk.role, sk) && S.hours >= skillHours(sk));
+/* One a week, rotating on the week index rather than a roll — the same challenge for
+   everybody in a given week, and no RNG to re-seed on load. */
+const WEEKLY = [
+  { id:'songs',   k:'release', tgt:12, n:t => 'Release ' + t + ' songs this week' },
+  { id:'hits',    k:'hit',     tgt:4,  n:t => 'Land ' + t + ' Hits or better' },
+  { id:'shows',   k:'gig',     tgt:6,  n:t => 'Play ' + t + ' shows' },
+  { id:'pocketw', k:'pocket',  tgt:15, n:t => 'Get IN THE POCKET ' + t + ' times' },
+  { id:'takes',   k:'perfect', tgt:12, n:t => 'Land ' + t + ' perfect takes' }
+];
+const weeklyFor = w => WEEKLY[((w % WEEKLY.length) + WEEKLY.length) % WEEKLY.length];
+const weeklyNow = () => WEEKLY.find(x => x.id === S.weekly.id) || null;
+/* one place a reward of any shape is paid, so a quest, a milestone, a career objective
+   and the weekly challenge cannot drift apart */
+function grantReward(r){
+  if (!r) return;
+  if (r.picks) S.picks += r.picks;
+  if (r.parts) S.parts += r.parts;
+  if (r.hours) S.hours += r.hours;
+  if (r.crate) grantCrate(r.crate, r.n || 1);
+}
+function sayReward(r){
+  const b = [];
+  if (r.picks) b.push(r.picks + ' Picks');
+  if (r.parts) b.push(r.parts + ' Parts');
+  if (r.hours) b.push(r.hours + (r.hours === 1 ? ' Studio Hour' : ' Studio Hours'));
+  if (r.crate) b.push((r.n || 1) + ' ' + crateOf(r.crate).n + ((r.n || 1) > 1 ? 's' : ''));
+  return b.join(' · ');
+}
+const questNew = (q, s) => ({ id:q.id, tgt:Math.max(1, q.tgt(s)), prog:0 });
+function dealQuests(){
+  const out = [];
+  for (let s = 0; s < 3; s++){
+    const taken = id => out.some(o => o.id === id);
+    let pool = QUESTS.filter(q => q.ok() && !taken(q.id));
+    if (!pool.length) pool = QUESTS.filter(q => QUEST_ALWAYS.includes(q.id) && !taken(q.id));
+    if (!pool.length) pool = QUESTS.filter(q => QUEST_ALWAYS.includes(q.id));
+    out.push(questNew(pick(pool), s));
+  }
+  return out;
+}
+const questDone = it => !!it && it.prog >= it.tgt;
+const questClaimed = s => S.quests.done.indexOf(s) >= 0;
+const questsReady = () => S.quests.list.filter((it, s) => questDone(it) && !questClaimed(s)).length +
+                          (weeklyDone() && !S.weekly.got ? 1 : 0);
+const weeklyDone = () => { const W = weeklyNow(); return !!W && S.weekly.prog >= W.tgt; };
+const questRerolls = () => BAL.questReroll + (vipOn() ? BAL.questRerollVip : 0);
+/* PROGRESS. One bus: the game calls qEvent at the moment a thing happens, and the day's
+   board and the week's challenge both read it. No system polls anything. */
+function qEvent(k, n){
+  if (!S.quests || !S.quests.list.length) return;
+  let moved = false;
+  S.quests.list.forEach(it => {
+    const q = questType(it.id);
+    if (!q || q.k !== k || it.prog >= it.tgt) return;
+    it.prog = q.mode === 'max' ? Math.max(it.prog, n || 0) : it.prog + (n || 1);
+    if (it.prog >= it.tgt) moved = true;
+  });
+  const W = weeklyNow();
+  if (W && !S.weekly.done && S.weekly.prog < W.tgt){
+    S.weekly.prog = W.mode === 'max' ? Math.max(S.weekly.prog, n || 0) : S.weekly.prog + (n || 1);
+  }
+  renderRail();
+  if (sheetTab === 'quests') renderSheet('quests');
+  if (moved) buzz(10);
+}
+function claimQuest(s){
+  const q = S.quests, it = q.list[s];
+  if (!questDone(it) || questClaimed(s)) return null;
+  q.done.push(s);
+  const pay = BAL.questPay[s];
+  grantReward(pay);
+  const miles = q.done.length === 3 ? finishDay() : [];
+  return { pay, miles };
+}
+function claimWeekly(){
+  if (!weeklyDone() || S.weekly.got) return null;
+  S.weekly.got = true; S.weekly.done = true;
+  grantReward(BAL.weeklyPay);
+  return BAL.weeklyPay;
+}
+/* the streak moves the moment the third quest is claimed, so the milestone lands on the
+   press rather than at some invisible midnight */
+function finishDay(){
+  const q = S.quests;
+  if (q.won) return [];
+  q.won = true; q.streak++;
+  const miles = BAL.streakMiles.filter(m => q.streak >= m.at && m.at > q.best);
+  miles.forEach(m => grantReward(m));
+  q.best = Math.max(q.best, q.streak);
+  return miles;
+}
+/* ROLLOVER. A missed day costs ONE off the streak, not the streak — and a Streak Freeze
+   is spent instead when one is held. Both indices only move forward. */
+function rollQuests(){
+  const q = S.quests, d = dayNum(), w = weekNum();
+  let moved = false;
+  if (!q.list.length){
+    q.day = d; q.list = dealQuests(); q.done = []; q.reroll = 0; q.won = false;
+    moved = true;
+  } else if (d > q.day){
+    let missed = (q.won ? 0 : 1) + (d - q.day - 1);
+    while (missed-- > 0){
+      if (q.freeze > 0) q.freeze--;
+      else q.streak = Math.max(0, q.streak - 1);
+    }
+    q.day = d; q.list = dealQuests(); q.done = []; q.reroll = 0; q.won = false;
+    moved = true;
+  }
+  if (S.weekly.id == null || w > S.weekly.week){
+    S.weekly = { week:w, id:weeklyFor(w).id, prog:0, done:false, got:false };
+    q.freeze = Math.min(BAL.freezeMax, q.freeze + 1);   // one earned a week, held up to two
+    moved = true;
+  }
+  return moved;
+}
+/* one quest, not the set — rerolling the board would make the eligibility rules pointless */
+function rerollQuest(s){
+  const q = S.quests;
+  if (!q.list[s] || questClaimed(s) || q.reroll >= questRerolls()) return false;
+  const taken = id => q.list.some((o, i) => i !== s && o.id === id);
+  let pool = QUESTS.filter(x => x.ok() && !taken(x.id) && x.id !== q.list[s].id);
+  if (!pool.length) pool = QUESTS.filter(x => QUEST_ALWAYS.includes(x.id) && !taken(x.id) && x.id !== q.list[s].id);
+  if (!pool.length) return false;
+  q.reroll++;
+  q.list[s] = questNew(pick(pool), s);
+  return true;
 }
 
 /* ===== INSTRUMENTS — the anchor contract =====
@@ -2846,8 +3038,8 @@ function newState(){
     skills:[[],[],[],[]],
     hours:0, parts:0,
     crates:{ own:{ b:0, g:0, m:0 }, pity:{ b:0, g:0, m:0 }, opened:0 },
-    quests:{ day:dayNum(), list:[], done:[], reroll:0, streak:0, freeze:0, best:0 },
-    weekly:{ week:weekNum(), id:null, prog:0, done:false },
+    quests:{ day:dayNum(), list:[], done:[], reroll:0, streak:0, freeze:0, best:0, won:false },
+    weekly:{ week:weekNum(), id:null, prog:0, done:false, got:false },
     career:{ obj:{} },
     offers:{ seen:[], sessionShown:false },
     inbox:[], vipUntil:0, log:[],
@@ -3181,7 +3373,9 @@ const baseFor = (q, ti) => BAL.songScale * TIERS[ti].mult * qNudge(q);
 /* the band as a whole finishes one demo per soloBandSecs, so adding members splits
    the same output rather than multiplying it */
 const soloRate = i => (1 + 0.06 * (S.members[i].lvl - 1)) / (BAL.soloBandSecs * Math.max(1, ownedCount()));
-const offlineCap = () => S.vip ? BAL.offlineCapVIP : BAL.offlineCap;
+/* VIP is a timestamp from build step 8; the old boolean still counts until it lands */
+const vipOn = () => !!S.vip || Date.now() < (S.vipUntil || 0);
+const offlineCap = () => vipOn() ? BAL.offlineCapVIP : BAL.offlineCap;
 function rollTier(q){
   const w = oddsFor(q), tot = w.reduce((a,b) => a+b, 0);
   let r = Math.random() * tot;
@@ -3533,10 +3727,10 @@ function ctaAct(){
    (§13). When Daily, Events or the Inbox land they set their field and light their icon —
    no new component, no layout to find room for. */
 const RAIL = [
-  { id:'daily', icon:ICON.bell,  when:() => !!(S.daily && S.daily.ready),
-    badge:() => 1,                                   // the daily gig, build step 4
-    say:'Your daily gig is waiting' },
-  { id:'event', icon:ICON.flag,  when:() => !!(S.event && S.event.live),
+  { id:'daily', icon:ICON.flag,  when:() => !!(S.quests && S.quests.list.length),
+    badge:() => questsReady(),                       // rewards sitting unclaimed
+    go:openQuests, say:'Three quests a day, and a streak' },
+  { id:'event', icon:ICON.globe, when:() => !!(S.event && S.event.live),
     badge:null,                                      // weekend event genres, build step 6
     say:'A weekend event is live' },
   { id:'inbox', icon:ICON.crate, when:() => !!(S.inbox && S.inbox.length),
@@ -3546,7 +3740,7 @@ const RAIL = [
 function renderRail(){
   el.rail.innerHTML = RAIL.filter(r => r.when()).map(r =>
     `<button class="railbtn" data-rail="${r.id}">${ico(r.icon, {s:20})}${
-      r.badge ? '<b>' + r.badge() + '</b>' : ''}</button>`).join('');
+      r.badge && r.badge() ? '<b>' + r.badge() + '</b>' : ''}</button>`).join('');
 }
 function renderIdle(){
   renderGigBtn();
@@ -3608,6 +3802,7 @@ function tick(){
   if (gigClock >= 10){                       // midnight can land while the game is open
     gigClock = 0;
     if (rollTickets()){ renderGigBtn(); if ($('#gigs').classList.contains('on')) renderTix(); save(); }
+    if (rollQuests()){ renderRail(); if (sheetTab === 'quests') renderSheet('quests'); save(); }
   }
   trendClock += dt;
   if (trendClock >= 60){ stepTrends(Math.floor(trendClock / 60)); trendClock %= 60;
@@ -3857,6 +4052,7 @@ function finishWriting(){
   const q = clamp(Math.round(raw * craftCap() / 100) + flaw, 0, 100);
   S.pending = { title:s.title, g:s.g, cover:s.cover, q, power:bandPower(),
                 takes, cards:s.picks.map(p => CARDS[p.track][p.ci].n) };
+  qEvent('quality', q);
   S.session = null;
   memEls.forEach(m => m.classList.remove('up'));
   showDock('qual');
@@ -4078,6 +4274,7 @@ function pocket(){
   if (take.mode === 'gig') hypeGain(6 + fxBand('pocketHype'));   // the room feels a run of perfects
   else if (S.session) S.heat[S.session.g] = clamp(S.heat[S.session.g] + BAL.pocketHeat, 0, 100);
   AU.fill(); buzz([14, 40, 14]);
+  qEvent('pocket', 1);
 }
 function tickTake(){
   if (!take || take.ended) return;
@@ -4114,6 +4311,7 @@ function endTake(auto, botched){
     const dense = take.notes.length >= 14;
     got *= 1 + BAL.statSkillTake * statOf(take.track, 's') + fx(take.track, 'takeQ')
              + (dense ? fx(take.track, 'denseTake') : 0);
+    if (got >= BAL.takePerfect) qEvent('perfect', 1);
     toast(got >= BAL.takePerfect ? '🎙️ Perfect take — +' + fmt1(got) + ' Quality'
         : got ? '🎙️ Good take — +' + fmt1(got) + ' Quality'
         : '🎙️ That take did not make it');
@@ -4489,6 +4687,8 @@ function finishGig(){
   const pay = { m: r.m * mult, f: Math.round(r.f * mult), v: g.v, out, score, first,
                 cleared: out > 0 && g.v >= S.gig.cleared, parts };
   pay.career = careerEarned(g, pay);          // held, not granted — COLLECT does that
+  qEvent('gig', 1);
+  if (out === 2) qEvent('sold', 1);
   S.gig.payout = pay;
   S.gig.active = null;
   save();
@@ -4607,6 +4807,8 @@ async function release(){
   S.payout = { s:payS, m:payM, f:payF };
   S.released++;
   S.pending = null;
+  qEvent('release', 1);
+  if (ti >= 2) qEvent('hit', 1);
 
   if (S.home == null){ S.home = p.g; toastQueue.push('🏠 ' + GENRES[p.g].n + ' is your home genre — x' + BAL.homeMult + ' streams'); }
   const heat = pushHeat(p.g, p.q, ti);
@@ -4620,7 +4822,7 @@ async function release(){
   if (ti >= 2){ confetti(ti); buzz(ti >= 3 ? [20,50,20,50,40] : 40);
     $('#rvQuote').textContent = genQuote(); $('#rvQuote').classList.add('fadein'); }
   if (ti >= 3){ el.stage.classList.add('shake'); setTimeout(() => el.stage.classList.remove('shake'), 550); }
-  if (ti === 3){ S.picks += 20; toast('🎁 Viral! Crate — +20 Picks'); }
+  if (ti === 3){ S.picks += 20; toast('🎁 Viral — +20 Picks'); }
   if (ti === 4) toast('👑 Number one. That one never decays.');
   if (heat.changed) toast('📈 ' + GENRES[p.g].n + ' is now ' + heat.after);
   else if (heat.gain >= 6) toast('📈 You heated ' + GENRES[p.g].n + ' up');
@@ -4774,6 +4976,7 @@ function renderSheet(t, soft){
   b.innerHTML = t === 'band' ? htmlBand() : t === 'music' ? htmlMusic()
               : t === 'member' ? htmlMember(memberView)
               : t === 'gear' ? htmlGear()
+              : t === 'quests' ? htmlQuests()
               : t === 'shop' ? htmlShop() : htmlSettings();
   b.scrollTop = sc;
 }
@@ -5137,6 +5340,74 @@ function htmlGear(){
 const shortName = i => i < 0 ? '' : S.members[i].name.split(' ')[0];
 const equippedBy = id => S.members.findIndex(m => m.gear && (m.gear.inst === id || m.gear.rig === id));
 let gearBack = null;
+/* ===== THE DAILY SCREEN — three quests, a streak, and one weekly challenge =====
+   Reached from the Home rail. Everything it shows is state, never a countdown: the board
+   changes when the day index does, and the screen says so in words. */
+function htmlQuests(){
+  const q = S.quests, W = weeklyNow();
+  const rolls = questRerolls() - q.reroll;
+  let h = `<div class="sect">Today${q.done.length === 3
+    ? ' <span style="color:var(--gold);font-weight:700">ALL DONE</span>' : ''}</div>`;
+  q.list.forEach((it, s) => {
+    const T = questType(it.id), got = questClaimed(s), done = questDone(it);
+    const pay = BAL.questPay[s];
+    h += `<div class="card ${got ? 'qdone' : ''}">
+      <div class="av" style="--c1:${got ? PAL.gold : done ? PAL.gold : PAL.elev}">
+        ${ico(got ? ICON.check : ICON.flag, {c:got || done ? PAL.onGold : PAL.dim2, s:20})}</div>
+      <div class="info"><div class="t">${T ? T.n(it.tgt) : '—'}</div>
+        <div class="d">${sayReward(pay)}</div>
+        <span class="qbar ${done ? 'ok' : ''}">
+          <i style="width:${Math.round(clamp(it.prog / it.tgt, 0, 1) * 100)}%"></i></span>
+        <div class="qrow"><span class="qn">${Math.min(it.prog, it.tgt)} / ${it.tgt}</span></div>
+      </div>
+      ${got ? '<div class="rar">CLAIMED</div>'
+        : done ? `<button class="buy gold" data-act="qclaim" data-i="${s}">CLAIM</button>`
+        : rolls > 0 ? `<button class="buy alt" data-act="qroll" data-i="${s}">SWAP</button>`
+        : ''}</div>`;
+  });
+  h += `<div class="hint" style="text-align:left;padding:2px 2px 12px">${
+    rolls > 0 ? rolls + (rolls === 1 ? ' free swap' : ' free swaps') + ' left today — SWAP deals a different quest into that slot, never a new board.'
+              : 'No swaps left today.'} A new board is dealt when the date changes; nothing here is on a timer.</div>`;
+
+  h += `<div class="sect">Streak</div>
+    <div class="card"><div class="av" style="--c1:${PAL.accent}">${ico(ICON.crown, {c:PAL.onAccent, s:22})}</div>
+      <div class="info"><div class="t">${q.streak} day${q.streak === 1 ? '' : 's'}${
+        q.freeze ? ' · ' + q.freeze + ' freeze' + (q.freeze === 1 ? '' : 's') : ''}</div>
+      <div class="d">Best ${q.best}. A missed day costs <b>one day</b>, not the streak —
+        and a Streak Freeze spends itself instead. One freeze is earned every week,
+        ${BAL.freezeMax} held at most.</div></div></div>`;
+  const next = BAL.streakMiles.find(m => m.at > q.best);
+  BAL.streakMiles.forEach(m => {
+    const won = q.best >= m.at, isNext = next && next.at === m.at;
+    h += `<div class="qrow"><span class="qn" style="color:${won ? PAL.gold : PAL.dim3}">
+      ${m.at} DAYS · ${sayReward(m).toUpperCase()}</span>
+      <span class="rar">${won ? 'WON' : isNext ? (m.at - q.streak) + ' TO GO' : ''}</span></div>`;
+  });
+
+  h += `<div class="sect">This week</div>`;
+  if (W){
+    const done = weeklyDone(), got = S.weekly.got;
+    h += `<div class="card ${got ? 'qdone' : ''}">
+      <div class="av" style="--c1:${got || done ? PAL.gold : PAL.violet}">
+        ${ico(got ? ICON.check : ICON.pass, {c:got || done ? PAL.onGold : PAL.onAccent, s:22})}</div>
+      <div class="info"><div class="t">${W.n(W.tgt)}</div>
+        <div class="d">${sayReward(BAL.weeklyPay)}</div>
+        <span class="qbar ${done ? 'ok' : ''}">
+          <i style="width:${Math.round(clamp(S.weekly.prog / W.tgt, 0, 1) * 100)}%"></i></span>
+        <div class="qrow"><span class="qn">${Math.min(S.weekly.prog, W.tgt)} / ${W.tgt}</span></div>
+      </div>
+      ${got ? '<div class="rar">CLAIMED</div>'
+        : done ? '<button class="buy gold" data-act="wclaim">CLAIM</button>' : ''}</div>`;
+  }
+  h += `<div class="hint" style="text-align:left;padding:0 2px 4px">Quests are where Picks
+    and Parts come from, alongside the career objectives at the venues. Nothing on this
+    screen can be bought, and no quest ever asks you to spend money.</div>`;
+  return h;
+}
+function openQuests(){
+  sheetBack = sheetTab;
+  openScreen('quests', 'Daily');
+}
 function openGear(i, slot){
   gearSlot = { i, slot };
   memberView = i;
@@ -5338,12 +5609,31 @@ function buy(act, i, node){
     S.picks -= C.picks; grantCrate(C.k, 1);
     AU.chord('small'); buzz(12);
     toast('📦 ' + C.n + ' — open it when you like');
+  } else if (act === 'qclaim'){
+    const got = claimQuest(i);
+    if (!got) return;
+    reward({});                                    // a quest pays Picks and Parts, not a counter
+    toast('✅ ' + sayReward(got.pay));
+    got.miles.forEach(m => { AU.chord('big'); confetti(2);
+      toast('🔥 ' + m.at + '-day streak — ' + sayReward(m)); });
+    if (S.quests.done.length === 3 && !got.miles.length) toast('🔥 Streak ' + S.quests.streak);
+    renderRail();
+  } else if (act === 'qroll'){
+    if (!rerollQuest(i)) return;
+    AU.chord('small'); buzz(10); renderRail();
+  } else if (act === 'wclaim'){
+    const got = claimWeekly();
+    if (!got) return;
+    reward({ big:true }); confetti(3);
+    toast('🏆 Weekly challenge — ' + sayReward(got));
+    renderRail();
   } else if (act === 'skill'){
     const id = node && node.dataset.id;
     if (!buySkill(i, id)) return;
     const sk = skillOf(id);
     buildBand();                                   // craft skills move the ceiling now
     AU.chord('small'); buzz([12, 30, 12]);
+    qEvent('skill', 1);
     toast('🎓 ' + shortName(i) + ' learned ' + sk.n);
   } else if (act === 'stat'){
     // a stat point is never spent on the player's behalf, and never costs money
@@ -5369,6 +5659,7 @@ function buy(act, i, node){
     const up = craftCap() - cap0;
     if (up >= 0.5) statPop('streams', 'BEST SONG Q' + Math.round(craftCap()), PAL.accent2);
     AU.chord('small'); buzz([12, 30, 12]); bandNod();
+    qEvent('level', 1);
     toast(S.members[i].name.split(' ')[0] + ' → Lv ' + S.members[i].lvl);
     memberReact = sheetTab === 'member' ? i : -1;   // the sheet answers the purchase
   } else if (act === 'studio'){
@@ -5547,6 +5838,7 @@ function boot(){
   // what happened while you were gone: the band kept writing, the catalogue kept streaming
   if (S.payout) bankPayout();          // they closed the tab on the reveal
   rollTickets();
+  rollQuests();                        // deals today's board, and settles the streak
   if (S.gig.active){                   // the tab shut mid-song: the ticket is gone, the show is not
     S.gig.active = null;
     toast('🎤 Last show was cut short — that one does not count');
@@ -5591,7 +5883,9 @@ function boot(){
     const b = e.target.closest('[data-rail]');
     if (!b) return;
     const r = RAIL.find(x => x.id === b.dataset.rail);
-    if (r) toast(r.say);                       // nothing renders yet; the wiring is here for when it does
+    if (!r) return;
+    buzz(10);
+    if (r.go) r.go(); else toast(r.say);       // a rail with no screen yet still answers
   });
   el.stage.addEventListener('pointerdown', e => {
     if (e.target.closest('button')) return;

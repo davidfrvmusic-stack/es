@@ -938,12 +938,16 @@ hear which part is yours. `AU.takeHit(yours, energy, good)`.
 - **Fans** — the rank currency, and the only number that never falls. See §4c.
 - **Gig tickets** — 2 a local day, up to 3 more from the ad stub. Not a currency you
   can buy or bank; see §4d.
-- **Picks** (premium) — crates (§8d), and later skips and streak saves. Earned from the
-  **Own the room** career objective in each venue (§4d), 15 at Open Mic to 60 at Stadium.
-- **Parts** — from scrapping gear you are not playing, and the only thing that upgrades it.
+- **Picks** (premium) — crates (§8d), and later swaps and Streak Freezes. Earned from the
+  **Own the room** career objective in each venue (§4d), 15 at Open Mic to 60 at Stadium,
+  from **daily quests** (10 and 18 a day, plus 60 at the 14-day milestone, §15), and 20
+  from a Viral release.
+- **Parts** — from scrapping gear you are not playing and from the second daily-quest slot,
+  and the only thing that upgrades gear.
 - **Member cards** — per member, and the only route to a star rank. Never bought.
-- **Studio Hours** — from the **Bring the right song** career objective, 1–3 a room. Never
-  from money and never from an ad; they buy **skills** (§8e) and nothing else.
+- **Studio Hours** — from the **Bring the right song** career objective (1–3 a room), the
+  weekly challenge (5) and the streak milestones (2 / 3 / 5 / 8). Never from money and never
+  from an ad; they buy **skills** (§8e) and nothing else.
 - **Legacy** (prestige) — permanent multipliers.
 - **VIP** — `S.vip` only raises the offline cap to 24h today. Nothing grants it yet;
   the Shop card is still a stub, so the 24h path is reachable only by setting the flag.
@@ -1110,12 +1114,83 @@ that reason**: they exist now, so reserving them would be the same lie the other
 A crate's BUY *is* greyed out when you cannot afford it, and that is not the same lie: the
 thing is real, the price is real, and the balance is real.
 
-**The Home rail is declared, not empty** (`RAIL`, §13). Its three entries — daily, event,
-inbox — each read the state they will own (`S.daily.ready`, `S.event.live`,
-`S.inbox.length`). None of that state exists, so every `when()` is falsy and the rail
-draws nothing; the moment a system sets its field, its icon and badge appear with no new
-component and no layout to find room for. `newState()` is untouched, so the save shape
-does not move either.
+**The Home rail is declared, and one entry is live now** (`RAIL`, §13). Its three entries —
+daily, event, inbox — each read the state they own. `daily` is real as of §15: it shows
+whenever a board exists (which, once the system shipped, is always) and carries a badge of
+what is claimable, and tapping it opens the Daily screen. `event` and `inbox` still read
+state nothing writes, so their `when()` is falsy and they draw nothing — the rule working,
+not a gap. The badge is only drawn when it is non-zero, so a fully-claimed day is a bare
+icon rather than a "0".
+
+
+## 15. DAILY QUESTS, STREAKS AND THE WEEKLY CHALLENGE
+
+**Three quests a day, one reward each, and a streak that bends instead of breaking.** The
+screen is reached from the Home rail and is called *Daily*.
+
+| slot | pays |
+|---|---|
+| 1 | 10 Picks |
+| 2 | 18 Picks · 8 Parts |
+| 3 | 1 Bronze Crate |
+
+**Every quest type declares `eligible()`, and an ineligible type is never dealt.** That is
+the rule the whole pool is built around, because a daily quest that cannot be done is worse
+than no quest at all:
+- **"Open a crate" needs a crate you already own.** A quest can never ask for a purchase.
+- **A career quest retires when `careerOpen()` is 0** — the function §4d built for exactly
+  this moment.
+- **A gig quest wants a released song and a ticket** (or an unclaimed objective).
+- **"Land a Hit" wants a release**, "Learn a skill" wants one that is affordable and
+  unlocked, and so on.
+- **Five types are always eligible** — write a song, hit a Quality target, get IN THE
+  POCKET, land perfect takes, level a member — so `dealQuests()` can always fill three
+  distinct slots however bare the save is. The suite deals 200 boards in the barest
+  possible state and asserts every one of them is three distinct, doable quests.
+
+**One bus, no polling.** `qEvent(key, n)` is called at the moment a thing happens —
+release, hit, quality, gig, sold, career, crate, pocket, perfect take, level, skill — and
+the day's board and the week's challenge both read it. A quest that has met its target
+stops accumulating; `mode:'max'` quests (the Quality target) take the highest rather than
+the sum.
+
+**One free swap a day, and it swaps one quest, not the board.** Rerolling the whole set
+would make the eligibility rules pointless — you would simply reroll past anything
+inconvenient. The swapped slot is re-dealt from the eligible pool minus what is already on
+the board, and its progress resets. Extra swaps cost Picks (build step 8); VIP gets one
+more free.
+
+**The streak bends.** A day counts when all three are claimed, and the streak moves on the
+*press* rather than at some invisible midnight, so the milestone lands where the player is
+looking. A missed day costs **one day, not the streak**. A **Streak Freeze** spends itself
+instead of the day — one is earned every week, two held at most, and it will be buyable in
+build step 8.
+
+| milestone | pays |
+|---|---|
+| 3 days | 2 Studio Hours · 1 Bronze Crate |
+| 7 days | 3 Studio Hours · 1 Gold Crate |
+| 14 days | 5 Studio Hours · 60 Picks |
+| 30 days | 8 Studio Hours · 1 Mythic Crate |
+
+Milestones fire **once each, on the way up past `quests.best`** — a streak that falls and
+re-climbs does not pay twice.
+
+**The weekly challenge rotates on the week index, not a roll.** `WEEKLY` is five entries
+and `weeklyFor(weekNum())` picks one, so the same week deals the same challenge on every
+device with no seed to store and nothing to re-roll on load. It pays **1 Gold Crate + 5
+Studio Hours**, and the rollover is also what grants the week's Streak Freeze.
+
+**Nothing here is a timer.** The board changes when `dayNum()` does and the challenge when
+`weekNum()` does — both monotonic, so a wound-back clock deals nothing and loses nothing
+(the suite winds it forward five days and asserts the board is untouched). There is no
+countdown bar anywhere on the screen; the copy says a new board is dealt when the date
+changes, which is the true statement.
+
+**Where the rewards land.** `grantReward(r)` is the one place a reward of any shape is paid
+— Picks, Parts, Studio Hours, crates — and career objectives now go through it too, so a
+quest, a milestone, a career objective and the weekly challenge cannot drift apart.
+`sayReward(r)` is the matching one place it is written out.
 
 ---
 
@@ -1185,11 +1260,9 @@ does not move either.
   catalogue at cap keeping an incoming Hit while rejecting an incoming flop.
 
 **Known gaps (deliberate, deferred):**
-daily quests and weekly challenges (the second Picks source, the second Hours source, and
-streaks);
 the *Daily* Gig and rival/multiplayer gigs (the regular ladder in §4d is built),
 six-cards-per-track-per-genre (128 signature cards ship, 384 do not),
-streaks, prestige, league, weekend events, real shop, LLM content,
+prestige, league, weekend events, real shop, LLM content,
 `sw.js` offline (and with it, true background storage-full notifications), a real
 cloud-save backend, any way to actually grant VIP.
 
@@ -1688,6 +1761,39 @@ Walking Line through a real take and Machine through a real miss on a real stage
 learned costing exactly 168 hours, the released-song invariant, the sheet's six rows with
 only the affordable ones live, LEARN spending the hours and lighting the stat rail, and
 everything surviving a reload. Twenty-seven suites pass, no console errors.
+
+**Phase Two, stage 7 — three quests a day, and a streak that bends.** §15 is the system.
+What is worth knowing about the build:
+
+- **The eligibility rule is the design, not a guard.** Every type declares `ok()` and an
+  ineligible one is never dealt, which is what lets the pool contain quests that reference
+  crates you own, career objectives you have left and tickets you hold without ever handing
+  a player something they cannot do. The five always-eligible types are what make that safe:
+  the suite deals 200 boards in the barest possible save and every one is three distinct,
+  doable quests.
+- **One bus and no polling.** `qEvent(key, n)` is called where the thing happens — eleven
+  sites, each one line — and the day's board and the week's challenge both read it. Nothing
+  scans the save looking for progress.
+- **The swap is one quest, never the board.** A board reroll would make the eligibility
+  rules pointless, because you could simply roll past anything inconvenient.
+- **The streak moves on the press.** The third claim is what increments it and fires the
+  milestone, rather than an invisible midnight — so the reward lands where the player is
+  looking, and `rollQuests()` only ever has to settle *missed* days.
+- **`grantReward()` and `sayReward()` are one place each.** Career objectives were paying
+  their own crates and hours inline; they go through the same payer now, so four systems
+  cannot drift apart.
+- **The rail's first entry is real.** `RAIL`'s `daily` was reading `S.daily.ready`, a field
+  nothing ever set; it reads the quest board now, with a badge that draws only when
+  something is claimable.
+
+Suites: the new `qs` suite is 30 assertions — the tables and the reward ladders, the
+eligibility rules (200 boards each in three different states), the bus summing and taking
+maxima where it should and stopping at the target, a real crate open and a real level-up
+walking it, claiming paying exactly once and never money, the streak over three finished
+days with its milestone, a missed day costing one, a freeze spending itself, a three-day gap
+costing three, a wound-back clock dealing nothing, a milestone never re-firing, the weekly
+rotation and its one-Gold-Crate payout, the freeze cap, the swap, the rail badge, the screen,
+and a reload. Twenty-eight suites pass, no console errors.
 
 **Removed along the way:** the tap-to-fill-tracks loop, Hook Moments, the Hype stat
 (Quality shifts chart odds instead), and weekly-seeded genre trends (replaced by the
