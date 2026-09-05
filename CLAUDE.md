@@ -972,6 +972,10 @@ under it. **The rail draws one icon per system that has something waiting** — 
 `event` and `offers` draw only when their state says so. Nothing inactive is drawn, and a
 badge appears only when it is non-zero.
 
+**The rail is named chips, not mystery icons.** Each entry carries a label beside its
+icon — DAILY · SEASON · INBOX · EVENT · OFFER — because an unlabelled glyph on a stage is a
+guess. Five systems declare an entry and only the ones with something waiting are drawn.
+
 **The rail owns a row rather than floating over the band.** It used to be absolutely
 positioned at the stage's top-right, which was fine while it drew nothing — and put two
 buttons squarely on top of the fourth member the moment two systems started filling it. The
@@ -1188,18 +1192,19 @@ reserved rails avoid.
 
 ### Offers and the Inbox are separate, in every way
 
-- **Offers** is commercial, and it is a **surface, not an interruption**. The plan's rule is
-  "one commercial offer per session, shown once, dismissible" — a *cap* on offers, not a
-  mandate for a pop-up — so the offer is **one card at the top of the Shop**, with its own
-  CTA and NOT NOW, advertised by the rail's offers icon and by nothing else. **Nothing pops
-  up on the stage**: a modal landing while the player is deciding what to do next is exactly
-  what that cap exists to prevent, and the suite asserts no such function even exists.
-  `S.offers.sessionShown` records that it was put in front of the player this session;
-  dismissing writes the id to `S.offers.seen` and it never returns at all. There is **no
-  expiry countdown** anywhere, and no offer is shown before `BAL.offerAfter` (3) releases —
-  a pitch before the first record is a pitch at nothing. `OFFERS` holds exactly one entry,
-  the VIP trial, because it is the only offer that can actually do something today; a priced
-  offer with no checkout would not be shown at all.
+- **Offers** is commercial, and it appears in **two** places: a card at the top of the Shop,
+  and **one pop-up a session** (`offerPop`). The pop-up was built in stage 8, deleted the
+  same day for landing over the rewarded ad's own modal, and is back now because §13d's
+  queue is what makes it safe — it is pushed at **priority 2**, behind every reward moment
+  and behind the rank card, so it can never land on a take, a show, a panel or another
+  modal. It is also refused while any screen is open, and polled from the slow clock rather
+  than fired on a timer, so it waits for a calm moment instead of interrupting one.
+  `S.offers.sessionShown` caps it at one a session; NOT NOW writes the id to
+  `S.offers.seen` and it never returns at all. There is **no expiry countdown** anywhere,
+  and no offer is shown before `BAL.offerAfter` (3) releases — a pitch before the first
+  record is a pitch at nothing. `OFFERS` holds two entries: the free VIP trial, and the
+  Season Pass, whose `ok()` requires `payOn()` — **an offer you cannot accept is never
+  shown**, so with no provider the second one does not exist.
 - **The Inbox** is delivery: VIP daily grants today, compensation and posted payouts later.
   `inboxPost` / `inboxClaim` / `inboxClaimAll`, one screen off the rail, a TAKE per row and
   TAKE EVERYTHING under them.
@@ -1330,6 +1335,37 @@ quest, a milestone, a career objective and the weekly challenge cannot drift apa
 `sayReward(r)` is the matching one place it is written out.
 
 ---
+
+## 15b. THE SEASON PASS — one track, two lanes, no clock
+
+A season is `BAL.seasonDays` (28) long and its index is `floor(dayNum() / 28)` — the same
+monotonic day count the quest board and the shop caps ride. **A wound-back device clock
+cannot re-open a finished season**, and there is no countdown anywhere on the screen: it
+says which season you are in and what is left to take, never how long you have.
+
+**XP comes only from things you already do.** `PASS_XP` reads the same `qEvent` bus the
+daily board and the weekly challenge read — release 10, Hit 25, show 20, sold out 15,
+career objective 40, crate 5, pocket 3, perfect take 5, level 8, skill 30. **One flat value
+per event, never scaled by the event's own number**, so a Q95 song cannot pay 95 XP and the
+Quality event pays nothing at all. Nothing anywhere sells XP.
+
+**Twenty tiers, 120 XP each, and both lanes pay on every one.** The free lane is the whole
+ladder — Picks, Parts, Studio Hours and crates, rising to a Gold Crate at tier 20. The paid
+lane is a *second* reward on the same tiers, rising to a Mythic. It **never adds XP and
+never speeds the track up**: it is more of the same rewards, not a faster climb.
+
+**The paid lane is the Season Pass in `PAY`** (§14), and with no payment provider it renders
+as a reserved rail — what it will hold, no button, no price. Unlocking it pays out **every
+tier already earned**, immediately, which is what `passClaimAll()` does the moment
+`S.pass.premium` flips.
+
+**Nothing on this track touches the economy.** The suite asserts a released song's `songSPS`
+and `craftCap` are unchanged across claiming all forty rewards — the same rule §6 states for
+every other system.
+
+The screen is reached from the rail's SEASON chip, which badges how many rewards are
+claimable. A new season resets XP, both lanes and the premium flag; `rollPass()` runs on the
+same slow clock as the daily rollover and only ever moves forward.
 
 ## 16. CUSTOMIZATION — all of it free
 
@@ -2117,6 +2153,43 @@ It carries the hard rules, the paste-ready output shape, the palette, the 24px i
 character head anchors, the full instrument anchor contract with its exact coordinates, the
 rig and room boxes, and the colour-only tables — everything needed to add an icon, a guitar,
 a hairstyle or a room without breaking a pivot.
+
+**The season pass, the named rail, and the offer pop-up brought back.** Asked for directly,
+after a reference screenshot of a boxing idle game with a labelled side rail and a one-time
+offer surface.
+
+- **§15b is the pass.** Twenty tiers, two lanes, XP from the bus that already existed. The
+  three things it deliberately does not do: no countdown (a season is a monotonic index), no
+  XP for sale, and no economy contact — the suite claims all forty rewards and asserts
+  `songSPS` and `craftCap` do not move.
+- **The paid lane obeys the §14 rule.** It is a real `PAY` product, so with no checkout it
+  renders as a reserved rail with no button and no price, and becomes a real BUY the moment
+  a provider is set. Unlocking it pays every tier already earned.
+- **The rail entries are named.** DAILY · SEASON · INBOX · EVENT · OFFER, icon plus label —
+  an unlabelled glyph on a stage is a guess, and the reference made that obvious.
+- **The offer pop-up is back, and this time the queue owns it.** Stage 8 built one and
+  deleted it the same day for landing over the rewarded ad's modal; stage 9 built
+  `popBusy()` / `pushPop()` for exactly that class of problem. It goes in at **priority 2**,
+  behind every reward moment and the rank card, is refused while a screen is open, and is
+  polled from the slow clock rather than fired on a timer. The suite drives the queued case:
+  it pushes during a live reveal, asserts nothing is shown, ends the reveal and asserts it
+  lands.
+- **A second offer exists but cannot appear yet.** The Season Pass offer's `ok()` requires
+  `payOn()` — an offer you cannot accept is never shown, which is the same rule the reserved
+  rails follow.
+
+Suites: the new `bp` suite is 25 assertions — the track, XP per event and the Quality event
+paying nothing, claiming once and never ahead of the tier, CLAIM EVERYTHING, the paid lane
+refusing without premium and paying everything on unlock, a season resetting forwards only,
+the economy invariant, the named chips and their badges, the screen with no button and no
+price on the reserved lane, the pop-up queueing behind a reward moment and landing after it,
+NOT NOW retiring it, and a reload. Thirty-four suites pass, no console errors.
+
+**`design/GEMINI-PROMPTS.md`** is the art pass, batched: a preamble that carries the rules
+and the palette, then eight self-contained prompts — icons, guitars and basses, drum kits,
+microphones, rig parts, hair and accessories, rooms, genre badge colours. Each one carries
+the exact box, the anchor coordinates that cannot move, and a real entry from the file to
+imitate, so a reply can be pasted straight into its table.
 
 **Removed along the way:** the tap-to-fill-tracks loop, Hook Moments, the Hype stat
 (Quality shifts chart odds instead), and weekly-seeded genre trends (replaced by the

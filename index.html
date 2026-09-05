@@ -149,8 +149,10 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   gap:8px;padding:4px 12px 0;transition:opacity var(--m2) ease}
 #rail:empty{display:none}
 #stage.playing #rail{opacity:0;pointer-events:none}
-.railbtn{position:relative;width:40px;height:40px;border-radius:13px;background:var(--panel);
-  border:2px solid var(--line);display:grid;place-items:center}
+.railbtn{position:relative;min-width:40px;height:40px;padding:0 9px;border-radius:13px;
+  background:var(--panel);border:2px solid var(--line);display:flex;align-items:center;gap:5px;
+  color:var(--dim)}
+.railbtn span{font-size:8.5px;font-weight:800;letter-spacing:.11em;color:var(--dim2)}
 .railbtn:active{transform:translateY(2px)}
 .railbtn b{position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;padding:0 4px;
   border-radius:9px;background:var(--accent);color:var(--onAccent);font-size:9.5px;font-weight:800;
@@ -491,6 +493,24 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .qrow{display:flex;align-items:center;gap:8px;margin:8px 2px 2px}
 .qrow .qn{flex:1;font-size:9.5px;font-weight:800;letter-spacing:.11em;color:var(--dim3)}
 .qdone{opacity:.7}
+/* ---- the season track: one row a tier, a lane either side ---- */
+.passhead{display:flex;align-items:center;gap:8px;margin:14px 2px 6px;
+  font-size:8.5px;font-weight:800;letter-spacing:.14em;color:var(--dim3)}
+.passhead span:first-child{width:26px;flex:0 0 auto}
+.passhead span{flex:1}
+.prow{display:flex;align-items:stretch;gap:8px;margin-bottom:7px}
+.prow .pn{width:26px;flex:0 0 auto;display:grid;place-items:center;border-radius:var(--r1);
+  background:var(--elev);color:var(--dim2);font-size:11px;font-weight:800}
+.prow.done .pn{background:var(--accent2);color:var(--onAccent)}
+.pcell{flex:1;min-width:0;display:flex;align-items:center;gap:6px;padding:7px 9px;
+  border-radius:var(--r1);background:var(--panel);border:2px solid var(--line)}
+.pcell span{flex:1;min-width:0;font-size:10px;font-weight:700;color:var(--dim);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pcell em{flex:0 0 auto;font-style:normal;font-size:8px;letter-spacing:.1em;color:var(--dim3);
+  font-weight:800}
+.pcell.can{border-color:var(--gold)}
+.pcell.got{opacity:.55}
+.pcell .buy{min-width:0;padding:5px 9px;font-size:10px}
 .logbox{background:var(--panel);border:2px solid var(--line);border-radius:var(--r2);
   padding:8px 10px;margin:0 0 var(--s2)}
 .logrow{display:flex;align-items:center;gap:8px;padding:3px 0;font-size:10.5px;font-weight:700;
@@ -1290,6 +1310,9 @@ const BAL = {
   vipTickets: 3, vipPicks: 20,
   vipTrialHours: 24,      // the single free trial, once ever, from Offers
   logMax: 200,            // the local activity log's ring buffer — see logEvent()
+  // THE SEASON PASS. A season is a monotonic index, never a countdown — see the PASS banner.
+  seasonDays: 28,
+  passXp: 120,            // XP per tier, cumulative across 20 tiers
   offerAfter: 3,          // ...and no offer at all before this many releases
   // SKILLS — the third craft source. Hours only: never money, never an ad. Tier 2 wants
   // a *3 member and tier 3 a *5, so the crate ladder is what gates them.
@@ -1994,6 +2017,90 @@ function accSVG(acc, col){
   }
 }
 
+
+/* ===== THE SEASON PASS — one track, two lanes, and no clock on it =====
+   A season is `BAL.seasonDays` (28) long and its index is `floor(dayNum()/28)` — the same
+   monotonic day count the quest board and the shop caps ride, so a wound-back device clock
+   cannot re-open a finished season and nothing here is a countdown you can watch drain.
+   The screen says which season you are in and what is left to claim; it never says
+   "HURRY", because there is no expiry to hurry against.
+
+   **XP comes only from things you already do.** `PASS_XP` reads the same `qEvent` bus the
+   daily board and the weekly challenge read — releasing, charting, playing a show, clearing
+   an objective, opening a crate, landing a perfect take, levelling, learning a skill. There
+   is no pass-only grind and nothing anywhere sells XP.
+
+   **The free lane is the whole ladder.** Every tier pays on it. The paid lane is a second
+   set of rewards on the same tiers, unlocked by the Season Pass in `PAY` — and until a
+   payment provider exists (§14) it cannot be bought, so it renders as what it will hold
+   with **no pressable price**, exactly like the reserved rails. */
+const PASS = [
+  { free:{ picks:10 },          paid:{ picks:25 } },
+  { free:{ parts:6 },           paid:{ crate:'b', n:1 } },
+  { free:{ picks:12 },          paid:{ parts:20 } },
+  { free:{ hours:1 },           paid:{ hours:2 } },
+  { free:{ crate:'b', n:1 },    paid:{ crate:'g', n:1 } },
+  { free:{ picks:15 },          paid:{ picks:40 } },
+  { free:{ parts:10 },          paid:{ parts:30 } },
+  { free:{ picks:18 },          paid:{ hours:3 } },
+  { free:{ hours:1 },           paid:{ crate:'b', n:2 } },
+  { free:{ crate:'b', n:1 },    paid:{ crate:'g', n:1 } },
+  { free:{ picks:20 },          paid:{ picks:60 } },
+  { free:{ parts:14 },          paid:{ parts:40 } },
+  { free:{ picks:22 },          paid:{ hours:4 } },
+  { free:{ hours:2 },           paid:{ crate:'g', n:1 } },
+  { free:{ crate:'b', n:1 },    paid:{ picks:80 } },
+  { free:{ picks:25 },          paid:{ parts:60 } },
+  { free:{ parts:18 },          paid:{ hours:5 } },
+  { free:{ picks:28 },          paid:{ crate:'g', n:2 } },
+  { free:{ hours:2 },           paid:{ picks:120 } },
+  { free:{ crate:'g', n:1 },    paid:{ crate:'m', n:1 } }
+];
+/* what each thing you already do is worth. One flat value per event — never scaled by the
+   event's own number, so a Q90 song cannot pay 90 XP. */
+const PASS_XP = { release:10, hit:25, gig:20, sold:15, career:40, crate:5,
+                  pocket:3, perfect:5, level:8, skill:30 };
+const seasonNum = t => Math.floor(dayNum(t) / BAL.seasonDays);
+const passNeed = i => (i + 1) * BAL.passXp;                 // cumulative XP for tier i+1
+const passTier = () => {                                    // tiers fully earned, 0..20
+  let n = 0;
+  for (let i = 0; i < PASS.length; i++) if (S.pass.xp >= passNeed(i)) n = i + 1;
+  return n;
+};
+const passHas = (lane, i) => (S.pass[lane] || []).indexOf(i) >= 0;
+const passOpen = (lane, i) => i < passTier() && !passHas(lane, i) &&
+  (lane === 'free' || S.pass.premium);
+const passReady = () => PASS.reduce((a, _, i) =>
+  a + (passOpen('free', i) ? 1 : 0) + (passOpen('paid', i) ? 1 : 0), 0);
+function passGain(k){
+  const x = PASS_XP[k];
+  if (!x || !S.pass) return 0;
+  const was = passTier();
+  S.pass.xp += x;
+  return passTier() - was;                                  // tiers crossed by this event
+}
+function passClaim(lane, i){
+  if (!passOpen(lane, i)) return null;
+  S.pass[lane].push(i);
+  grantReward(PASS[i][lane]);
+  return PASS[i][lane];
+}
+function passClaimAll(){
+  const got = [];
+  ['free', 'paid'].forEach(lane => PASS.forEach((_, i) => {
+    const r = passClaim(lane, i);
+    if (r) got.push(r);
+  }));
+  return got;
+}
+/* a new season resets the track. Only ever forward — a wound-back clock does nothing. */
+function rollPass(){
+  const s = seasonNum();
+  if (s <= S.pass.season) return false;
+  S.pass = { season:s, xp:0, free:[], paid:[], premium:false };
+  return true;
+}
+
 /* ===== PAYMENTS — every edit point in one place =====
    NOTHING HERE CHARGES ANYBODY, and nothing here reaches the network: there is no
    provider SDK in this file and the no-network rule (§17) still holds byte for byte.
@@ -2044,6 +2151,10 @@ const PAY = [
     d:'Two Mythic Crates.',                       give:{ picks:1200 } },
   { id:'picks_3500', sku:'', kind:'consumable', n:'3500 Picks',  price:'49.99',
     d:'Seven Mythic Crates.',                     give:{ picks:3500 } },
+  { id:'pass_season',sku:'', kind:'season',     n:'Season Pass',  price:'7.99',
+    d:'Unlocks the paid lane of this season\'s track — every tier you have already earned ' +
+      'pays out the moment it unlocks, and the rest as you reach them.',
+    give:{ premium:true } },
   { id:'vip_month',  sku:'', kind:'sub',        n:'Backstage Pass', price:'4.99',
     per:'month', d:'VIP for as long as it runs — the ad rewards without the ads, a 24h ' +
     'offline cap, an extra quest swap and a Bronze Crate a day. No income multiplier.',
@@ -2344,6 +2455,7 @@ const weeklyNow = () => WEEKLY.find(x => x.id === S.weekly.id) || null;
    and the weekly challenge cannot drift apart */
 function grantReward(r){
   if (!r) return;
+  if (r.premium && S.pass) S.pass.premium = true;
   if (r.vipDays) S.vipUntil = Math.max(S.vipUntil || 0, Date.now()) + r.vipDays * 864e5;
   if (r.tickets) S.gig.tickets += r.tickets;
   if (r.picks) S.picks += r.picks;
@@ -2359,6 +2471,7 @@ function sayReward(r){
   if (r.hours) b.push(r.hours + (r.hours === 1 ? ' Studio Hour' : ' Studio Hours'));
   if (r.crate) b.push((r.n || 1) + ' ' + crateOf(r.crate).n + ((r.n || 1) > 1 ? 's' : ''));
   if (r.vipDays) b.push(r.vipDays + ' days of VIP');
+  if (r.premium) b.push('the paid lane of this season');
   return b.join(' · ');
 }
 const questNew = (q, s) => ({ id:q.id, tgt:Math.max(1, q.tgt(s)), prog:0 });
@@ -2384,6 +2497,8 @@ const questRerolls = () => BAL.questReroll + (vipOn() ? BAL.questRerollVip : 0) 
    board and the week's challenge both read it. No system polls anything. */
 function qEvent(k, n){
   logEvent(k, n);                   // the activity log rides the same bus, and only this one
+  const up = passGain(k);           // ...and so does the season pass
+  if (up) toast('🎟️ Season tier ' + passTier());
   if (!S.quests || !S.quests.list.length) return;
   let moved = false;
   S.quests.list.forEach(it => {
@@ -2594,7 +2709,14 @@ const OFFERS = [
       'quest swap and a Bronze Crate a day. No income multiplier — VIP never makes the ' +
       'band earn more than yours does.',
     ok:() => !S.vipTrial && !vipOn(),
-    go:() => { startVipTrial(); toast('👑 VIP for 24 hours — check your inbox'); } }
+    go:() => { startVipTrial(); toast('👑 VIP for 24 hours — check your inbox'); } },
+  /* Commercial, and therefore gated on a checkout existing at all: with no provider it is
+     never offered, because an offer you cannot accept is the lie §14 exists to avoid. */
+  { id:'season', n:'The Season Pass', c:'gold', cta:'SEE THE TRACK',
+    d:'Unlocks the paid lane of this season — a second reward on all 20 tiers, including ' +
+      'every one you have already earned. It never adds XP and never speeds the track up.',
+    ok:() => payOn() && S.pass && !S.pass.premium && passTier() >= 3,
+    go:() => openPass() }
 ];
 const offerNow = () => OFFERS.find(o => o.ok() && S.offers.seen.indexOf(o.id) < 0) || null;
 /* an offer exists AND this player has played enough to be pitched at — the rail and the
@@ -3452,6 +3574,7 @@ function newState(){
     offers:{ seen:[], sessionShown:false },
     /* daily caps on what Picks and ads hand out, on the same monotonic index as tickets */
     shop:{ day:dayNum(), tickets:0, swaps:0, adPicks:0, vipDay:-1 },
+    pass:{ season:seasonNum(), xp:0, free:[], paid:[], premium:false },
     inbox:[], vipUntil:0, vipTrial:false, log:[], logOff:false, banner:true,
     purchases:[],                               // receipts; see the PAYMENTS banner
     lastSeen:Date.now(), created:Date.now()
@@ -4163,26 +4286,26 @@ function ctaAct(){
    and none of that state exists yet, so every `when` is falsy and the rail draws nothing
    (§13). When Daily, Events or the Inbox land they set their field and light their icon —
    no new component, no layout to find room for. */
+/* Named chips, not mystery icons. Four systems declare an entry; only the ones with
+   something waiting are drawn, and a badge appears only when it is non-zero. */
 const RAIL = [
-  { id:'daily', icon:ICON.flag,  when:() => !!(S.quests && S.quests.list.length),
-    badge:() => questsReady(),                       // rewards sitting unclaimed
-    go:openQuests, say:'Three quests a day, and a streak' },
-  { id:'inbox', icon:ICON.crate, when:() => !!(S.inbox && S.inbox.length),
-    badge:() => S.inbox.length,                      // delivery: what a system sent you
-    go:openInbox, say:'Something is waiting in your inbox' },
-  { id:'event', icon:ICON.globe, when:() => !!(S.event && S.event.live),
-    badge:null,                                      // weekend event genres, build step 6
-    say:'A weekend event is live' },
-  { id:'offers', icon:ICON.pass, when:offerReady,
-    badge:null,                                      // commercial, and last in the row
-    go:() => openTab('shop'), say:'There is an offer waiting in the Shop' }
+  { id:'daily', n:'DAILY', icon:ICON.flag,  when:() => !!(S.quests && S.quests.list.length),
+    badge:questsReady, go:openQuests, say:'Three quests a day, and a streak' },
+  { id:'pass',  n:'SEASON', icon:ICON.pass, when:() => !!S.pass,
+    badge:passReady, go:openPass, say:'The season track' },
+  { id:'inbox', n:'INBOX', icon:ICON.crate, when:() => !!(S.inbox && S.inbox.length),
+    badge:() => S.inbox.length, go:openInbox, say:'Something is waiting in your inbox' },
+  { id:'event', n:'EVENT', icon:ICON.globe, when:() => !!(S.event && S.event.live),
+    badge:null, say:'A weekend event is live' },
+  { id:'offers', n:'OFFER', icon:ICON.crown, when:offerReady,
+    badge:null, go:() => openTab('shop'), say:'There is an offer waiting in the Shop' }
 ];
-const applyBanner = () => el.bandChip.classList.toggle('banner', !!S.banner);
 function renderRail(){
   el.rail.innerHTML = RAIL.filter(r => r.when()).map(r =>
-    `<button class="railbtn" data-rail="${r.id}">${ico(r.icon, {s:20})}${
+    `<button class="railbtn" data-rail="${r.id}">${ico(r.icon, {s:17})}<span>${r.n}</span>${
       r.badge && r.badge() ? '<b>' + r.badge() + '</b>' : ''}</button>`).join('');
 }
+const applyBanner = () => el.bandChip.classList.toggle('banner', !!S.banner);
 function renderIdle(){
   renderGigBtn();
   const g = nextGoal(), st = ctaState();
@@ -4244,7 +4367,10 @@ function tick(){
     gigClock = 0;
     if (rollTickets()){ renderGigBtn(); if ($('#gigs').classList.contains('on')) renderTix(); save(); }
     if (rollQuests()){ renderRail(); if (sheetTab === 'quests') renderSheet('quests'); save(); }
-    if (rollShop() | vipDaily()){ if (sheetTab === 'shop') renderSheet('shop'); save(); }
+    if (rollShop() | vipDaily() | rollPass()){
+      if (sheetTab === 'shop' || sheetTab === 'pass') renderSheet(sheetTab);
+      renderRail(); save(); }
+    offerPop();                              // priority 2 — behind every reward moment
   }
   trendClock += dt;
   if (trendClock >= 60){ stepTrends(Math.floor(trendClock / 60)); trendClock %= 60;
@@ -5401,6 +5527,7 @@ function renderSheet(t, soft){
               : t === 'gear' ? htmlGear()
               : t === 'quests' ? htmlQuests()
               : t === 'inbox' ? htmlInbox()
+              : t === 'pass' ? htmlPass()
               : t === 'shop' ? htmlShop() : htmlSettings();
   b.scrollTop = sc;
 }
@@ -5795,6 +5922,88 @@ function htmlGear(){
 const shortName = i => i < 0 ? '' : firstOf(S.members[i].name);
 const equippedBy = id => S.members.findIndex(m => m.gear && (m.gear.inst === id || m.gear.rig === id));
 let gearBack = null;
+/* ===== THE SEASON SCREEN — the track, both lanes, and what is left to take ===== */
+function htmlPass(){
+  const tier = passTier(), xp = S.pass.xp, ready = passReady();
+  const next = tier < PASS.length ? passNeed(tier) : null;
+  const into = next ? xp - (tier ? passNeed(tier - 1) : 0) : 0;
+  const span = next ? next - (tier ? passNeed(tier - 1) : 0) : 1;
+  let h = `<div class="sect">Season ${S.pass.season % 100}${
+    ready ? ` <span style="color:var(--gold);font-weight:700">${ready} TO CLAIM</span>` : ''}</div>
+    <div class="card"><div class="av" style="--c1:${PAL.violet}">${ico(ICON.pass, {c:PAL.onAccent, s:22})}</div>
+      <div class="info"><div class="t">Tier ${tier} of ${PASS.length}${
+        S.pass.premium ? ' · <span style="color:var(--gold)">PAID LANE ON</span>' : ''}</div>
+      <div class="d">${next ? fmt(next - xp) + ' XP to tier ' + (tier + 1) : 'The whole track is earned.'}</div>
+      <span class="qbar ${tier >= PASS.length ? 'ok' : ''}">
+        <i style="width:${Math.round(clamp(into / span, 0, 1) * 100)}%"></i></span>
+      <div class="qrow"><span class="qn">${fmt(xp)} XP THIS SEASON</span></div>
+      </div></div>
+    <div class="hint" style="text-align:left;padding:2px 2px 10px">XP comes only from what you
+      already do — releasing, charting, playing a show, clearing an objective, opening a
+      crate, a perfect take, a level, a skill. Nothing sells XP, and a season ends when the
+      date says so: there is no clock on this screen to run down.</div>`;
+
+  if (ready) h += `<button class="bigbtn gold" data-act="passall" data-i="-1">CLAIM EVERYTHING</button>`;
+
+  h += `<div class="passhead"><span>TIER</span><span>FREE</span><span>PAID</span></div>`;
+  PASS.forEach((row, i) => {
+    const done = i < tier;
+    const cell = lane => {
+      const got = passHas(lane, i), can = passOpen(lane, i);
+      return `<div class="pcell ${got ? 'got' : can ? 'can' : ''}">
+        <span>${sayReward(row[lane])}</span>
+        ${got ? '<em>TAKEN</em>'
+          : can ? `<button class="buy gold" data-act="pass" data-i="${i}" data-lane="${lane}">TAKE</button>`
+          : done && lane === 'paid' ? '<em>PAID LANE</em>' : ''}</div>`;
+    };
+    h += `<div class="prow ${done ? 'done' : ''}">
+      <span class="pn">${i + 1}</span>${cell('free')}${cell('paid')}</div>`;
+  });
+
+  const P = payOf('pass_season');
+  h += `<div class="sect">The paid lane</div>`;
+  if (S.pass.premium){
+    h += `<div class="hint" style="text-align:left;padding:2px 2px 12px">It is on for this
+      season. Every tier you had already earned paid out the moment it unlocked.</div>`;
+  } else if (payOn()){
+    h += `<div class="card"><div class="av" style="--c1:${PAL.gold}">${ico(ICON.pass, {c:PAL.onGold, s:22})}</div>
+      <div class="info"><div class="t">${esc(P.n)}</div>
+      <div class="d">${esc(P.d)}</div></div>
+      <button class="buy" data-act="pay" data-i="-1" data-id="pass_season">BUY<small>${payPrice(P)}</small></button></div>`;
+  } else {
+    h += htmlReserved({ id:'season', n:P.n, i:'pass', c:'violet', w:'NEEDS A CHECKOUT',
+      d:P.d + ' There is no payment provider in this build, so there is no button here — a ' +
+        'price you cannot press is a lie about a thing that cannot be bought.',
+      t:['SEASON PASS'] });
+  }
+  h += `<div class="hint" style="text-align:left;padding:0 2px 4px">The free lane is the whole
+    ladder: every one of the ${PASS.length} tiers pays on it. The paid lane is a second set of
+    rewards on the same tiers — it never adds XP, never speeds the track up, and never touches
+    what a released song earns.</div>`;
+  return h;
+}
+function openPass(){
+  sheetBack = sheetTab;
+  openScreen('pass', 'Season');
+}
+/* THE OFFER POP-UP, restored — and it is safe now because the queue owns it.
+   Stage 8 built one, and it landed over the rewarded ad's own modal and blocked four
+   suites by arriving mid-interaction. Stage 9 built `popBusy()` / `pushPop()` for exactly
+   this: an offer is priority 2, behind every reward moment and behind the rank card, so it
+   can never land on a take, a show, a panel or another modal. One a session, dismissible,
+   and it never returns once dismissed. */
+function offerPop(){
+  if (!S.setup || S.offers.sessionShown || sheetTab || !offerReady()) return false;
+  const o = offerNow();
+  if (!o) return false;
+  S.offers.sessionShown = true;
+  pushPop(2, () => modal(
+    `<h3>${esc(o.n)}</h3><p>${esc(o.d)}</p>`, o.cta,
+    () => { takeOffer(o.id); save(); renderRail(); if (sheetTab) renderSheet(sheetTab); },
+    true, 'NOT NOW', () => { dismissOffer(o.id); save(); renderRail(); }));
+  return true;
+}
+
 /* ===== THE INBOX SCREEN — delivery, and never a sales pitch ===== */
 function htmlInbox(){
   let h = `<div class="sect">Inbox</div>`;
@@ -6254,6 +6463,17 @@ function buy(act, i, node){
       if (sheetTab === 'shop') renderSheet('shop');
     });
     return;
+  } else if (act === 'pass'){
+    const lane = node && node.dataset.lane;
+    const got = passClaim(lane, i);
+    if (!got) return;
+    reward({}); renderRail();
+    toast('🎟️ ' + sayReward(got));
+  } else if (act === 'passall'){
+    const got = passClaimAll();
+    if (!got.length) return;
+    reward({ big:true }); confetti(2); renderRail();
+    toast('🎟️ ' + got.length + ' tier rewards');
   } else if (act === 'pbuy'){
     const id = node && node.dataset.id;
     if (!buyPicks(id)) return;
@@ -6544,7 +6764,7 @@ function boot(){
   if (S.payout) bankPayout();          // they closed the tab on the reveal
   rollTickets();
   rollQuests();                        // deals today's board, and settles the streak
-  rollShop(); vipDaily();
+  rollShop(); vipDaily(); rollPass();
   if (payOn() && PAYMENTS.restoreOnBoot) applyRestore().then(g => { if (g.length) save(); });
   S.offers.sessionShown = false;       // one commercial offer per session — see offerSeen()
   if (S.gig.active){                   // the tab shut mid-song: the ticket is gone, the show is not
