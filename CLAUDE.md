@@ -2332,6 +2332,39 @@ cleared a rank-up before every press, and an announcement lands the same way.
 
 Thirty-five suites pass, no console errors, frame time median 16.7ms / p95 17.7ms.
 
+**Family two — the tab bar, and the crown that was doing five jobs.** A second batch of
+drawn assets arrived: five nav icons, filled and two-tone, one colour each.
+
+**The tab bar stays monochrome, and that is a measured call rather than a taste one.**
+`.tab` icons inherit `color` — `--dim2` unselected, `--ink` selected — so *the icon itself*
+says which tab you are on, alongside the coral rule at the top. Dropped into the real bar,
+the coloured set killed that signal (all four equally bright) and put five accents in a
+54px strip against §2's three-at-once rule. Two of them also broke outright on the dark
+ground: BAND's side figures are `#12131C` stroke-only, so it read as an orange blob with
+floating dots, and SHOP's handle vanished, leaving a headless bucket. Both screenshots are
+in the scratchpad.
+
+**What was adopted is the shapes, monochrome, on the existing 24px grid:**
+- **`ICON.band` is three people** instead of three mixer faders. The tab opens your four
+  members; faders read as an EQ.
+- **`ICON.star` and `ICON.flame` are new**, and they fix a real collision the audit had
+  missed: `ICON.crown` was read at **seven sites doing five different jobs** — premium (VIP,
+  offers), a won career objective, the **Star Rank card**, and the daily streak. A star rank
+  is a star; a streak is a flame; the crown is premium and nothing else, and is down to four
+  sites that are all VIP or an offer.
+- Home, Music and Shop keep their silhouettes — already distinct, already legible.
+
+The three new paths were measured against their box the same way the currency marks are:
+the first cut of the band icon ran 0.3→23.7 and the star 1.5→22.5, both clipped by their
+own stroke, and both were pulled in before they landed.
+
+`cy` grew five assertions for this: every remaining crown sitting in premium copy, the star
+on the Star Rank card and on a won objective, the flame on the streak, the band icon drawing
+three figures, and **the tab bar staying monochrome** — the selected icon brighter than the
+rest with no `fill="#"` on any of them.
+
+Thirty-five suites pass, no console errors.
+
 **Still to draw:** 20 instrument thumbnails, 8 rig parts, 24 skill icons, 3 crate geometries,
 8 studio previews, 8 venue scenes and 11 quest icons — the rest of the 196 in the inventory.
 

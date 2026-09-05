@@ -39,6 +39,7 @@ carry content, and they are now carrying all of it.
 | 12 | **Reward pop-ups** | `#anIcon`, `#coIcon` and the toast all use a category glyph | every reward → a category | §14's own rule ("no generic gift icon if real artwork exists") is not met |
 | 13 | **Locked content** | `.locked` = dashed border + a price. Locked genres are **not listed at all** | — | nothing here creates wanting |
 | 14 | **Rail chips** | DAILY `flag`, SEASON `pass`, INBOX `crate`, OFFER `crown` | INBOX shares `crate` with the crate system | one collision |
+| 15 | **`ICON.crown`** | premium, a career objective, the **Star Rank card**, the daily streak | **7 read sites → 5 jobs** | **FIXED** — star and flame added; the crown is premium only |
 
 **Fourteen surfaces. Five glyphs — `music`, `mic`, `gear`, `crate`, `pass` — are doing the
 work of 100+ distinct things.**
@@ -169,6 +170,9 @@ Three rules came out of drawing the eight, and they apply to all 196:
 3. **The silhouette carries the identity; the token carries the colour.** Where a supplied
    colour and §2 disagree, §2 wins — it is checked in, and a currency wearing the primary
    action colour is a real bug rather than a taste question.
+4. **Navigation is the exception to "give everything its own colour."** A tab bar's job is
+   to say *which tab is selected*; it does that with brightness, and per-tab colour spends
+   the only channel it has. Content gets identity, chrome gets legibility.
 
 ## 6. Order of work
 

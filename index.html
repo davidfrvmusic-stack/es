@@ -2101,7 +2101,10 @@ const curTag = (k, n, o) => `<span class="curtag" style="--cc:${curCol(k)}">${
 const ico = (d, o) => `<svg width="${(o&&o.s)||20}" height="${(o&&o.s)||20}" viewBox="0 0 24 24" fill="none"
   stroke="${(o&&o.c)||'currentColor'}" stroke-width="${(o&&o.w)||2}" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
 const ICON = {
-  band:'<path d="M6 4v16M12 4v16M18 4v16"/><circle cx="6" cy="9" r="2.2" fill="var(--panel)"/><circle cx="12" cy="15" r="2.2" fill="var(--panel)"/><circle cx="18" cy="8" r="2.2" fill="var(--panel)"/>',
+  band:'<circle cx="12" cy="7.2" r="2.9"/><path d="M7.6 20.4c0-3 2-4.9 4.4-4.9s4.4 1.9 4.4 4.9"/><circle cx="5" cy="10.4" r="1.9"/><path d="M3.2 19.6c0-2.1 1-3.4 2.4-3.4"/><circle cx="19" cy="10.4" r="1.9"/><path d="M20.8 19.6c0-2.1-1-3.4-2.4-3.4"/>',
+  /* the crown was doing five jobs; a star rank is a star and a streak is a flame */
+  star:'<path d="M12 3.1 14.12 9.09 20.47 9.25 15.42 13.11 17.23 19.2 12 15.6 6.77 19.2 8.58 13.11 3.53 9.25 9.88 9.09Z"/>',
+  flame:'<path d="M12 21c3.4 0 5.9-2.3 5.9-5.5 0-4.4-3.9-6.4-3.2-11.4-2.8 1.1-5 3.9-5 6.8 0 1.4.6 2.3.6 3.1 0 1-.8 1.6-1.6 1.6-1.1 0-1.8-1-1.8-2.3-.7 1.2-1 2.3-1 3.5C5.9 18.7 8.6 21 12 21Z"/>',
   gear:'<path d="M14 3 9.5 7.5"/><circle cx="7" cy="16" r="4.6"/><path d="M10.2 12.6 18 5c1.2-1.2 3-.2 3 1.4L21 9"/>',
   catalog:'<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="2.4"/>',
   shop:'<path d="M4 5h2l2.2 10h9.2l2-6.6H7.4"/><circle cx="10" cy="19" r="1.4"/><circle cx="17" cy="19" r="1.4"/>',
@@ -5511,7 +5514,7 @@ function showGigResult(pay, parts, quiet){
   $('#grFans').textContent = '+' + fmt(pay.f);
   const won = (pay.career || []).map(id => CAREER.find(c => c.id === id)).filter(Boolean);
   $('#grCareer').innerHTML = won.map(c =>
-    `<div class="cwin">${ico(ICON.crown, {c:PAL.onGold, s:15})}<b>${c.n}</b><span>${c.say(pay.v)}</span></div>`).join('');
+    `<div class="cwin">${ico(ICON.star, {c:PAL.onGold, s:15})}<b>${c.n}</b><span>${c.say(pay.v)}</span></div>`).join('');
   $('#gigres').classList.add('on');
   if (quiet) return;                        // re-offered on boot: no sound before a tap
   if (pay.out === 2){ confetti(3); AU.chord('big'); buzz([20, 50, 20, 50, 40]); }
@@ -5846,7 +5849,7 @@ function htmlMember(i){
   const cards = S.cards[i] || 0;
   h += `<div class="sect">Star rank</div>
     <div class="card"><div class="av" style="--c1:${RARITY[star - 1].c}">
-      ${ico(ICON.crown, {c:PAL.onAccent, s:22})}</div>
+      ${ico(ICON.star, {c:PAL.onAccent, s:22})}</div>
       <div class="info"><div class="t" style="letter-spacing:.14em">${starStr(star)}
         <span class="rar" style="color:${RARITY[star - 1].c}">${RARITY[star - 1].n}</span></div>
       <div class="d">+${fmt(BAL.starCraft[star - 1])} craft${need
@@ -6309,7 +6312,7 @@ function htmlQuests(){
               : 'No swaps left today.'} A new board is dealt when the date changes; nothing here is on a timer.</div>`;
 
   h += `<div class="sect">Streak</div>
-    <div class="card"><div class="av" style="--c1:${PAL.accent}">${ico(ICON.crown, {c:PAL.onAccent, s:22})}</div>
+    <div class="card"><div class="av" style="--c1:${PAL.accent}">${ico(ICON.flame, {c:PAL.onAccent, s:22})}</div>
       <div class="info"><div class="t">${q.streak} day${q.streak === 1 ? '' : 's'}${
         q.freeze ? ' · ' + q.freeze + ' freeze' + (q.freeze === 1 ? '' : 's') : ''}</div>
       <div class="d">Best ${q.best}. A missed day costs <b>one day</b>, not the streak —
