@@ -193,6 +193,21 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .crow .odds span{font-size:8px;font-weight:800;letter-spacing:.09em;padding:2px 5px;
   border-radius:5px;background:var(--elev)}
 .crow .pity{font-size:9.5px;font-weight:700;color:var(--gold);margin-top:4px}
+/* a career objective: what the room still owes you, and what it pays */
+.cobj{display:flex;align-items:center;gap:9px;padding:9px 11px;margin-bottom:6px;
+  border-radius:var(--r2);background:var(--panel);border:2px solid var(--line)}
+.cobj i{flex:0 0 15px;height:15px;border-radius:5px;border:2px solid var(--line2)}
+.cobj.done i{background:var(--accent2);border-color:var(--accent2)}
+.cobj div{flex:1;min-width:0}
+.cobj b{display:block;font-size:11.5px;font-weight:800}
+.cobj span{display:block;font-size:9.5px;color:var(--dim2);line-height:1.4}
+.cobj em{flex:0 0 auto;font-style:normal;font-size:9px;font-weight:800;letter-spacing:.09em;
+  color:var(--gold);text-align:right;max-width:88px}
+.cobj.done em{color:var(--dim3)}
+/* ...and what the show just earned, on the result card */
+.cwin{display:flex;align-items:center;gap:7px;padding:6px 12px;border-radius:99px;
+  background:var(--gold);color:var(--onAccent);font-size:11px;font-weight:800;margin-top:5px}
+.cwin span{opacity:.75;letter-spacing:.06em}
 #flash{position:absolute;inset:0;z-index:4;pointer-events:none;background:var(--ink);opacity:0}
 #flash.on{animation:flash .2s ease-out}
 @keyframes flash{0%{opacity:.22}100%{opacity:0}}
@@ -1003,6 +1018,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
     <div class="m"><span>MONEY</span><b id="grMoney">0</b></div>
     <div class="f"><span>FANS</span><b id="grFans">0</b></div>
   </div>
+  <div id="grCareer"></div>
   <button id="grGo" class="mgo">COLLECT</button>
 </div>
 
@@ -1218,6 +1234,7 @@ const BAL = {
   // CRATES. One roll decides the rarity; the second decides gear or a member card, and
   // the CARD BUNDLE scales with the rarity that was already rolled — so a Mythic crate
   // is worth 5.3x a Bronze in card value and the tiers can never collide.
+  careerPicks: [15, 60],              // a career objective's Picks, Open Mic -> Stadium
   crateCard: 0.22,                    // ...of every open is a member card
   cardBundle: [1, 2, 4, 8, 16],       // cards per drop, by the rolled rarity
   starCards: [0, 2, 6, 14, 30],       // cumulative cards for a star rank
@@ -1897,6 +1914,57 @@ function rigSVG(role){
   const it = st && st.gear && itemOf(st.gear.rig);
   const b = it && RIG[it.a];
   return b ? b() : '';
+}
+
+/* ===== CAREER OBJECTIVES — three per room, once each =====
+   The gig ladder pays money and fans every time you play it. These pay the three things
+   money cannot buy: a crate, Studio Hours and Picks. Each is one-time per venue, tested
+   against the show that just happened, and — like every other gig reward — **nothing is
+   banked until COLLECT**, so a tab closed on the result card claims nothing. */
+const CAREER = [
+  { id:'clear', n:'Clear the room', d:'Finish GOOD SHOW or better',
+    ok: (g, p) => p.out > 0,
+    pay: () => ({ crate:'b', n:1 }),
+    say: () => '1 Bronze Crate' },
+  { id:'craft', n:'Bring the right song', d:'Sell out with a Hit-or-better song in the room’s genre',
+    ok: (g, p) => p.out === 2 && g.songs.some(s => s.t >= 2 && s.g === VENUES[g.v].g),
+    pay: v => ({ hours: careerHours(v) }),
+    say: v => careerHours(v) + ' Studio Hour' + (careerHours(v) > 1 ? 's' : '') },
+  { id:'show', n:'Own the room', d:'Peak past 90 hype, or play three songs with nothing falling apart',
+    ok: g => g.peak >= 90 || (g.songs.length === 3 && g.sec.length >= 3 && g.sec.every(a => a >= 0.45)),
+    pay: v => ({ picks: careerPicks(v) }),
+    say: v => careerPicks(v) + ' Picks' }
+];
+/* both rewards scale with the room, so the Stadium's objectives are worth playing for */
+const careerHours = v => 1 + Math.floor(v / 3);
+const careerPicks = v => Math.round(BAL.careerPicks[0] +
+  v * (BAL.careerPicks[1] - BAL.careerPicks[0]) / (VENUES.length - 1));
+const careerDone = (v, id) => !!(S.career.obj[v] && S.career.obj[v][id]);
+/* which of this room's objectives the show that just ended has newly met */
+function careerEarned(g, pay){
+  return CAREER.filter(c => !careerDone(g.v, c.id) && c.ok(g, pay)).map(c => c.id);
+}
+function careerClaim(v, ids){
+  if (!ids || !ids.length) return [];
+  const said = [];
+  ids.forEach(id => {
+    const c = CAREER.find(x => x.id === id);
+    if (!c || careerDone(v, id)) return;
+    (S.career.obj[v] = S.career.obj[v] || {})[id] = true;
+    const r = c.pay(v);
+    if (r.crate) grantCrate(r.crate, r.n);
+    if (r.hours) S.hours += r.hours;
+    if (r.picks) S.picks += r.picks;
+    said.push(c.say(v));
+  });
+  return said;
+}
+/* how many objectives are still open anywhere — the quest pool in build step 7 reads this
+   to retire itself rather than offering a career quest with nothing left to do */
+function careerOpen(){
+  let n = 0;
+  for (let v = 0; v <= S.gig.cleared; v++) CAREER.forEach(c => { if (!careerDone(v, c.id)) n++; });
+  return n;
 }
 
 /* ===== CRATES, MEMBER CARDS AND STAR RANK =====
@@ -4129,6 +4197,11 @@ function renderBrief(){
       ${r.first ? '<span class="tag first">FIRST CLEAR PAYS x' + BAL.gigFirstMult + '</span>' : ''}</div></div>
   <div class="rew"><div class="m"><span>MONEY</span><b>${fmt(r.m * (r.first ? BAL.gigFirstMult : 1))}</b></div>
     <div class="f"><span>FANS</span><b>${fmt(r.f * (r.first ? BAL.gigFirstMult : 1))}</b></div></div>`;
+  h += `<div class="sect2">This room, once each</div><div id="career">` +
+    CAREER.map(c => { const done = careerDone(gsel.v, c.id);
+      return `<div class="cobj ${done ? 'done' : ''}"><i></i>
+        <div><b>${c.n}</b><span>${c.d}</span></div>
+        <em>${done ? 'CLAIMED' : c.say(gsel.v)}</em></div>`; }).join('') + '</div>';
   // the long-night warning: what the last song of THIS setlist would cost the room
   const fatEnd = gigFatigue(gsel.v, Math.max(0, gsel.songs.length - 1), false);
   if (fatEnd > 0.001) h += `<div class="hint" style="text-align:left;padding:2px 2px 8px">
@@ -4180,7 +4253,7 @@ function startGig(){
   const V = VENUES[gsel.v], songs = gsel.songs.map(i => S.songs[i]).filter(Boolean);
   const secs = BAL.gigSecs[Math.min(songs.length, 3) - 1];
   const hype0 = clamp(BAL.hypeStart + fxBand('hypeStart'), 0, 100);   // Rock Stance
-  gigRun = { v: gsel.v, songs, k: -1, secs, hype: hype0, pts: 0, max: 0,
+  gigRun = { v: gsel.v, songs, k: -1, secs, hype: hype0, pts: 0, max: 0, sec: [],
              best: 0, milestone: 0, encore: false, peak: hype0, hypeMul: 1 };
   el.bg.style.background = `radial-gradient(125% 72% at 50% 0%, ${V.bg[0]}, ${V.bg[1]} 48%, var(--bg0) 100%)`;
   el.takefs.classList.add('gig');
@@ -4302,6 +4375,8 @@ function renderHype(){
 }
 function endGigSection(){
   const g = gigRun;
+  const max = take.notes.length * 2;
+  g.sec.push(max ? take.pts / max : 0);      // per-section accuracy: the career test reads it
   g.pts += take.pts;
   g.best = Math.max(g.best, take.best);
   g.hype = take.hype;
@@ -4330,6 +4405,7 @@ function finishGig(){
   const parts = { perf, song, fit, power, variety };
   const pay = { m: r.m * mult, f: Math.round(r.f * mult), v: g.v, out, score, first,
                 cleared: out > 0 && g.v >= S.gig.cleared, parts };
+  pay.career = careerEarned(g, pay);          // held, not granted — COLLECT does that
   S.gig.payout = pay;
   S.gig.active = null;
   save();
@@ -4363,6 +4439,9 @@ function showGigResult(pay, parts, quiet){
       (pay.cleared ? ' <b>' + (VENUES[pay.v + 1] ? VENUES[pay.v + 1].n + ' is open.' : 'You have played every room.') + '</b>' : '');
   $('#grMoney').textContent = '+' + fmt(pay.m);
   $('#grFans').textContent = '+' + fmt(pay.f);
+  const won = (pay.career || []).map(id => CAREER.find(c => c.id === id)).filter(Boolean);
+  $('#grCareer').innerHTML = won.map(c =>
+    `<div class="cwin">${ico(ICON.crown, {c:PAL.onGold, s:15})}<b>${c.n}</b><span>${c.say(pay.v)}</span></div>`).join('');
   $('#gigres').classList.add('on');
   if (quiet) return;                        // re-offered on boot: no sound before a tap
   if (pay.out === 2){ confetti(3); AU.chord('big'); buzz([20, 50, 20, 50, 40]); }
@@ -4378,10 +4457,12 @@ function collectGig(){
   addFans(p.f);
   if (p.first) S.gig.first[p.v] = true;
   if (p.cleared) S.gig.cleared = Math.min(VENUES.length - 1, p.v + 1);
+  const said = careerClaim(p.v, p.career);
   S.gig.payout = null;
   save(); renderTop(); renderIdle();
   reward({ m:p.m, f:p.f, big:p.out === 2 });   // the counter eases up; it is not snapped
   toast('💰 +' + fmt(p.m) + ' from the show');
+  said.forEach(t => toast('🏆 ' + t));
   if (p.cleared && VENUES[p.v + 1]) toast('🎪 ' + VENUES[p.v + 1].n + ' is open');
 }
 
@@ -4967,8 +5048,8 @@ function htmlCrates(){
   });
   h += `<div class="hint" style="text-align:left;padding:2px 2px 10px">The odds above are the
     real ones and the pity counter is the real counter — both are on the card before you
-    spend, not in a footnote after. <b>Nothing grants Picks yet</b>: quests and career
-    objectives are later build steps, so today crates arrive with a rank-up.</div>`;
+    spend, not in a footnote after. Picks come from <b>career objectives</b> in the gig
+    ladder, and crates also arrive with a rank-up.</div>`;
   return h;
 }
 /* Opening is the fifth reward moment, and it borrows the other four's component. Layer
@@ -5017,9 +5098,10 @@ function closeCrate(){
 }
 function htmlShop(){
   let h = `<div class="card"><div class="av" style="--c1:${PAL.gold}">${ico(ICON.pick, {c:PAL.onGold, s:22})}</div>
-    <div class="info"><div class="t">${fmt(S.picks)} Picks · ${fmt(S.parts)} Parts</div>
+    <div class="info"><div class="t">${fmt(S.picks)} Picks · ${fmt(S.parts)} Parts · ${fmt(S.hours)} Hours</div>
     <div class="d">Picks buy crates. Parts come from scrapping gear you are not playing,
-      and they are what upgrades it.</div></div></div>`;
+      and they are what upgrades it. Studio Hours come from career objectives in the gig
+      ladder and buy nothing yet — skills are the next build step.</div></div></div>`;
   h += htmlCrates();
   h += `<div class="sect">Reserved for later</div>`;
   RESERVED.forEach(r => h += htmlReserved(r));

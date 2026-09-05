@@ -392,6 +392,28 @@ the room; a rough show still pays `BAL.gigRough` (25%) so the ticket is never wa
 and sold out adds `BAL.gigSoldBonus` (35%). The panel breaks the five parts out as
 bars and names what carried the night and what to fix.
 
+**CAREER OBJECTIVES — three per room, once each.** The ladder pays money and fans every
+time you play it; `CAREER` pays the three things money cannot buy, and each is one-time
+per venue.
+
+| objective | what it takes | what it pays |
+|---|---|---|
+| **Clear the room** | GOOD SHOW or better | 1 Bronze Crate |
+| **Bring the right song** | SOLD OUT *and* a Hit-or-better song in the room's genre | 1–3 Studio Hours |
+| **Own the room** | peak past 90 hype, **or** three songs with no section below 45% | 15–60 Picks |
+
+Both scaling rewards rise with the room, so the Stadium's objectives are worth playing
+for. They are tested against the show that just ended and held in `gig.payout.career` —
+**nothing is banked until COLLECT**, so a tab closed on the result card claims nothing and
+a replay of a cleared room earns nothing a second time. The venue brief lists all three
+with what they pay and marks the claimed ones; the result card names the ones you just
+won. `careerOpen()` counts what is still open across the rooms you have reached, which is
+what lets a later quest pool retire itself instead of offering a career quest with nothing
+left to do.
+
+**This is where Picks and Studio Hours come from.** Crates arrive here and from rank-ups;
+Picks and Hours have no other source in the game.
+
 **Nothing is banked until COLLECT**, the same protected pattern as a release:
 `gig.payout` holds `{m, f, out, score, first, cleared, parts}` in the save, and `boot()`
 re-shows the panel (silently — no sound before a tap) if the tab closed first.
@@ -871,10 +893,12 @@ hear which part is yours. `AU.takeHit(yours, energy, good)`.
 - **Fans** — the rank currency, and the only number that never falls. See §4c.
 - **Gig tickets** — 2 a local day, up to 3 more from the ad stub. Not a currency you
   can buy or bank; see §4d.
-- **Picks** (premium) — crates (§8d), and later skips and streak saves. **Nothing grants
-  them yet**; crates reach a player through rank-ups until quests land.
+- **Picks** (premium) — crates (§8d), and later skips and streak saves. Earned from the
+  **Own the room** career objective in each venue (§4d), 15 at Open Mic to 60 at Stadium.
 - **Parts** — from scrapping gear you are not playing, and the only thing that upgrades it.
 - **Member cards** — per member, and the only route to a star rank. Never bought.
+- **Studio Hours** — from the **Bring the right song** career objective, 1–3 a room. Never
+  from money and never from an ad; they buy skills (build step 5).
 - **Legacy** (prestige) — permanent multipliers.
 - **VIP** — `S.vip` only raises the offline cap to 24h today. Nothing grants it yet;
   the Shop card is still a stub, so the 24h path is reachable only by setting the flag.
@@ -1113,9 +1137,9 @@ does not move either.
   to level 60/Tour Bus while the same song still moves when its genre goes hot, and the
   catalogue at cap keeping an incoming Hit while rejecting an incoming flop.
 
-**Known gaps (deliberate, deferred):** **nothing grants Picks yet** — quests and career
-objectives are stages 6 and 7 — so crates reach a player only through rank-ups;
-skills (the third craft source, and the Tier-1/Tier-2 abilities a ★3 and ★5 unlock);
+**Known gaps (deliberate, deferred):** skills — the third craft source, what Studio Hours
+are for, and the Tier-1/Tier-2 abilities a ★3 and ★5 unlock;
+daily quests and weekly challenges (the second Picks source, and streaks);
 the *Daily* Gig and rival/multiplayer gigs (the regular ladder in §4d is built),
 six-cards-per-track-per-genre (128 signature cards ship, 384 do not),
 streaks, prestige, league, weekend events, real shop, LLM content,
@@ -1560,6 +1584,30 @@ layers, and everything surviving a reload. Twenty-five suites pass, no console e
 frame time median 16.7ms / p95 17.2ms. The star card's progress bar started life as a
 `.statrail`, which broke `st` immediately: that class promises a name and a value and
 three suites read them. It is a `.starbar` now.
+
+**Phase Two, stage 6 taken before stage 5 — career objectives, so Picks and Hours have a
+source.** The plan runs Skills at 5 and Career Gigs at 6. Two stages in a row had already
+shipped a system with nothing feeding it, and skills are bought with Studio Hours, which
+*only* career objectives grant — so building them in plan order would have made three.
+The two stages are independent, so they were swapped. Nothing else about either changed.
+
+- **Three objectives per room, tested against the show that just ended** (§4d). Clear pays
+  a Bronze Crate; Craft — sold out *and* a Hit-or-better song in the room's own genre —
+  pays 1–3 Studio Hours; Own The Room pays 15–60 Picks, and takes either a 90-hype peak or
+  three songs with no section below 45%. Both scaling rewards rise with the venue.
+- **They obey the gig's existing rule**: held in `gig.payout.career` and granted only on
+  COLLECT, so a tab closed on the result card claims nothing. The suite asserts the whole
+  path — met, held, nothing banked, then paid and marked, then a replay paying nothing.
+- **"Nothing falling apart" needed a number.** A gig take never fails you out, so there is
+  no failed section to count; `endGigSection` now records each section's accuracy and the
+  test reads it against the same 0.45 the studio take grades a passing take at.
+- **`careerOpen()` exists for a stage that has not shipped.** Build step 7's quest pool has
+  to retire career quests when nothing is left; this is the one function it will ask.
+
+Suites: the new `ca` suite is 17 assertions — the reward ladders, every objective's test
+against the cases that should and should not pass it, the brief before and after, held vs
+banked, the replay, a show the tab closed on, and the open count. Twenty-six suites pass, no console errors,
+frame time median 16.7ms / p95 17.2ms.
 
 **Removed along the way:** the tap-to-fill-tracks loop, Hook Moments, the Hype stat
 (Quality shifts chart odds instead), and weekly-seeded genre trends (replaced by the
