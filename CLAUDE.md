@@ -879,7 +879,14 @@ model says it earns.
 settings change, and on `visibilitychange`/`pagehide`. Every write flashes a **SAVED**
 pill in the top bar for ~1s (`flashSaved()`), and Settings carries a Save section with
 "Last saved N ago", the save's size in KB, and a manual SAVE NOW — autosave is
-invisible otherwise, and a player has no way to trust it. `save()` writes a versioned
+invisible otherwise, and a player has no way to trust it.
+
+**A write that fails says so.** `save()` used to flash the pill *before* the write and then
+swallow the exception, so a device out of storage — or a WebView with site data switched off,
+which is the Android case — showed a green SAVED while nothing was written. The pill is now
+inside the success branch, `save()` returns whether it wrote, a toast fires once on the first
+failure, and the Settings row reads **"Couldn't save to this device"** with the reason until a
+write succeeds. Losing a catalogue behind a green tick is the worst failure this game has. `save()` writes a versioned
 object under `chartbreaker.v3`; `load()` migrates v1 and v2 rather than throwing, and
 fills defaults for anything a newer field added.
 
@@ -2399,8 +2406,43 @@ note gone, and a learned row drawing the skill.
 
 Thirty-five suites pass, no console errors, frame time median 16.7ms / p95 17.2ms.
 
-**Still to draw:** 20 instrument thumbnails, 8 rig parts, 3 crate geometries, 8 studio
-previews, 8 venue scenes and 11 quest icons — 69 of the inventory's 123 marks.
+**Family four — the three crates, and `ICON.crate` stops doing five jobs.** A batch of drawn
+assets arrived covering crates, cosmetics, quests, season nodes, ranks and system icons.
+**One family was adopted: the crates.** Measured against the three rules the earlier families
+established, the batch broke them broadly — 40 of its 51 marks outline in `#12131C`, which is
+**1.05:1** on this ground and therefore draws nothing; the Mythic crate's own body fill was
+`#311B92`/`#1A0038` (1.58 and **1.02**), so the game's most expensive product would have been a
+hole in the screen; two marks used `<text>`, which the no-web-fonts rule (§17) forbids and which
+is unreadable at 18px anyway; two spilled their box (`currency_craft` ran to y=27 on a 24 box);
+and none of the colours came from a token, several contradicting §2's reserved meanings outright
+(a cyan that is not `--accent2`, a green that is not `--ok`, a red that is not `--bad`).
+
+Several entries also **repeated the collision the pass exists to remove** rather than fixing it:
+`objective_clear` and `ui_check` are byte-identical, and five separate things (Quality, Land a
+Hit, rank Legend, Offers, the season badge) were all the same five-point star. Four of the eight
+"currencies" are not currencies in this game at all — Hype was retired (§CURRENT STATE), and
+Quality, Craft and XP are numbers, not things you hold.
+
+**What the crates fixed is real, and it was the worst collision left.** `ICON.crate` was drawn
+at **five sites across two mechanically different things**: all three crates in the Shop, every
+crate on a reward row, *and* the Inbox — both its rail chip and every row on the screen. So:
+- **`CRATE_ART`** is two builders, `closed` and `open`, taking `(bright, shade, onAccent)`. Each
+  crate carries its own `d` shade beside its `c`, the same pairing `CUR_SHADE` makes for a
+  currency, and `crateIco(C, o)` is the only place a crate is drawn. The geometry is the batch's
+  — box, lid, a lid flung off at an angle, a beam of light — redrawn as **solid fills with no
+  stroke at all**, per §12b.
+- **The Shop card shows the state you are in**: closed when you hold none, open when you do.
+- **A reward row draws the crate it pays**, so a Bronze row and a Mythic row differ.
+- **`ICON.inbox` is new** — a tray — and the Inbox uses it in both places. `ICON.crate` is now
+  read at zero sites and stays only as a fallback the suite compares against.
+
+`cy` grew seven assertions: three distinct crate drawings in the Shop, none of them the old
+shared glyph, every one a stroke-free silhouette inside its 24×24 box, two states with a shade
+per crate, the Inbox drawing a tray rather than a crate (rail chip included), and a reward row
+drawing the crate it actually pays.
+
+**Still to draw:** 20 instrument thumbnails, 8 rig parts, 8 studio previews, 8 venue scenes and
+11 quest icons — 66 of the inventory's 123 marks.
 
 **`design/VISUAL-AUDIT.md`** is the placeholder audit and asset inventory for the visual
 content pass: fourteen surfaces where one glyph stands for many mechanically different

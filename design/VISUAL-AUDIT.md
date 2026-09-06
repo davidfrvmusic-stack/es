@@ -28,7 +28,7 @@ carry content, and they are now carrying all of it.
 | 1 | ~~**Skills**~~ | **FIXED** — one icon per skill, and a learned row draws the skill rather than a tick | ~~24 skills → 2 glyphs~~ | was the worst offender. *Chord Shapes*, *Stage Presence*, *Signature Tone*, *Feedback*, *Songwriter* and *Solo* are six different mechanics with one music note between them |
 | 2 | **Gear cards** (`htmlGear`, both slots) | `ICON.mic` for vocals, `ICON.music` for every other instrument, `ICON.gear` for every rig | **28 archetypes → 3 glyphs** | Pawnshop SG, Flying V, Baritone and Semi-Hollow are the same picture. The card does not show the item |
 | 3 | **Crate open** (`showCrate`) | same three glyphs again, tinted by rarity | gear reward → 3 glyphs | the reveal does not show what you won |
-| 4 | **Crates** (`htmlShop`) | `ICON.crate` ×3, recoloured | **3 crates → 1 glyph** | Bronze, Gold and Mythic are one box in three colours, not three objects |
+| 4 | ~~**Crates** (`htmlShop`)~~ | ~~`ICON.crate` ×3, recoloured~~ | ~~**3 crates → 1 glyph**~~ | **SETTLED** — `CRATE_ART`, two states, one entry per crate |
 | 5 | **Currencies** | Money `ICON.money`; Picks `ICON.pick`; **Parts, Studio Hours, Gig Tickets and Streak Freeze have no mark at all** — they are bare numbers with a word | **8 currencies → 2 marks** | a player cannot tell Parts from Hours at a glance anywhere |
 | 6 | **Gig tickets** (`renderTix`) | `ICON.pass` — the same glyph the **Season** rail chip uses | a ticket and a season pass share a mark | two mechanically different things, one glyph |
 | 7 | **Quests** (`htmlQuests`) | `ICON.flag` unclaimed / `ICON.check` claimed, for all 11 types | **11 quest types → 2 glyphs** | and the *reward* on the row is text, not the reward's own mark |
@@ -38,7 +38,7 @@ carry content, and they are now carrying all of it.
 | 11 | **Venues** | `VENUES[].c`, a two-stop gradient on the card | 8 rooms → 8 gradients | no silhouette, no scene, no scale |
 | 12 | **Reward pop-ups** | `#anIcon`, `#coIcon` and the toast all use a category glyph | every reward → a category | §14's own rule ("no generic gift icon if real artwork exists") is not met |
 | 13 | **Locked content** | `.locked` = dashed border + a price. Locked genres are **not listed at all** | — | nothing here creates wanting |
-| 14 | **Rail chips** | DAILY `flag`, SEASON `pass`, INBOX `crate`, OFFER `crown` | INBOX shares `crate` with the crate system | one collision |
+| 14 | ~~**Rail chips**~~ | ~~INBOX `crate`~~ | ~~shares `crate` with the crate system~~ | **SETTLED** — `ICON.inbox` is a tray |
 | 15 | **`ICON.crown`** | premium, a career objective, the **Star Rank card**, the daily streak | **7 read sites → 5 jobs** | **FIXED** — star and flame added; the crown is premium only |
 
 **Fourteen surfaces. Five glyphs — `music`, `mic`, `gear`, `crate`, `pass` — are doing the
@@ -67,7 +67,7 @@ in the game as an entry with a name and a mechanic, and is missing only its pict
 | B | **Rig part thumbnails** | 8 | 48×48 silhouette | Practice Amp · 4×12 Stack · Pedalboard · Tape Echo · Compressor Rack · Wedge Monitor · DI Box · Tube Preamp |
 | C | ~~**Skill icons**~~ | 24 | 24px grid | **BUILT** — `SKILL_ART` in `index.html`, keyed by skill id |
 | D | ~~**Currency marks**~~ | 8 | 24px grid | **BUILT** — `CURRENCY` in `index.html`, §12b. Money · Streams · Fans · Picks · Parts · Studio Hours · Gig Tickets · Streak Freeze |
-| E | **Crates** | 3 | 96×96 object | different **geometry**, not one box in three colours |
+| E | ~~**Crates**~~ | ~~3~~ | 24px grid, closed + open | **DRAWN** — `CRATE_ART`, solid fills, own shade per crate |
 | F | **Studio previews** | 8 | wide mini-scene | reuse `ROOM`'s own builders at small scale — the preview is literally the room you are buying |
 | G | **Venue mini-scenes** | 8 | wide mini-scene | stage + crowd silhouette + the room's own scale |
 | H | **Quest type icons** | 11 | 24px grid | write · quality · pocket · perfect · level · hit · gig · sold · career · crate · skill |

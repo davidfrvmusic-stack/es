@@ -2116,6 +2116,7 @@ const ICON = {
   money:'<rect x="2.5" y="6" width="19" height="12" rx="2.5"/><circle cx="12" cy="12" r="3"/><path d="M6 9.5v5M18 9.5v5"/>',
   house:'<path d="M3.5 10.5 12 4l8.5 6.5V20H3.5z"/><path d="M9.5 20v-5h5v5"/>',
   crate:'<path d="M3 8.5h18V20H3z"/><path d="M3 8.5 5 4h14l2 4.5M12 8.5V20"/>',
+  inbox:'<path d="M3 13.5h5l1.6 2.8h4.8L16 13.5h5"/><path d="M3 13.5 5.8 5h12.4L21 13.5V20H3z"/>',
   pass:'<rect x="2.5" y="6" width="19" height="12" rx="2.5"/><path d="M8 6v12"/><circle cx="15" cy="12" r="2"/>',
   cog:'<circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M21.5 12h-3M5.5 12h-3M18.7 5.3l-2.1 2.1M7.4 16.6l-2.1 2.1M18.7 18.7l-2.1-2.1M7.4 7.4L5.3 5.3"/>',
   cloud:'<path d="M7 18.5A4.5 4.5 0 0 1 7.6 9.6a5.5 5.5 0 0 1 10.6 1.6A3.8 3.8 0 0 1 17.5 18.5z"/>',
@@ -2466,15 +2467,33 @@ function careerOpen(){
    is what the drop is worth either way, so a Mythic crate can never hand out a Bronze
    crate's card value. */
 const CRATES = [
-  { k:'b', n:'Bronze Crate', c:PAL.dim,    picks:50,
+  { k:'b', n:'Bronze Crate', c:PAL.dim,    d:PAL.dim3,      picks:50,
     odds:[60, 30, 8, 1.8, 0.2], pity:10, pityAt:2 },
-  { k:'g', n:'Gold Crate',   c:PAL.gold,   picks:150,
+  { k:'g', n:'Gold Crate',   c:PAL.gold,   d:PAL.goldDk,    picks:150,
     odds:[0, 0, 72, 24, 4],     pity:8,  pityAt:3 },
-  { k:'m', n:'Mythic Crate', c:PAL.accent, picks:500,
+  { k:'m', n:'Mythic Crate', c:PAL.accent, d:PAL.accentDk,  picks:500,
     odds:[0, 0, 0, 88, 12],     pity:5,  pityAt:4 }
 ];
 const crateOf = k => CRATES.find(c => c.k === k) || null;
 const crateHeld = k => (S.crates && S.crates.own[k]) || 0;
+/* ===== CRATE ART — three crates, two states, so the Shop's three most expensive products
+   stop sharing one line-art glyph with each other and with the Inbox. Same rule as
+   CURRENCY (§12b): the fill carries the shape and --onAccent is only ever an interior
+   detail, because a dark outline on this ground is 1.05:1 and draws nothing. */
+const CRATE_ART = {
+  closed: (c, d, k) => `<rect x="3" y="9.4" width="18" height="11.6" rx="1.6" fill="${c}"/>
+    <rect x="2" y="5.6" width="20" height="4.6" rx="1.3" fill="${d}"/>
+    <rect x="10.6" y="9.4" width="2.8" height="11.6" fill="${k}" opacity=".5"/>
+    <rect x="5.4" y="7" width="13.2" height="1.8" rx=".9" fill="${k}" opacity=".4"/>`,
+  open: (c, d, k) => `<path d="M6.5 12 12 2.6 17.5 12Z" fill="${c}" opacity=".38"/>
+    <path d="M3.4 9.4 20.6 5.6l.5 2.5L3.9 11.9Z" fill="${d}"/>
+    <rect x="3" y="11.4" width="18" height="9.6" rx="1.6" fill="${c}"/>
+    <rect x="4.9" y="13.2" width="14.2" height="2.2" rx="1.1" fill="${k}" opacity=".5"/>`
+};
+/* one crate, drawn: `o.st` is 'closed' or 'open', `o.s` the pixel size */
+const crateIco = (C, o) => { o = o || {};
+  return `<svg width="${o.s || 24}" height="${o.s || 24}" viewBox="0 0 24 24" fill="none"
+    ` + `aria-hidden="true">${CRATE_ART[o.st || 'closed'](C.c, C.d, PAL.onAccent)}</svg>`; };
 /* the crate's own odds, restricted to `pityAt` and up when the counter has run out */
 function rollRarity(C, forced){
   const w = C.odds.map((o, i) => (forced && i < C.pityAt) ? 0 : o);
@@ -2617,7 +2636,7 @@ function rewardHTML(r){
   if (r.parts)   b.push(curTag('parts', r.parts));
   if (r.hours)   b.push(curTag('hours', r.hours));
   if (r.crate)   b.push(`<span class="curtag" style="--cc:${crateOf(r.crate).c}">${
-    ico(ICON.crate, { s:16, c:crateOf(r.crate).c })}<b>${r.n || 1}</b><i>${
+    crateIco(crateOf(r.crate), { s:16 })}<b>${r.n || 1}</b><i>${
     crateOf(r.crate).n.split(' ')[0].toUpperCase()}</i></span>`);
   if (r.vipDays) b.push(`<span class="curtag" style="--cc:${PAL.violet}">${
     ico(ICON.crown, { s:16, c:PAL.violet })}<b>${r.vipDays}d</b><i>VIP</i></span>`);
@@ -3754,12 +3773,23 @@ function flashSaved(){
   clearTimeout(savedT);
   savedT = setTimeout(() => n.classList.remove('on'), 1000);
 }
+/* The pill is the ONLY thing telling a player their game is safe, so it may never flash
+   for a write that did not happen: storage can be full, or a WebView can have site data
+   switched off entirely, and both throw here. On a failure the player is told once —
+   silently swallowing it means losing a catalogue behind a green tick. */
+let saveFailed = 0;
 function save(){
   S.lastSeen = Date.now();
-  flashSaved();
   if (S.cloud && S.cloud.on) S.cloud.at = S.lastSeen;      // mock cloud sync stamp
-  try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch(e){}
+  let ok = false;
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); ok = true; }
+  catch(e){
+    if (!saveFailed) toast("Couldn't save — this device is out of storage");
+    saveFailed = Date.now();
+  }
+  if (ok){ saveFailed = 0; flashSaved(); }
   if (sheetTab === 'settings') renderSheet('settings');
+  return ok;
 }
 /* Fill in whatever a newer version added, at every depth — and never touch the
    defaults object while doing it.
@@ -4574,7 +4604,7 @@ const RAIL = [
     badge:questsReady, go:openQuests, say:'Three quests a day, and a streak' },
   { id:'pass',  n:'SEASON', icon:ICON.pass, when:() => !!S.pass,
     badge:passReady, go:openPass, say:'The season track' },
-  { id:'inbox', n:'INBOX', icon:ICON.crate, when:() => !!(S.inbox && S.inbox.length),
+  { id:'inbox', n:'INBOX', icon:ICON.inbox, when:() => !!(S.inbox && S.inbox.length),
     badge:() => S.inbox.length, go:openInbox, say:'Something is waiting in your inbox' },
   { id:'event', n:'EVENT', icon:ICON.globe, when:() => !!(S.event && S.event.live),
     badge:null, say:'A weekend event is live' },
@@ -6303,7 +6333,7 @@ function htmlInbox(){
   }
   S.inbox.forEach((it, i) => {
     h += `<div class="card"><div class="av" style="--c1:${PAL.accent2}">
-      ${ico(ICON.crate, {c:PAL.onAccent, s:22})}</div>
+      ${ico(ICON.inbox, {c:PAL.onAccent, s:22})}</div>
       <div class="info"><div class="t">${esc(it.n)}</div>
       <div class="d">${esc(it.d)}</div>${rewardHTML(it.r)}</div>
       <button class="buy gold" data-act="inbox" data-i="${i}">TAKE</button></div>`;
@@ -6401,7 +6431,7 @@ function htmlCrates(){
   CRATES.forEach(C => {
     const have = crateHeld(C.k), can = S.picks >= C.picks, left = pityLeft(C);
     h += `<div class="card crow" style="--c1:${C.c}">
-      <div class="av" style="--c1:${C.c}">${ico(ICON.crate, {c:PAL.onAccent, s:22})}</div>
+      <div class="av" style="--c1:${PAL.elev}">${crateIco(C, {st: have ? 'open' : 'closed', s:26})}</div>
       <div class="info"><div class="t">${C.n}${have ? ' · ' + have : ''}</div>
         <div class="d">${curTag('picks', C.picks)} · ${pct(BAL.crateCard * 100)} member card</div>
         <div class="odds">${C.odds.map((o, i) => o ? `<span style="color:${RARITY[i].c}">${RARITY[i].n} ${pct(o)}</span>` : '').join('')}</div>
@@ -6600,10 +6630,16 @@ function htmlSettings(){
     network request anywhere in this game — the same is true of the cloud-save demo below.</div>`;
 
   const since = Math.max(0, Math.round((Date.now() - (S.lastSeen || Date.now())) / 1000));
+  const saveKB = () => { try { return (new Blob([localStorage.getItem(SAVE_KEY) || '']).size / 1024)
+    .toFixed(1); } catch(e){ return '0.0'; } };
   h += '<div class="sect">Save</div>';
   h += `<div class="srow"><div class="si" style="--c1:${PAL.selW}">${ico(ICON.save, {c:PAL.accent2Dk, s:20})}</div>
-    <div class="st"><b>Last saved ${since < 2 ? 'just now' : since + 's ago'}</b>
-      <span>Autosaves every 5s, and on every purchase, release and rename</span></div>
+    <div class="st"><b>${saveFailed ? "Couldn't save to this device"
+        : 'Last saved ' + (since < 2 ? 'just now' : since + 's ago')}</b>
+      <span>${saveFailed
+        ? 'Storage is full or site data is switched off — nothing has been written since'
+        : 'Autosaves every 5s, and on every purchase, release and rename · '
+          + saveKB() + ' KB'}</span></div>
     <button class="sbtn" data-set="savenow">SAVE NOW</button></div>`;
   h += '<div class="sect">Purchases</div>';
   const pu = S.purchases || [];
