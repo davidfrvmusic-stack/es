@@ -915,8 +915,24 @@ was already granted — a local notification. On return, a capped save sets the 
 badge and the document title to "Storage full · Chart Breaker" until COLLECT. Real
 background delivery needs `sw.js`, which is still deferred.
 
+**Export and import — the only way a band leaves this device.** There is no backend and
+`localStorage` is not durable: an Android WebView reclaims storage under pressure and
+"Clear data" wipes it with nothing to show for it. So Settings carries **EXPORT** (the raw
+save in a selectable textarea, with a COPY that falls back to a selection when the async
+clipboard is unavailable — `file://` is not a secure context) and **IMPORT** (paste, validated
+for shape, behind a confirm naming the band it replaces). Neither half touches the network;
+there is nowhere for it to go, which is the point.
+
+**`noSave` — and the bug it fixed.** A reload that *replaces* the save has to stop the autosave
+first. `location.reload()` is not instant, and both the tick and the `pagehide` handler call
+`save()` on the way out, writing the in-memory state straight back over what was just written.
+**Reset was silently broken by exactly this**: it removed the key and `pagehide` rewrote it from
+memory, so DELETE EVERYTHING left the band, the catalogue and the money completely intact.
+Import hit the same wall. Both latch `noSave` before the reload, and `save()` returns false
+while it is set.
+
 **Settings** (cog in the top bar, opens as a sheet): sound, storage-full reminder
-permission, cloud save, reset.
+permission, activity log, save (with export/import), cloud save, purchases, reset.
 
 **Cloud save is a stub and must look like one.** SIGN IN stores
 `player@chartbreaker.demo` locally and stamps `S.cloud.at` on every save so the
@@ -2443,6 +2459,52 @@ drawing the crate it actually pays.
 
 **Still to draw:** 20 instrument thumbnails, 8 rig parts, 8 studio previews, 8 venue scenes and
 11 quest icons — 66 of the inventory's 123 marks.
+
+---
+
+**Ready to wrap — the system Back button, a save you can move, and three pre-flip leftovers.**
+The game ships inside a WebView on Android, and three things stood between it and that.
+
+- **The Back button quit the game.** A single-page app with no history entries has nothing to
+  pop, so the Android system Back closed the app — from the Band tab, mid-take, mid-show. One
+  sentinel history entry now exists exactly while something is open that Back should close;
+  `popstate` spends it and `backAct()` closes one level, re-arming if there is another below.
+  The order is the order the screen stacks: **a live take or show swallows the press** (there is
+  nothing to go back to and dropping one would throw the take away), a modal takes its own
+  CANCEL and never its confirm, a reward panel swallows it because it is holding money that is
+  not banked, then the gigs panel, then the screen stack (gear → member → tab → stage). With
+  nothing open there is no sentinel and Back leaves the game, which is what Android expects at
+  the root. `syncBack()` is **polled from the tick** rather than wired into a dozen open paths,
+  so a panel opened by a route nobody remembered to annotate is still covered.
+- **The save could not leave the device**, and `localStorage` is not durable — see §10.
+- **`RESET` did not reset**, which the import work turned up: `pagehide` fired `save()` during
+  the reload and wrote the band straight back over the deleted key. §10 has the `noSave` latch.
+
+**And three pre-flip colour leftovers**, all on things the player sees constantly. Concert Neon
+stage 1 checked for raw *hex* outside `:root`, so warm `rgba()` values from the cream palette
+survived it: the modal scrim was `rgba(44,29,22,.55)`, a brown wash over the whole screen; the
+jam tap's floating amount was dark coral on a **near-white 0.9-alpha halo**, so on this ground
+the halo was carrying the text; and the tap ripple was a warm red. Six drop shadows were warm
+browns at 0.14–0.35, which is invisible on `#0B0D12` — so the press depth §2 asks for was not
+being drawn. Three new `:root` tokens (`--scrim`, `--ripple`, `--shade`) and every literal
+repointed.
+
+The new `ex` suite is 11 assertions — a screen arming the sentinel, Back closing it, Back
+walking two levels out one at a time, Back closing the gigs panel, Back cancelling a modal and
+never confirming it, Back never dropping a live take, Settings offering both buttons, EXPORT
+handing back the real save, a bad paste refused without rewriting anything, an export/import
+round trip restoring the band, and **RESET actually deleting it**.
+
+**What is still needed for a Google Play submission** — none of it code:
+a wrapper (Capacitor, not a TWA: Capacitor ships this file inside the APK so it works offline,
+where a TWA needs the game on an HTTPS origin and would go blank without the deferred `sw.js`),
+a signing key and an AAB at a current target API, a privacy-policy URL and the Data safety form
+(both trivially honest here — no network, no account, no analytics, asserted by test), a 512 PNG
+icon plus a feature graphic and screenshots (the in-file icon is an SVG data URI and Play will
+not take SVG), and the content-rating questionnaire — where the loot-box row is already satisfied,
+because the odds and the pity counter are published before the purchase. **If a checkout is ever
+wired, it must be Google Play Billing**: external processors for in-app digital goods are a policy
+violation there, and `checkout()` (§14) is deliberately provider-agnostic.
 
 **`design/VISUAL-AUDIT.md`** is the placeholder audit and asset inventory for the visual
 content pass: fourteen surfaces where one glyph stands for many mechanically different

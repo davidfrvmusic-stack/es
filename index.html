@@ -39,6 +39,9 @@
   --violet:#8C6CFF; --violet-dk:#6247C4;
   --blue:#5B8FD9; --blue-dk:#3D6396; --onGold:#0B0D12;
   --ok:#47D982; --ok-dk:#2E9457; --bad:#FF4D4D;
+  --scrim:rgba(4,5,8,.68);           /* the wash behind a modal — near-black, not the pre-flip brown */
+  --ripple:rgba(255,83,100,.5);      /* the jam tap's ring, --accent at half */
+  --shade:rgba(0,0,0,.45);           /* every drop shadow; a warm one is invisible on this ground */
   --ice:#7FD4FF; --ice-dk:#3E7FA8;   /* the one hue the accents do not hold — Streak Freeze */
   /* ---- washes: on dark, a wash is a tinted dark, not a pastel ---- */
   --accent-w:#2A1620; --accent2-w:#0F2A2C; --gold-w:#2A2417;
@@ -384,12 +387,14 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 #qlabel{font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-dk)}
 #qnote{font-size:10.5px;color:var(--dim);font-weight:600;margin:4px 0 10px}
 
-.fly{position:fixed;z-index:20;pointer-events:none;font-weight:800;font-size:16px;color:var(--accent-dk);
-  text-shadow:0 2px 8px rgba(255,243,226,.9);animation:fly .75s ease-out forwards}
+/* the floating amount was dark coral on a near-white halo — a cream-palette leftover, so on
+   this ground the halo was carrying the text. Bright ink, dark halo. */
+.fly{position:fixed;z-index:20;pointer-events:none;font-weight:800;font-size:16px;color:var(--accent);
+  text-shadow:0 2px 8px var(--cream);animation:fly .75s ease-out forwards}
 @keyframes fly{0%{transform:translate(-50%,-50%) scale(.7);opacity:1}
   100%{transform:translate(-50%,-165%) scale(1.1);opacity:0}}
 .ripple{position:fixed;z-index:19;pointer-events:none;width:16px;height:16px;margin:-8px 0 0 -8px;
-  border-radius:50%;border:2px solid rgba(217,58,38,.5);animation:ripple .45s ease-out forwards}
+  border-radius:50%;border:2px solid var(--ripple);animation:ripple .45s ease-out forwards}
 @keyframes ripple{0%{transform:scale(.4);opacity:.9}100%{transform:scale(5.5);opacity:0}}
 
 /* ===== TABS ===== */
@@ -630,7 +635,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   text-wrap:pretty}
 #rvGenre{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--dim);opacity:0;font-weight:800}
 #rvCover{width:186px;height:186px;border-radius:24px;opacity:0;position:relative;overflow:hidden;
-  display:grid;place-items:center;box-shadow:0 12px 0 var(--cover-sh),0 22px 40px rgba(120,70,30,.28)}
+  display:grid;place-items:center;box-shadow:0 12px 0 var(--cover-sh),0 22px 40px var(--shade)}
 #rvCover span{font-size:15px;font-weight:800;text-align:center;padding:14px;line-height:1.12;color:#fff;
   text-shadow:0 2px 10px rgba(0,0,0,.45)}
 .pop{animation:pop .45s cubic-bezier(.2,1.4,.4,1) forwards}
@@ -771,7 +776,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 /* ===== RANK UP ===== */
 #rankup{z-index:38;gap:11px}
 #ruBadge{width:112px;height:112px;border-radius:32px;display:grid;place-items:center;
-  background:var(--rc,var(--accent2));box-shadow:0 10px 0 rgba(120,70,30,.22);
+  background:var(--rc,var(--accent2));box-shadow:0 10px 0 var(--shade);
   animation:rupop .55s cubic-bezier(.2,1.5,.4,1)}
 @keyframes rupop{0%{opacity:0;transform:scale(.4) rotate(-12deg)}100%{opacity:1;transform:scale(1) rotate(0)}}
 #rankup h3{font-size:34px;letter-spacing:-.8px}
@@ -824,7 +829,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 /* ===== RECORDING TAKE (three lanes, thumb-sized, bottom of the screen) ===== */
 #takefs{position:fixed;left:0;right:0;bottom:0;height:46vh;min-height:300px;z-index:22;display:none;
   flex-direction:column;padding:6px 10px calc(8px + var(--safe-b));background:var(--cream2);
-  border-top:2px solid var(--line2);box-shadow:0 -14px 30px rgba(120,70,30,.14)}
+  border-top:2px solid var(--line2);box-shadow:0 -14px 30px var(--shade)}
 #takefs.on{display:flex}
 #tkbar{display:flex;align-items:center;gap:9px;padding:2px 2px 6px}
 #tkbar .tk{font-size:14px;font-weight:800;letter-spacing:.13em}
@@ -934,7 +939,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .sw{flex:0 0 auto;width:50px;height:29px;border-radius:15px;background:var(--switch-off);position:relative;
   transition:background .2s ease}
 .sw::after{content:"";position:absolute;top:3px;left:3px;width:23px;height:23px;border-radius:50%;
-  background:var(--panel);transition:transform .2s ease;box-shadow:0 1px 3px rgba(80,45,20,.35)}
+  background:var(--panel);transition:transform .2s ease;box-shadow:0 1px 3px var(--shade)}
 .sw.on{background:var(--accent2)}
 .sw.on::after{transform:translateX(21px)}
 .sbtn{flex:0 0 auto;padding:10px 14px;border-radius:12px;font-size:11.5px;font-weight:800;
@@ -946,19 +951,23 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 
 /* ===== MODAL / TOAST ===== */
 #modal{position:fixed;inset:0;z-index:40;display:none;align-items:center;justify-content:center;padding:22px;
-  background:rgba(44,29,22,.55)}
+  background:var(--scrim)}
 #modal.on{display:flex}
 .mbox{width:100%;max-width:340px;background:var(--cream);border:2px solid var(--line);border-radius:24px;
-  padding:24px 20px;text-align:center;box-shadow:0 16px 40px rgba(80,45,20,.25)}
+  padding:24px 20px;text-align:center;box-shadow:0 16px 40px var(--shade)}
 .mbox h3{font-size:20px;font-weight:800;margin-bottom:6px}
 .mbox p{font-size:12.5px;color:var(--dim);line-height:1.55;font-weight:600}
 .mbox .big{font-size:36px;font-weight:800;color:var(--accent-dk);margin:14px 0 4px;letter-spacing:-1px}
+.mbox textarea{width:100%;height:112px;margin-top:12px;padding:var(--s2);text-align:left;
+  background:var(--cream2);color:var(--dim);border:2px solid var(--line);border-radius:var(--r1);
+  font:600 11px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace;resize:none;
+  -webkit-user-select:text;user-select:text}
 .mbox button{margin-top:16px;width:100%;padding:16px;border-radius:16px;font-weight:800;font-size:15px;
   letter-spacing:.1em;background:var(--accent2);color:var(--onAccent);box-shadow:0 4px 0 var(--accent2-dk)}
 #toasts{position:fixed;left:0;right:0;top:calc(var(--safe-t) + 170px);z-index:25;
   display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none}
 .toast{background:var(--elev);color:var(--ink);border:2px solid var(--line2);border-radius:14px;
-  padding:10px 16px;font-size:12px;font-weight:700;box-shadow:0 8px 22px rgba(80,45,20,.3);
+  padding:10px 16px;font-size:12px;font-weight:700;box-shadow:0 8px 22px var(--shade);
   animation:tin .3s ease-out,tout .3s ease-in 2.6s forwards;max-width:88%;text-align:center}
 @keyframes tin{from{opacity:0;transform:translateY(-14px)}}
 @keyframes tout{to{opacity:0;transform:translateY(-10px)}}
@@ -3778,7 +3787,14 @@ function flashSaved(){
    switched off entirely, and both throw here. On a failure the player is told once —
    silently swallowing it means losing a catalogue behind a green tick. */
 let saveFailed = 0;
+/* A reload that REPLACES the save has to stop the autosave first. `location.reload()` is
+   not instant, and the tick plus the `pagehide` handler both call save() on the way out —
+   which writes the in-memory state straight back over what was just written. Reset was
+   silently broken by exactly that: the key was removed and then rewritten from memory, so
+   the band survived a DELETE EVERYTHING. */
+let noSave = false;
 function save(){
+  if (noSave) return false;
   S.lastSeen = Date.now();
   if (S.cloud && S.cloud.on) S.cloud.at = S.lastSeen;      // mock cloud sync stamp
   let ok = false;
@@ -4721,6 +4737,7 @@ function tick(){
     else if (sheetTab === 'member') softMember();
   }
   if (t - lastSave > 5){ lastSave = t; save(); }
+  syncBack();
   requestAnimationFrame(tick);
 }
 function checkUnlocks(){
@@ -6641,6 +6658,13 @@ function htmlSettings(){
         : 'Autosaves every 5s, and on every purchase, release and rename · '
           + saveKB() + ' KB'}</span></div>
     <button class="sbtn" data-set="savenow">SAVE NOW</button></div>`;
+  h += `<div class="srow"><div class="si" style="--c1:${PAL.mute}">${ico(ICON.cloud, {c:PAL.dim, s:20})}</div>
+    <div class="st"><b>Move this band to another device</b>
+      <span>Export it as text and paste it back in. No account and no upload — a save that
+        lives in one place is one wipe away from gone</span></div>
+    <div style="display:flex;flex-direction:column;gap:5px">
+      <button class="sbtn" data-set="export">EXPORT</button>
+      <button class="sbtn" data-set="import">IMPORT</button></div></div>`;
   h += '<div class="sect">Purchases</div>';
   const pu = S.purchases || [];
   h += `<div class="srow"><div class="si" style="--c1:${PAL.mute}">${ico(ICON.shop, {c:PAL.dim, s:20})}</div>
@@ -7023,6 +7047,55 @@ function armCapTimer(){
   }, ms);
 }
 
+/* ===== SAVE EXPORT — the only way a band leaves this device =====
+   There is no backend, and localStorage is not durable: Android reclaims WebView storage
+   under pressure and "Clear data" wipes it with nothing to show for it. So the save is
+   exportable as text and importable back, and neither half touches the network — there is
+   nowhere for it to go, which is the whole point. */
+function exportSave(){
+  if (!save()) return;                                  // save() already said why
+  let raw = ''; try { raw = localStorage.getItem(SAVE_KEY) || ''; } catch(e){}
+  if (!raw) return toast('Nothing to export yet');
+  const kb = (new Blob([raw]).size / 1024).toFixed(1), n = S.songs.length;
+  modal(`<h3>Export save</h3>
+    <p>This is your whole band — ${esc(S.band || 'your band')}, ${n} song${n === 1 ? '' : 's'},
+      ${kb} KB. Put it in a note or mail it to yourself.
+      <b>Nothing here leaves this device.</b></p>
+    <textarea id="expBox" readonly>${esc(raw)}</textarea>
+    <button id="expCopy" style="background:${PAL.elev};color:${PAL.ink};box-shadow:none">COPY</button>`,
+    'DONE');
+  const box = $('#expBox'), cp = $('#expCopy');
+  cp.onclick = () => {
+    box.focus(); box.select(); box.setSelectionRange(0, raw.length);
+    const done = ok => { cp.textContent = ok ? 'COPIED' : 'SELECTED — COPY IT'; };
+    // the async clipboard wants a secure context, which file:// is not, so the selection
+    // plus execCommand is the fallback — and the text ends up selected either way
+    const legacy = () => { let ok = false; try { ok = document.execCommand('copy'); } catch(e){} done(ok); };
+    if (navigator.clipboard && navigator.clipboard.writeText)
+      navigator.clipboard.writeText(raw).then(() => done(true), legacy);
+    else legacy();
+  };
+}
+function importSave(){
+  modal(`<h3>Import save</h3>
+    <p>Paste a save you exported. This <b>replaces ${esc(S.band || 'your band')}</b> on this
+      device — every song, every member, all money — and it cannot be undone. Export the
+      current one first if you want to keep it.</p>
+    <textarea id="impBox" placeholder="Paste your save here"></textarea>`,
+    'REPLACE MY BAND', () => {
+      const box = $('#impBox'), raw = ((box && box.value) || '').trim();
+      if (!raw) return toast('Nothing was pasted');
+      let d = null;
+      try { d = JSON.parse(raw); } catch(e){ return toast('That is not a Chart Breaker save'); }
+      // enough shape to know it is one of ours; load() fills in whatever a newer build added
+      if (!d || typeof d !== 'object' || !Array.isArray(d.members) || !Array.isArray(d.songs))
+        return toast('That is not a Chart Breaker save');
+      noSave = true;                                  // nothing may overwrite it on the way out
+      try { localStorage.setItem(SAVE_KEY, JSON.stringify(d)); }
+      catch(e){ noSave = false; return toast("Couldn't write — this device is out of storage"); }
+      location.reload();
+    }, true);
+}
 function settingsAct(what){
   if (what === 'sound'){
     S.mute = !S.mute; AU.init(); AU.setMute(S.mute);
@@ -7053,10 +7126,16 @@ function settingsAct(what){
     S.cloud = { on:false, email:null, at:0 };
     toast('Signed out — the save stays on this device');
   } else if (what === 'savenow'){
-    toast('Saved');
+    toast(save() ? 'Saved' : "Couldn't save — this device is out of storage");
+    return renderSheet('settings');
+  } else if (what === 'export'){
+    return exportSave();
+  } else if (what === 'import'){
+    return importSave();
   } else if (what === 'reset'){
     modal(`<h3>Reset the game?</h3><p>This deletes <b>${esc(S.band || 'your band')}</b>, every song
       in the catalogue and all money. It cannot be undone.</p>`, 'DELETE EVERYTHING', () => {
+      noSave = true;                                  // or pagehide writes the band straight back
       try { localStorage.removeItem(SAVE_KEY); OLD_KEYS.forEach(k => localStorage.removeItem(k)); } catch(e){}
       location.reload();
     }, true);
@@ -7064,6 +7143,47 @@ function settingsAct(what){
   }
   save(); renderSheet('settings');
 }
+
+/* ===== THE SYSTEM BACK BUTTON =====
+   Wrapped in a WebView on Android — which is how this ships — the system Back button is
+   `history.back()`, and a single-page game with no history entries has nothing to pop, so
+   Back closes the app outright. From the Band tab. Mid-take. Mid-show.
+
+   So one sentinel entry exists exactly while something is open that Back ought to close.
+   `popstate` spends it, `backAct()` closes exactly one level, and it re-arms if there is
+   another level below. With nothing open there is no sentinel and Back leaves the game,
+   which is what Android expects at the root. */
+let backArmed = false;
+function armBack(){
+  if (backArmed) return;
+  try { history.pushState({ cb:1 }, ''); backArmed = true; } catch(e){}
+}
+/* everything Back should close, in the order the screen stacks it */
+const backWanted = () => !!(take || gigRun || revealing || sheetTab ||
+  ($('#gigs') && $('#gigs').classList.contains('on')) ||
+  POPS.some(id => { const n = $(id); return n && n.classList.contains('on'); }));
+/* polled from the tick rather than wired into a dozen open paths, so a panel opened by a
+   route nobody remembered to annotate is still covered */
+function syncBack(){ if (backWanted()) armBack(); }
+function backAct(){
+  // a take or a show is a run in progress. There is nothing to go back TO, and dropping
+  // one would throw away the take, so the press is swallowed with a word about why.
+  if (take || gigRun){ toast('Finish the take first'); return true; }
+  const m = $('#modal');
+  if (m && m.classList.contains('on')){          // its own CANCEL, never a second path out
+    const no = $('#mno');
+    if (no) no.click(); else m.classList.remove('on');
+    return true;
+  }
+  // a reward panel is holding money that is not banked yet, and setup has no "before".
+  // Both swallow the press rather than being dismissable by it.
+  if (revealing || POPS.some(id => { const n = $(id); return n && n.classList.contains('on'); }))
+    return true;
+  if ($('#gigs') && $('#gigs').classList.contains('on')){ closeGigs(); return true; }
+  if (sheetTab){ sheetOut(); return true; }      // gear -> member -> tab -> stage
+  return false;                                  // at the stage: let the platform have it
+}
+addEventListener('popstate', () => { backArmed = false; if (backAct()) armBack(); });
 
 function modal(html, btn, onOk, two, noLabel, onNo){
   const m = $('#modal');
