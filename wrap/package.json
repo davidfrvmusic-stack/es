@@ -1,0 +1,19 @@
+{
+  "name": "chart-breaker-wrap",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Android wrapper for Chart Breaker. The game itself is still one index.html with no build step; this folder exists only to put it in an APK.",
+  "scripts": {
+    "copy": "node copy.js",
+    "sync": "npm run copy && cap sync android",
+    "apk": "npm run sync && cd android && ./gradlew assembleDebug",
+    "bundle": "npm run sync && cd android && ./gradlew bundleRelease"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.2.0"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.2.0",
+    "@capacitor/core": "^6.2.0"
+  }
+}

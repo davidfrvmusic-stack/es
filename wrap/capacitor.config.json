@@ -1,0 +1,12 @@
+{
+  "appId": "com.chartbreaker.game",
+  "appName": "Chart Breaker",
+  "webDir": "www",
+  "android": {
+    "allowMixedContent": false,
+    "backgroundColor": "#0B0D12"
+  },
+  "server": {
+    "androidScheme": "https"
+  }
+}
