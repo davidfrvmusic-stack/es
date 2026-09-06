@@ -2365,8 +2365,42 @@ rest with no `fill="#"` on any of them.
 
 Thirty-five suites pass, no console errors.
 
-**Still to draw:** 20 instrument thumbnails, 8 rig parts, 24 skill icons, 3 crate geometries,
-8 studio previews, 8 venue scenes and 11 quest icons — 93 of the inventory's 123 marks.
+**Family three — the 24 skill icons, drawn here rather than sent out.** The two batches
+before this one had a ~50% rework rate, and every rejection was one of three mechanical
+rules — solid silhouette, ink inside the box, colour from a token. Those do not need a
+round-trip; the 20 instruments (where *a Flying V must read as a V*) still do.
+
+`SKILL_ART` is the table, keyed by **the skill's own id**, so `SKILLS` needed no new field
+and the two tables cannot drift apart — a missing entry is caught by the suite rather than
+falling back silently. Each icon draws the *mechanic*: Click Track is a click grid with one
+division lit, Second Wind a refilling arc, Walking Line ascending steps, Signature Tone an
+amp with a distinct signal, Songwriter a notebook and pencil, Solo a neck in a spotlight
+cone. The six the brief named by hand are the six that were sharing one music note.
+
+**Four were redrawn before they landed**, because the first cut had the right box and the
+wrong metaphor: Steady Hand read as a boom mic (it is a stick on a head with two even ticks
+now), Pocket Player as a dumbbell (four beats with a bracket round the middle), Crowd Work
+was a hand plus sparkles (a hand up out of the crowd), and Breath Control was an abstract
+glyph. Feedback was the one box failure — it ran to y=25, clipped by its own stroke.
+
+**A learned skill now draws its own icon rather than a tick.** Every learned row used to
+show the same check; the LEARNED badge already carries that state, so the icon is free to
+say *which* skill you own.
+
+**One real bug the screenshot turned up**, unrelated to the art: `starNext()` used
+`clamp(star, 0, 4)`, so a ★5 member's "next rank" resolved to its own 30-card threshold and
+the character sheet read **"−30 of 0 cards to ★★★★★"**. It reads one past the end now, which
+is 0, and both the sheet and the crate open say *the top of the ladder* instead. `cr` gained
+two assertions for it.
+
+`cy` grew five: one icon per skill and no icon without a skill, all 24 different drawings,
+none spilling its box, every skill row on the sheet drawing its own icon with the shared
+note gone, and a learned row drawing the skill.
+
+Thirty-five suites pass, no console errors, frame time median 16.7ms / p95 17.2ms.
+
+**Still to draw:** 20 instrument thumbnails, 8 rig parts, 3 crate geometries, 8 studio
+previews, 8 venue scenes and 11 quest icons — 69 of the inventory's 123 marks.
 
 **`design/VISUAL-AUDIT.md`** is the placeholder audit and asset inventory for the visual
 content pass: fourteen surfaces where one glyph stands for many mechanically different

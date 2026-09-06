@@ -25,7 +25,7 @@ carry content, and they are now carrying all of it.
 
 | # | surface | what it draws today | how many distinct things share it | verdict |
 |---|---|---|---|---|
-| 1 | **Skills** (`renderSheet`, skill rows) | `ICON.music` for every unlearned skill, `ICON.check` for every learned one | **24 skills → 2 glyphs** | the worst offender. *Chord Shapes*, *Stage Presence*, *Signature Tone*, *Feedback*, *Songwriter* and *Solo* are six different mechanics with one music note between them |
+| 1 | ~~**Skills**~~ | **FIXED** — one icon per skill, and a learned row draws the skill rather than a tick | ~~24 skills → 2 glyphs~~ | was the worst offender. *Chord Shapes*, *Stage Presence*, *Signature Tone*, *Feedback*, *Songwriter* and *Solo* are six different mechanics with one music note between them |
 | 2 | **Gear cards** (`htmlGear`, both slots) | `ICON.mic` for vocals, `ICON.music` for every other instrument, `ICON.gear` for every rig | **28 archetypes → 3 glyphs** | Pawnshop SG, Flying V, Baritone and Semi-Hollow are the same picture. The card does not show the item |
 | 3 | **Crate open** (`showCrate`) | same three glyphs again, tinted by rarity | gear reward → 3 glyphs | the reveal does not show what you won |
 | 4 | **Crates** (`htmlShop`) | `ICON.crate` ×3, recoloured | **3 crates → 1 glyph** | Bronze, Gold and Mythic are one box in three colours, not three objects |
@@ -65,7 +65,7 @@ in the game as an entry with a name and a mechanic, and is missing only its pict
 |---|---|---|---|---|
 | A | **Instrument thumbnails** | 20 | 48×48 silhouette | 5 kits · 5 basses · 5 guitars · 5 mics. Must read as *that* instrument: a Flying V is a V, a Thunderbird is a Thunderbird |
 | B | **Rig part thumbnails** | 8 | 48×48 silhouette | Practice Amp · 4×12 Stack · Pedalboard · Tape Echo · Compressor Rack · Wedge Monitor · DI Box · Tube Preamp |
-| C | **Skill icons** | 24 | 24px grid, legible at 18 | one per skill, reflecting the *ability*, listed in §3 below |
+| C | ~~**Skill icons**~~ | 24 | 24px grid | **BUILT** — `SKILL_ART` in `index.html`, keyed by skill id |
 | D | ~~**Currency marks**~~ | 8 | 24px grid | **BUILT** — `CURRENCY` in `index.html`, §12b. Money · Streams · Fans · Picks · Parts · Studio Hours · Gig Tickets · Streak Freeze |
 | E | **Crates** | 3 | 96×96 object | different **geometry**, not one box in three colours |
 | F | **Studio previews** | 8 | wide mini-scene | reuse `ROOM`'s own builders at small scale — the preview is literally the room you are buying |
